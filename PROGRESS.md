@@ -9,7 +9,7 @@
 
 **Цель (§11):** Скелет, Electron + Vite + React + TS, hello-window, IPC bridge, app:// protocol, FontFace loader, базовый layout (filmstrip / canvas / right panel).
 
-- [ ] 1.1. `git init`, `npm init`; добавить `.gitignore` (node_modules, out, dist, *.log) — критерий: чистый `git status`.
+- [x] 1.1. `git init`, `npm init`; добавить `.gitignore` (node_modules, out, dist, *.log) — критерий: чистый `git status`.
 - [ ] 1.2. Скопировать `package.json` из §9, `npm install` — критерий: 0 vulnerabilities high.
 - [ ] 1.3. Создать структуру папок (§8).
 - [ ] 1.4. `electron.vite.config.ts` + `tsconfig.json` + `tsconfig.node.json` — критерий: `npm run typecheck` зелёный.
