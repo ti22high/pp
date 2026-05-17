@@ -24,6 +24,9 @@ export function Canvas() {
   const zoom = useUiStore((s) => s.zoom);
   const setZoom = useUiStore((s) => s.setZoom);
   const stagePan = useUiStore((s) => s.stagePan);
+  const setStagePan = useUiStore((s) => s.setStagePan);
+  const [spaceHeld, setSpaceHeld] = useState(false);
+  const panStartRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
 
   // Отслеживаем размер контейнера через ResizeObserver, чтобы Stage не выходил
   // за пределы canvas-area и не оставлял пустоты при resize окна.
@@ -40,18 +43,74 @@ export function Canvas() {
     return () => ro.disconnect();
   }, []);
 
-  // Глобальная клавиатура: Ctrl+0 сбрасывает зум к 100 %.
+  // Глобальная клавиатура:
+  // Ctrl+0 — сброс зума к 100 % и центрирование слайда.
+  // Space — переход в режим пана (зажат): меняем курсор, ждём mousedown.
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
+    const onKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === '0') {
         e.preventDefault();
         setZoom(1);
-        useUiStore.getState().setStagePan({ x: 0, y: 0 });
+        setStagePan({ x: 0, y: 0 });
+        return;
+      }
+      // Space только если не в input/textarea — иначе ломаем ввод текста.
+      if (e.code === 'Space' && !isInTextField(e.target)) {
+        e.preventDefault();
+        setSpaceHeld(true);
       }
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [setZoom]);
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        setSpaceHeld(false);
+        panStartRef.current = null;
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup', onKeyUp);
+    };
+  }, [setZoom, setStagePan]);
+
+  // Pan drag — фактическое перемещение при зажатом Space.
+  const handlePanStart = useCallback(
+    (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
+      if (!spaceHeld) return;
+      const stage = stageRef.current;
+      const pointer = stage?.getPointerPosition();
+      if (!pointer) return;
+      // Запомним стартовые координаты указателя и текущий pan,
+      // чтобы при move считать дельту от стартовой точки.
+      panStartRef.current = {
+        x: pointer.x,
+        y: pointer.y,
+        panX: effectivePanX,
+        panY: effectivePanY,
+      };
+      e.evt.preventDefault();
+    },
+    // effectivePanX/Y зависят от zoom и stagePan — пересчитываются ниже.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [spaceHeld],
+  );
+
+  const handlePanMove = useCallback(() => {
+    const start = panStartRef.current;
+    const stage = stageRef.current;
+    if (!start || !stage) return;
+    const pointer = stage.getPointerPosition();
+    if (!pointer) return;
+    setStagePan({
+      x: start.panX + (pointer.x - start.x),
+      y: start.panY + (pointer.y - start.y),
+    });
+  }, [setStagePan]);
+
+  const handlePanEnd = useCallback(() => {
+    panStartRef.current = null;
+  }, []);
 
   // Зум колесом — относительно позиции указателя (нативное поведение Slides).
   const handleWheel = useCallback(
@@ -112,7 +171,11 @@ export function Canvas() {
   const effectivePanY = stagePan.y === 0 ? centerOffsetY : stagePan.y;
 
   return (
-    <div ref={containerRef} className="app-canvas">
+    <div
+      ref={containerRef}
+      className="app-canvas"
+      style={{ cursor: spaceHeld ? (panStartRef.current ? 'grabbing' : 'grab') : 'default' }}
+    >
       <Stage
         ref={stageRef}
         width={stageSize.width}
@@ -122,6 +185,10 @@ export function Canvas() {
         x={effectivePanX}
         y={effectivePanY}
         onWheel={handleWheel}
+        onMouseDown={handlePanStart}
+        onMouseMove={handlePanMove}
+        onMouseUp={handlePanEnd}
+        onMouseLeave={handlePanEnd}
       >
         <Layer>
           <Slide slide={slide} width={slideW} height={slideH} />
@@ -129,4 +196,13 @@ export function Canvas() {
       </Stage>
     </div>
   );
+}
+
+// Утилита: считается ли событие пришедшим из текстового поля,
+// чтобы не перехватывать Space внутри input/textarea/contenteditable.
+function isInTextField(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  const tag = target.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return true;
+  return target.isContentEditable;
 }

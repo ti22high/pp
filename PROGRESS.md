@@ -37,7 +37,7 @@
 - [x] 2.2. Zod-схемы модели (`src/renderer/lib/model/schema.ts`).
 - [x] 2.3. Создать пустую `Deck` factory (1 слайд 1920×1080).
 - [x] 2.4. `Canvas.tsx`: Konva `Stage` + layers; зум колесом мыши + Ctrl+0 reset.
-- [ ] 2.5. Пан стейджа Space + drag.
+- [x] 2.5. Пан стейджа Space + drag.
 - [ ] 2.6. `RectShape` Konva renderer + drag.
 - [ ] 2.7. `Transformer` (Konva) для resize/rotate.
 - [ ] 2.8. `EllipseShape`, `LineShape`, `PathShape` renderers.
