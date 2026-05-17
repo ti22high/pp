@@ -41,7 +41,7 @@
 - [x] 2.6. `RectShape` Konva renderer + drag.
 - [x] 2.7. `Transformer` (Konva) для resize/rotate.
 - [x] 2.8. `EllipseShape`, `LineShape`, `PathShape` renderers.
-- [ ] 2.9. Toolbar: insert shape buttons.
+- [x] 2.9. Toolbar: insert shape buttons.
 - [ ] 2.10. `TextShape` renderer + double-click → TipTap overlay.
 - [ ] 2.11. TipTap setup: StarterKit + 12 расширений (см. §4.4).
 - [ ] 2.12. Inspector panel: позиция / размер / rotation поля.
