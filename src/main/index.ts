@@ -1,5 +1,9 @@
 import { app, BrowserWindow } from 'electron';
 import { createMainWindow } from './windows.js';
+import { registerAppProtocolSchema, registerAppProtocolHandlers } from './protocol.js';
+
+// Привилегированные схемы должны быть объявлены до app.whenReady().
+registerAppProtocolSchema();
 
 // Single-instance lock: не даём запускать второй экземпляр приложения параллельно
 // (на Phase 8 здесь же будет open-file forwarding для file associations).
@@ -20,6 +24,7 @@ app.on('second-instance', () => {
 app
   .whenReady()
   .then(() => {
+    registerAppProtocolHandlers();
     createMainWindow();
 
     // macOS: пересоздать окно при клике по доковой иконке, если все окна закрыты.
