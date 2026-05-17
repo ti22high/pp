@@ -23,7 +23,7 @@
 - [x] 1.12. ESLint + Prettier + EditorConfig — критерий: `npm run lint` чистый.
 - [x] 1.13. Vitest + Playwright skeleton; добавить тест «main window opens».
 - [x] 1.14. `README.md` — обновить под фактический workflow (если нужно).
-- [ ] 1.15. Native menu (`src/main/menu.ts`) с File / Edit / View / Insert / Slide / Format / Help.
+- [x] 1.15. Native menu (`src/main/menu.ts`) с File / Edit / View / Insert / Slide / Format / Help.
 
 **Завершение фазы:** `npm run typecheck && npm run lint && npm test` зелёное → `git tag phase1-complete`.
 

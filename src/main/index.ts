@@ -1,6 +1,7 @@
 import { app, BrowserWindow } from 'electron';
 import { createMainWindow } from './windows.js';
 import { registerAppProtocolSchema, registerAppProtocolHandlers } from './protocol.js';
+import { buildAppMenu } from './menu.js';
 
 // Привилегированные схемы должны быть объявлены до app.whenReady().
 registerAppProtocolSchema();
@@ -25,6 +26,7 @@ app
   .whenReady()
   .then(() => {
     registerAppProtocolHandlers();
+    buildAppMenu();
     createMainWindow();
 
     // macOS: пересоздать окно при клике по доковой иконке, если все окна закрыты.
