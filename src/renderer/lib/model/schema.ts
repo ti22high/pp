@@ -1,0 +1,222 @@
+// Zod-схемы модели данных. Используются:
+// 1) для валидации десериализованного .gslx (Phase 5),
+// 2) для парсера .pptx — после маппинга OOXML в нашу модель проверяем,
+//    что результат соответствует схеме (Phase 5),
+// 3) как источник истины TS-типов (через z.infer) — переопределение типов
+//    из @shared/types на более строгие.
+
+import { z } from 'zod';
+
+// Идентификаторы — UUID v4 (SPEC §5.2).
+export const slideIdSchema = z.string().min(1);
+export const shapeIdSchema = z.string().min(1);
+
+// Цвета: hex (#RRGGBB или #RRGGBBAA) либо CSS-имена.
+export const colorSchema = z.string().regex(/^#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$|^[a-zA-Z]+$/);
+
+// Hyperlink — на URL, на слайд, на email, на закладку (SPEC §1.14).
+export const hyperlinkSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('url'), url: z.string().url() }),
+  z.object({ kind: z.literal('slide'), slideId: slideIdSchema }),
+  z.object({ kind: z.literal('email'), email: z.string().email() }),
+  z.object({ kind: z.literal('bookmark'), bookmarkId: z.string() }),
+]);
+
+// Заливка: solid / gradient / image / transparent (SPEC §1.3).
+export const gradientStopSchema = z.object({
+  pos: z.number().min(0).max(1),
+  color: colorSchema,
+});
+
+export const fillSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('none') }),
+  z.object({ kind: z.literal('solid'), color: colorSchema }),
+  z.object({
+    kind: z.literal('gradient'),
+    type: z.enum(['linear', 'radial']),
+    angle: z.number().optional(), // только для linear
+    stops: z.array(gradientStopSchema).min(2),
+  }),
+  z.object({
+    kind: z.literal('image'),
+    src: z.string(), // путь внутри media/ (Phase 3)
+  }),
+]);
+
+// Обводка.
+export const strokeSchema = z.object({
+  color: colorSchema,
+  width: z.number().min(0).max(24),
+  dash: z.array(z.number()).optional(), // [4,2] и т.п.
+});
+
+// Тень.
+export const shadowSchema = z.object({
+  offsetX: z.number(),
+  offsetY: z.number(),
+  blur: z.number().min(0),
+  color: colorSchema,
+});
+
+// Анимация (SPEC §1.8). На Phase 2 — заглушка, реализуется в Phase 4.
+export const animationPresetSchema = z.enum([
+  'appear',
+  'fadeIn',
+  'fadeOut',
+  'flyInLeft',
+  'flyInRight',
+  'flyInTop',
+  'flyInBottom',
+  'flyOutLeft',
+  'flyOutRight',
+  'flyOutTop',
+  'flyOutBottom',
+  'zoomIn',
+  'zoomOut',
+  'spinIn',
+  'spinOut',
+  'disappear',
+  'pulse',
+  'grow',
+  'shrink',
+  'spinEmphasis',
+]);
+
+export const animationSchema = z.object({
+  id: z.string(),
+  preset: animationPresetSchema,
+  trigger: z.enum(['onClick', 'withPrev', 'afterPrev']),
+  duration: z.number().min(50).max(10_000),
+  delay: z.number().min(0).optional(),
+  byParagraph: z.boolean().optional(),
+});
+
+// Base shape: общие поля всех фигур (SPEC §5.2).
+const baseShape = {
+  id: shapeIdSchema,
+  x: z.number(),
+  y: z.number(),
+  w: z.number().min(0),
+  h: z.number().min(0),
+  rotation: z.number().optional(),
+  flipH: z.boolean().optional(),
+  flipV: z.boolean().optional(),
+  opacity: z.number().min(0).max(1).optional(),
+  fill: fillSchema.optional(),
+  stroke: strokeSchema.optional(),
+  shadow: shadowSchema.optional(),
+  hyperlink: hyperlinkSchema.optional(),
+  altText: z.string().optional(),
+  animations: z.array(animationSchema).optional(),
+  locked: z.boolean().optional(),
+};
+
+// Конкретные типы фигур (Phase 2: rect, ellipse, line, path, text;
+// table/chart/image/video/audio/equation/group/placeholder — Phase 3+).
+export const rectShapeSchema = z.object({ ...baseShape, type: z.literal('rect'), cornerRadius: z.number().min(0).optional() });
+export const ellipseShapeSchema = z.object({ ...baseShape, type: z.literal('ellipse') });
+export const lineShapeSchema = z.object({
+  ...baseShape,
+  type: z.literal('line'),
+  points: z.tuple([z.number(), z.number(), z.number(), z.number()]),
+  arrowStart: z.boolean().optional(),
+  arrowEnd: z.boolean().optional(),
+});
+export const pathShapeSchema = z.object({
+  ...baseShape,
+  type: z.literal('path'),
+  pathData: z.string(),
+});
+export const textShapeSchema = z.object({
+  ...baseShape,
+  type: z.literal('text'),
+  tiptapDoc: z.unknown(), // ProseMirror JSON
+  verticalAlign: z.enum(['top', 'middle', 'bottom']).optional(),
+  autoFit: z.enum(['none', 'shrink', 'resize']).optional(),
+});
+
+export const shapeSchema = z.discriminatedUnion('type', [
+  rectShapeSchema,
+  ellipseShapeSchema,
+  lineShapeSchema,
+  pathShapeSchema,
+  textShapeSchema,
+]);
+
+// Фон слайда.
+export const slideBackgroundSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('color'), color: colorSchema }),
+  z.object({ type: z.literal('image'), src: z.string() }),
+  z.object({ type: z.literal('theme') }),
+]);
+
+// Переход (Phase 4).
+export const transitionSchema = z.object({
+  preset: z.enum(['none', 'fade', 'slideLeft', 'slideRight', 'flip', 'cube', 'gallery', 'dissolve']),
+  duration: z.number().min(50).max(5_000),
+});
+
+// Слайд.
+export const slideSchema = z.object({
+  id: slideIdSchema,
+  layoutId: z.string().optional(),
+  background: slideBackgroundSchema.optional(),
+  shapes: z.array(shapeSchema),
+  notes: z.string().optional(),
+  transition: transitionSchema.optional(),
+  hidden: z.boolean().optional(),
+});
+
+// Тема (Phase 7).
+export const themeSchema = z.object({
+  name: z.string(),
+  colorScheme: z.object({
+    accent1: colorSchema,
+    accent2: colorSchema,
+    accent3: colorSchema,
+    accent4: colorSchema,
+    accent5: colorSchema,
+    accent6: colorSchema,
+    text1: colorSchema,
+    text2: colorSchema,
+    bg1: colorSchema,
+    bg2: colorSchema,
+  }),
+  fontScheme: z.object({
+    heading: z.string(),
+    body: z.string(),
+  }),
+});
+
+// Корневой документ.
+export const deckSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  format: z.literal('gslx'),
+  version: z.literal(1),
+  size: z.object({ w: z.number().positive(), h: z.number().positive() }),
+  theme: themeSchema.optional(),
+  slideOrder: z.array(slideIdSchema),
+  slides: z.record(slideIdSchema, slideSchema),
+  createdAt: z.string(),
+  modifiedAt: z.string(),
+});
+
+// Выводимые TS-типы.
+export type Deck = z.infer<typeof deckSchema>;
+export type Slide = z.infer<typeof slideSchema>;
+export type Shape = z.infer<typeof shapeSchema>;
+export type RectShape = z.infer<typeof rectShapeSchema>;
+export type EllipseShape = z.infer<typeof ellipseShapeSchema>;
+export type LineShape = z.infer<typeof lineShapeSchema>;
+export type PathShape = z.infer<typeof pathShapeSchema>;
+export type TextShape = z.infer<typeof textShapeSchema>;
+export type Fill = z.infer<typeof fillSchema>;
+export type Stroke = z.infer<typeof strokeSchema>;
+export type Shadow = z.infer<typeof shadowSchema>;
+export type Hyperlink = z.infer<typeof hyperlinkSchema>;
+export type Animation = z.infer<typeof animationSchema>;
+export type AnimationPreset = z.infer<typeof animationPresetSchema>;
+export type Transition = z.infer<typeof transitionSchema>;
+export type Theme = z.infer<typeof themeSchema>;
+export type SlideBackground = z.infer<typeof slideBackgroundSchema>;
