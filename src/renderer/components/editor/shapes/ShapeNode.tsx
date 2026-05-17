@@ -1,4 +1,4 @@
-import { Group, Shape as KonvaShape } from 'react-konva';
+import { Group, Rect } from 'react-konva';
 import type Konva from 'konva';
 import type { ReactNode } from 'react';
 import { useDeckStore } from '@renderer/stores/deck';
@@ -24,10 +24,11 @@ interface ShapeNodeProps {
 // 1) Унифицированная модель координат: x/y — top-left bbox в системе слайда;
 //    геометрия внутри (rect, ellipse, line, path) рисуется в локальных
 //    координатах (0..w, 0..h) — Transformer работает корректно для всех типов.
-// 2) Хитбокс по bbox: специальная Konva.Shape с пустым sceneFunc и hitFunc,
-//    рисующим bbox-прямоугольник, ловит клики по всей площади фигуры,
-//    включая «пустые» углы (как в PowerPoint/Slides).
-// 3) Drag и select-обработка одним местом, не дублируется в каждом ShapeView.
+// 2) Хитбокс по bbox: чёрный Rect с opacity 0.001 (визуально невидим,
+//    но Konva считает его участвующим в hit-тесте). Полностью прозрачный
+//    fill ("transparent" или opacity=0) Konva пропускает.
+// 3) Select при mousedown (не click) — поведение как в Slides/PowerPoint:
+//    выделение происходит сразу при нажатии, даже если мышь чуть-чуть сдвинулась.
 export function ShapeNode({
   id,
   slideId,
@@ -66,6 +67,11 @@ export function ShapeNode({
     });
   };
 
+  const handleSelect = (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
+    e.cancelBubble = true;
+    select([id]);
+  };
+
   return (
     <Group
       id={id}
@@ -77,33 +83,13 @@ export function ShapeNode({
       opacity={opacity ?? 1}
       draggable={!locked}
       onDragEnd={handleDragEnd}
-      onClick={(e) => {
-        e.cancelBubble = true;
-        select([id]);
-      }}
-      onTap={(e) => {
-        e.cancelBubble = true;
-        select([id]);
-      }}
+      onMouseDown={handleSelect}
+      onTouchStart={handleSelect}
     >
-      {/* Невидимый хитбокс на весь bbox.
-          sceneFunc пустой → ничего не рисуется в видимом canvas.
-          hitFunc заполняет hit-canvas прямоугольником w×h → любой клик в bbox
-          ловит эта shape и event поднимается до Group. */}
-      <KonvaShape
-        x={0}
-        y={0}
-        width={w}
-        height={h}
-        sceneFunc={() => {}}
-        hitFunc={(ctx, shape) => {
-          ctx.beginPath();
-          ctx.rect(0, 0, shape.width(), shape.height());
-          ctx.closePath();
-          ctx.fillStrokeShape(shape);
-        }}
-        fill="#000"
-      />
+      {/* Невидимый хитбокс по bbox.
+          fill="#000" + opacity 0.001: визуально незаметно, но Konva
+          считает ноду «не прозрачной» и включает её в hit-detection. */}
+      <Rect x={0} y={0} width={w} height={h} fill="#000" opacity={0.001} />
       {children}
     </Group>
   );

@@ -29,7 +29,6 @@ export function RectShapeView({ shape, slideId }: RectShapeViewProps) {
         width={shape.w}
         height={shape.h}
         cornerRadius={shape.cornerRadius ?? 0}
-        listening={false}
         {...fillProps}
         {...strokeProps}
       />

@@ -23,14 +23,7 @@ export function PathShapeView({ shape, slideId }: PathShapeViewProps) {
       opacity={shape.opacity}
       locked={shape.locked}
     >
-      <Path
-        x={0}
-        y={0}
-        data={shape.pathData}
-        listening={false}
-        {...fill}
-        {...stroke}
-      />
+      <Path x={0} y={0} data={shape.pathData} {...fill} {...stroke} />
     </ShapeNode>
   );
 }

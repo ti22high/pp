@@ -31,14 +31,12 @@ export function LineShapeView({ shape, slideId }: LineShapeViewProps) {
           pointerAtBeginning={!!shape.arrowStart}
           pointerAtEnding={!!shape.arrowEnd}
           fill={stroke.stroke}
-          listening={false}
           {...stroke}
         />
       ) : (
         <Line
           points={shape.points as unknown as number[]}
           hitStrokeWidth={16}
-          listening={false}
           {...stroke}
         />
       )}

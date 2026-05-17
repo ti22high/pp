@@ -30,7 +30,6 @@ export function EllipseShapeView({ shape, slideId }: EllipseShapeViewProps) {
         y={shape.h / 2}
         radiusX={shape.w / 2}
         radiusY={shape.h / 2}
-        listening={false}
         {...fillProps}
         {...strokeProps}
       />
