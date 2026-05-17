@@ -1,0 +1,115 @@
+// Фабрики моделей: создание пустого Deck, пустого слайда и базовых фигур.
+// Используется при File → New, Open Recent → fallback, и в тестах.
+
+import { v4 as uuid } from 'uuid';
+import { DEFAULT_SLIDE_WIDTH, DEFAULT_SLIDE_HEIGHT } from '@shared/constants';
+import type { Deck, Slide, Shape, RectShape, EllipseShape, TextShape } from './schema';
+
+// Пустой Deck с одним пустым слайдом 1920×1080 (16:9).
+export function createEmptyDeck(title = 'Untitled Presentation'): Deck {
+  const now = new Date().toISOString();
+  const firstSlide = createEmptySlide();
+  return {
+    id: uuid(),
+    title,
+    format: 'gslx',
+    version: 1,
+    size: { w: DEFAULT_SLIDE_WIDTH, h: DEFAULT_SLIDE_HEIGHT },
+    slideOrder: [firstSlide.id],
+    slides: { [firstSlide.id]: firstSlide },
+    createdAt: now,
+    modifiedAt: now,
+  };
+}
+
+// Пустой слайд без layout-привязки. Background = theme (наследует от мастера).
+export function createEmptySlide(): Slide {
+  return {
+    id: uuid(),
+    shapes: [],
+    background: { type: 'theme' },
+  };
+}
+
+// Дубль слайда: глубокая копия со свежими id у самого слайда и всех фигур.
+// (Используется в 2.25 Duplicate slide.)
+export function cloneSlide(src: Slide): Slide {
+  return {
+    ...src,
+    id: uuid(),
+    shapes: src.shapes.map((sh) => ({ ...sh, id: uuid() })),
+  };
+}
+
+// Базовые фабрики фигур (используются toolbar-кнопками в 2.9).
+
+export function createRect(x = 100, y = 100, w = 320, h = 200): RectShape {
+  return {
+    id: uuid(),
+    type: 'rect',
+    x,
+    y,
+    w,
+    h,
+    fill: { kind: 'solid', color: '#4a9eff' },
+    stroke: { color: '#1a73e8', width: 1 },
+  };
+}
+
+export function createEllipse(x = 100, y = 100, w = 240, h = 240): EllipseShape {
+  return {
+    id: uuid(),
+    type: 'ellipse',
+    x,
+    y,
+    w,
+    h,
+    fill: { kind: 'solid', color: '#fbbc04' },
+    stroke: { color: '#f29900', width: 1 },
+  };
+}
+
+export function createText(
+  x = 100,
+  y = 100,
+  w = 480,
+  h = 80,
+  text = 'Click to edit',
+): TextShape {
+  // Минимальный TipTap-документ: один параграф с одной строкой текста.
+  // На пункте 2.10 enable double-click → TipTap editor.
+  const tiptapDoc = {
+    type: 'doc',
+    content: [
+      {
+        type: 'paragraph',
+        content: [{ type: 'text', text }],
+      },
+    ],
+  };
+  return {
+    id: uuid(),
+    type: 'text',
+    x,
+    y,
+    w,
+    h,
+    tiptapDoc,
+    verticalAlign: 'top',
+    autoFit: 'none',
+  };
+}
+
+// Универсальный «добавить фигуру в слайд» — обновляет дату модификации deck.
+export function appendShape(deck: Deck, slideId: string, shape: Shape): Deck {
+  const slide = deck.slides[slideId];
+  if (!slide) return deck;
+  return {
+    ...deck,
+    modifiedAt: new Date().toISOString(),
+    slides: {
+      ...deck.slides,
+      [slideId]: { ...slide, shapes: [...slide.shapes, shape] },
+    },
+  };
+}
