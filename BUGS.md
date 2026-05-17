@@ -29,4 +29,16 @@
 
 ## Журнал
 
-_(пусто — добавлять снизу при первом инциденте)_
+### 2026-05-17 | Phase 1, пункт 1.2 | xlsx high vulnerability без апстрим-фикса
+
+- **Описание:** `npm audit` показывает 1 high severity для `xlsx@0.18.5`:
+  - GHSA-4r6h-8v6p-xvw6 — Prototype Pollution.
+  - GHSA-5pgg-2g8v-p4x9 — ReDoS.
+  Фикса в npm registry нет: SheetJS перешли на собственный CDN (`cdn.sheetjs.com`), новые версии в npm не публикуются.
+- **Воспроизведение:**
+  1. `npm install`
+  2. `npm audit` → `1 high severity vulnerability` в `xlsx`.
+- **Что пробовал:** Поднять до последней доступной (`0.18.5`) — это и есть последняя на npm. `npm audit fix --force` не помогает («No fix available»).
+- **Статус:** `WORKAROUND` — xlsx нужен только в Phase 3.11 (CSV→table import) и Phase 5.25 (CSV для chart data). До этого момента он лежит в node_modules, но в коде не вызывается, эксплойт-вектор отсутствует.
+- **План на Phase 3:** оценить замену на чистый CSV-парсер (`papaparse` MIT) — он покрывает оба use-case без xlsx; XLSX-импорт в спеке не требуется. Если меняем — удалить xlsx из deps и закрыть запись `FIXED`.
+- **Блокирует:** ничего на Phase 1–2. Условно — Phase 3.11, Phase 5.25.
