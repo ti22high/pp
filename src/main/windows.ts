@@ -19,7 +19,7 @@ export function createMainWindow(): BrowserWindow {
     backgroundColor: '#1f1f1f',
     title: 'SlidesClone',
     webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
+      preload: join(__dirname, '../preload/index.mjs'),
       sandbox: false,
       contextIsolation: true,
       nodeIntegration: false,
