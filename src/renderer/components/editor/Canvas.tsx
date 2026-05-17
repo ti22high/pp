@@ -7,8 +7,7 @@ import { Slide } from './Slide';
 
 // Canvas — хост Konva Stage. Размер стейджа адаптируется к контейнеру.
 // Содержимое: один активный слайд, отцентрированный и масштабированный по uiStore.zoom.
-// На пункте 2.4 — только zoom (wheel + Ctrl+0).
-// Пан (Space+drag) появится в 2.5.
+// Pan/zoom состояния живут в uiStore.
 
 const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 8;
@@ -26,10 +25,17 @@ export function Canvas() {
   const stagePan = useUiStore((s) => s.stagePan);
   const setStagePan = useUiStore((s) => s.setStagePan);
   const [spaceHeld, setSpaceHeld] = useState(false);
-  const panStartRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
 
-  // Отслеживаем размер контейнера через ResizeObserver, чтобы Stage не выходил
-  // за пределы canvas-area и не оставлял пустоты при resize окна.
+  // Признак: пользователь уже менял pan/zoom вручную → не пере-центрируем автоматически.
+  const [userMoved, setUserMoved] = useState(false);
+  const panStartRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
+  // Ref на актуальный pan для использования из event-callback без stale closure.
+  const stagePanRef = useRef(stagePan);
+  useEffect(() => {
+    stagePanRef.current = stagePan;
+  }, [stagePan]);
+
+  // Отслеживаем размер контейнера через ResizeObserver.
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -43,18 +49,26 @@ export function Canvas() {
     return () => ro.disconnect();
   }, []);
 
-  // Глобальная клавиатура:
-  // Ctrl+0 — сброс зума к 100 % и центрирование слайда.
-  // Space — переход в режим пана (зажат): меняем курсор, ждём mousedown.
+  // Авто-центрирование: пока пользователь не сдвинул вьюпорт сам,
+  // держим слайд по центру при ресайзе окна и смене зума.
+  const slideW = deck?.size.w ?? 1920;
+  const slideH = deck?.size.h ?? 1080;
+  useEffect(() => {
+    if (userMoved) return;
+    const centerX = (stageSize.width - slideW * zoom) / 2;
+    const centerY = (stageSize.height - slideH * zoom) / 2;
+    setStagePan({ x: centerX, y: centerY });
+  }, [userMoved, stageSize.width, stageSize.height, slideW, slideH, zoom, setStagePan]);
+
+  // Клавиатура: Ctrl+0 — сброс зума и пана; Space — режим пана.
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === '0') {
         e.preventDefault();
         setZoom(1);
-        setStagePan({ x: 0, y: 0 });
+        setUserMoved(false); // auto-центрирование снова возьмёт верх
         return;
       }
-      // Space только если не в input/textarea — иначе ломаем ввод текста.
       if (e.code === 'Space' && !isInTextField(e.target)) {
         e.preventDefault();
         setSpaceHeld(true);
@@ -72,27 +86,23 @@ export function Canvas() {
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
     };
-  }, [setZoom, setStagePan]);
+  }, [setZoom]);
 
-  // Pan drag — фактическое перемещение при зажатом Space.
+  // Pan drag — читаем актуальный pan через ref, чтобы не было stale closure.
   const handlePanStart = useCallback(
     (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
       if (!spaceHeld) return;
       const stage = stageRef.current;
       const pointer = stage?.getPointerPosition();
       if (!pointer) return;
-      // Запомним стартовые координаты указателя и текущий pan,
-      // чтобы при move считать дельту от стартовой точки.
       panStartRef.current = {
         x: pointer.x,
         y: pointer.y,
-        panX: effectivePanX,
-        panY: effectivePanY,
+        panX: stagePanRef.current.x,
+        panY: stagePanRef.current.y,
       };
       e.evt.preventDefault();
     },
-    // effectivePanX/Y зависят от zoom и stagePan — пересчитываются ниже.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [spaceHeld],
   );
 
@@ -102,6 +112,7 @@ export function Canvas() {
     if (!start || !stage) return;
     const pointer = stage.getPointerPosition();
     if (!pointer) return;
+    setUserMoved(true);
     setStagePan({
       x: start.panX + (pointer.x - start.x),
       y: start.panY + (pointer.y - start.y),
@@ -112,7 +123,7 @@ export function Canvas() {
     panStartRef.current = null;
   }, []);
 
-  // Зум колесом — относительно позиции указателя (нативное поведение Slides).
+  // Зум колесом — относительно позиции указателя.
   const handleWheel = useCallback(
     (e: Konva.KonvaEventObject<WheelEvent>) => {
       e.evt.preventDefault();
@@ -128,20 +139,19 @@ export function Canvas() {
           ? Math.min(MAX_ZOOM, oldScale * ZOOM_STEP)
           : Math.max(MIN_ZOOM, oldScale / ZOOM_STEP);
 
-      // Сохраняем позицию указателя относительно содержимого: меняем pan так,
-      // чтобы точка под курсором осталась на месте после смены масштаба.
+      const currentPan = stagePanRef.current;
       const mouseRelToContent = {
-        x: (pointer.x - stagePan.x) / oldScale,
-        y: (pointer.y - stagePan.y) / oldScale,
+        x: (pointer.x - currentPan.x) / oldScale,
+        y: (pointer.y - currentPan.y) / oldScale,
       };
-      const newPan = {
+      setUserMoved(true);
+      setZoom(newScale);
+      setStagePan({
         x: pointer.x - mouseRelToContent.x * newScale,
         y: pointer.y - mouseRelToContent.y * newScale,
-      };
-      setZoom(newScale);
-      useUiStore.getState().setStagePan(newPan);
+      });
     },
-    [zoom, stagePan, setZoom],
+    [zoom, setZoom, setStagePan],
   );
 
   if (!deck || !activeSlideId) {
@@ -161,15 +171,6 @@ export function Canvas() {
     );
   }
 
-  // Изначальное центрирование стейджа: если pan = 0/0, кладём слайд по центру.
-  // (Если пользователь уже двигал/зумил — сохраняем явный pan из стора.)
-  const slideW = deck.size.w;
-  const slideH = deck.size.h;
-  const centerOffsetX = (stageSize.width - slideW * zoom) / 2;
-  const centerOffsetY = (stageSize.height - slideH * zoom) / 2;
-  const effectivePanX = stagePan.x === 0 ? centerOffsetX : stagePan.x;
-  const effectivePanY = stagePan.y === 0 ? centerOffsetY : stagePan.y;
-
   return (
     <div
       ref={containerRef}
@@ -182,8 +183,8 @@ export function Canvas() {
         height={stageSize.height}
         scaleX={zoom}
         scaleY={zoom}
-        x={effectivePanX}
-        y={effectivePanY}
+        x={stagePan.x}
+        y={stagePan.y}
         onWheel={handleWheel}
         onMouseDown={handlePanStart}
         onMouseMove={handlePanMove}
