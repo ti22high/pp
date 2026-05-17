@@ -3,6 +3,7 @@ import type { VersionsInfo } from '../preload/types';
 import { useDeckStore } from './stores/deck';
 import { useUiStore } from './stores/ui';
 import { createEmptyDeck } from './lib/model/factory';
+import { Canvas } from './components/editor/Canvas';
 
 // Главный UI на Phase 2 — четыре зоны (header, filmstrip, canvas, inspector).
 // При маунте создаём пустой deck в сторе, чтобы остальные компоненты могли
@@ -49,9 +50,7 @@ export function App() {
         <p className="meta">Filmstrip появится в Phase 2.24.</p>
       </aside>
 
-      <main className="app-canvas">
-        <div className="placeholder">Canvas (Konva Stage) — Phase 2.4</div>
-      </main>
+      <Canvas />
 
       <aside className="app-inspector">
         <p className="panel-title">Inspector</p>
