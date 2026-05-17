@@ -3,7 +3,16 @@
 
 import { v4 as uuid } from 'uuid';
 import { DEFAULT_SLIDE_WIDTH, DEFAULT_SLIDE_HEIGHT } from '@shared/constants';
-import type { Deck, Slide, Shape, RectShape, EllipseShape, TextShape } from './schema';
+import type {
+  Deck,
+  Slide,
+  Shape,
+  RectShape,
+  EllipseShape,
+  LineShape,
+  PathShape,
+  TextShape,
+} from './schema';
 
 // Пустой Deck с одним пустым слайдом 1920×1080 (16:9).
 export function createEmptyDeck(title = 'Untitled Presentation'): Deck {
@@ -66,6 +75,45 @@ export function createEllipse(x = 100, y = 100, w = 240, h = 240): EllipseShape 
     h,
     fill: { kind: 'solid', color: '#fbbc04' },
     stroke: { color: '#f29900', width: 1 },
+  };
+}
+
+export function createLine(
+  x = 100,
+  y = 100,
+  dx = 240,
+  dy = 0,
+  arrow = false,
+): LineShape {
+  return {
+    id: uuid(),
+    type: 'line',
+    x,
+    y,
+    w: Math.abs(dx),
+    h: Math.abs(dy),
+    points: [0, 0, dx, dy],
+    stroke: { color: '#1a73e8', width: 2 },
+    arrowEnd: arrow,
+  };
+}
+
+export function createPath(
+  x = 100,
+  y = 100,
+  w = 160,
+  h = 160,
+  pathData = 'M0,80 Q40,0 80,80 T160,80',
+): PathShape {
+  return {
+    id: uuid(),
+    type: 'path',
+    x,
+    y,
+    w,
+    h,
+    pathData,
+    stroke: { color: '#1a73e8', width: 2 },
   };
 }
 
