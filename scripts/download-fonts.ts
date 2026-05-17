@@ -104,15 +104,33 @@ async function downloadOne(
     return;
   }
 
-  console.log(`  fetch: ${fileName}`);
-  const response = await fetch(url);
-  if (!response.ok) {
-    console.warn(`    !! HTTP ${response.status} ${response.statusText} — ${url}`);
-    return;
+  // Retry с экспоненциальным backoff — CDN иногда роняет TLS-сессию
+  // (особенно через антивирусы / провайдеров с DPI). До 4 попыток: 1s, 2s, 4s, 8s.
+  const MAX_ATTEMPTS = 4;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      console.log(`  fetch (try ${attempt}): ${fileName}`);
+      const response = await fetch(url);
+      if (!response.ok) {
+        console.warn(`    !! HTTP ${response.status} ${response.statusText} — ${url}`);
+        return;
+      }
+      const buf = Buffer.from(await response.arrayBuffer());
+      await writeFile(outPath, buf);
+      console.log(`    ok: ${outName} (${buf.length} bytes)`);
+      return;
+    } catch (err) {
+      const isLast = attempt === MAX_ATTEMPTS;
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn(`    !! attempt ${attempt} failed: ${msg}`);
+      if (isLast) {
+        console.warn(`    !! giving up on ${outName} after ${MAX_ATTEMPTS} attempts`);
+        return;
+      }
+      const wait = 1000 * 2 ** (attempt - 1);
+      await new Promise((r) => setTimeout(r, wait));
+    }
   }
-  const buf = Buffer.from(await response.arrayBuffer());
-  await writeFile(outPath, buf);
-  console.log(`    ok: ${outName} (${buf.length} bytes)`);
 }
 
 async function main(): Promise<void> {
@@ -122,17 +140,13 @@ async function main(): Promise<void> {
     console.log(`\n${font.family} (${font.fontsourceSlug})`);
     for (const subset of font.subsets) {
       for (const variant of font.variants) {
-        try {
-          await downloadOne(
-            font.fontsourceSlug,
-            font.family,
-            subset,
-            variant.weight,
-            variant.style,
-          );
-        } catch (err) {
-          console.warn(`    !! error for ${font.family}/${subset}/${variant.weight}:`, err);
-        }
+        await downloadOne(
+          font.fontsourceSlug,
+          font.family,
+          subset,
+          variant.weight,
+          variant.style,
+        );
       }
     }
   }
