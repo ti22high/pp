@@ -91,9 +91,11 @@ export function Canvas() {
     };
   }, [setZoom]);
 
-  // Один обработчик mousedown на Stage: либо начало pan (если Space зажат),
-  // либо select shape (находим ближайший Group с name="shape-root"),
-  // либо снятие выделения (клик на Stage/фон слайда).
+  // Один обработчик mousedown на Stage:
+  // - если Space зажат → начало pan,
+  // - если клик попал в любую ноду, чей id входит в множество shape-id
+  //   текущего слайда (или в потомка такой ноды) → select эту фигуру,
+  // - иначе → снять выделение.
   const handleStageMouseDown = useCallback(
     (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
       const stage = stageRef.current;
@@ -113,12 +115,21 @@ export function Canvas() {
         return;
       }
 
-      // Поднимаемся по дереву от hit-target до Group с name="shape-root".
-      // Если нашли — выделяем эту фигуру; иначе — снимаем выделение.
+      // Список id фигур активного слайда — берём свежий snapshot из store,
+      // чтобы не зависеть от React-замыкания.
+      const deckNow = useDeckStore.getState().deck;
+      const activeId = useUiStore.getState().activeSlideId;
+      if (!deckNow || !activeId) return;
+      const slide = deckNow.slides[activeId];
+      if (!slide) return;
+      const ids = new Set(slide.shapes.map((s) => s.id));
+
+      // Поднимаемся по дереву от hit-target и ищем первую ноду, чей id входит в set.
       let node: Konva.Node | null = e.target;
       while (node && node !== stage) {
-        if (node.name() === 'shape-root') {
-          useSelectionStore.getState().select([node.id() as never]);
+        const nodeId = node.id();
+        if (nodeId && ids.has(nodeId)) {
+          useSelectionStore.getState().select([nodeId]);
           return;
         }
         node = node.getParent();
