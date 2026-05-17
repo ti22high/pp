@@ -26,7 +26,6 @@ export function Canvas() {
   const setZoom = useUiStore((s) => s.setZoom);
   const stagePan = useUiStore((s) => s.stagePan);
   const setStagePan = useUiStore((s) => s.setStagePan);
-  const clearSelection = useSelectionStore((s) => s.clear);
   const [spaceHeld, setSpaceHeld] = useState(false);
   const getStage = useCallback(() => stageRef.current, []);
 
@@ -92,20 +91,39 @@ export function Canvas() {
     };
   }, [setZoom]);
 
-  // Pan drag — читаем актуальный pan через ref, чтобы не было stale closure.
-  const handlePanStart = useCallback(
+  // Один обработчик mousedown на Stage: либо начало pan (если Space зажат),
+  // либо select shape (находим ближайший Group с name="shape-root"),
+  // либо снятие выделения (клик на Stage/фон слайда).
+  const handleStageMouseDown = useCallback(
     (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
-      if (!spaceHeld) return;
       const stage = stageRef.current;
-      const pointer = stage?.getPointerPosition();
-      if (!pointer) return;
-      panStartRef.current = {
-        x: pointer.x,
-        y: pointer.y,
-        panX: stagePanRef.current.x,
-        panY: stagePanRef.current.y,
-      };
-      e.evt.preventDefault();
+      if (!stage) return;
+
+      // Pan mode имеет приоритет.
+      if (spaceHeld) {
+        const pointer = stage.getPointerPosition();
+        if (!pointer) return;
+        panStartRef.current = {
+          x: pointer.x,
+          y: pointer.y,
+          panX: stagePanRef.current.x,
+          panY: stagePanRef.current.y,
+        };
+        e.evt.preventDefault();
+        return;
+      }
+
+      // Поднимаемся по дереву от hit-target до Group с name="shape-root".
+      // Если нашли — выделяем эту фигуру; иначе — снимаем выделение.
+      let node: Konva.Node | null = e.target;
+      while (node && node !== stage) {
+        if (node.name() === 'shape-root') {
+          useSelectionStore.getState().select([node.id() as never]);
+          return;
+        }
+        node = node.getParent();
+      }
+      useSelectionStore.getState().clear();
     },
     [spaceHeld],
   );
@@ -190,16 +208,10 @@ export function Canvas() {
         x={stagePan.x}
         y={stagePan.y}
         onWheel={handleWheel}
-        onMouseDown={handlePanStart}
+        onMouseDown={handleStageMouseDown}
         onMouseMove={handlePanMove}
         onMouseUp={handlePanEnd}
         onMouseLeave={handlePanEnd}
-        onClick={(e) => {
-          // Клик мимо всех фигур (по stage или по фону слайда) — снимаем выделение.
-          if (e.target === e.target.getStage()) {
-            clearSelection();
-          }
-        }}
       >
         <Layer>
           <Slide slide={slide} width={slideW} height={slideH} />

@@ -2,7 +2,6 @@ import { Group, Rect } from 'react-konva';
 import type Konva from 'konva';
 import type { ReactNode } from 'react';
 import { useDeckStore } from '@renderer/stores/deck';
-import { useSelectionStore } from '@renderer/stores/selection';
 import { useUiStore } from '@renderer/stores/ui';
 import type { ShapeId } from '@shared/types';
 
@@ -20,15 +19,12 @@ interface ShapeNodeProps {
   children: ReactNode;
 }
 
-// Универсальный wrapper для любой фигуры. Решает три задачи:
-// 1) Унифицированная модель координат: x/y — top-left bbox в системе слайда;
-//    геометрия внутри (rect, ellipse, line, path) рисуется в локальных
-//    координатах (0..w, 0..h) — Transformer работает корректно для всех типов.
-// 2) Хитбокс по bbox: чёрный Rect с opacity 0.001 (визуально невидим,
-//    но Konva считает его участвующим в hit-тесте). Полностью прозрачный
-//    fill ("transparent" или opacity=0) Konva пропускает.
-// 3) Select при mousedown (не click) — поведение как в Slides/PowerPoint:
-//    выделение происходит сразу при нажатии, даже если мышь чуть-чуть сдвинулась.
+// Универсальный wrapper для любой фигуры:
+// - x/y в координатах слайда, дети рисуются от (0,0) до (w,h),
+// - Group имеет stable `id` — Stage по нему находит shape при mousedown
+//   и выделяет (см. Canvas.tsx handleStageMouseDown),
+// - невидимый bbox-хитбокс ловит клики в углах, где нет геометрии фигуры,
+// - drag обновляет позицию в deckStore.
 export function ShapeNode({
   id,
   slideId,
@@ -41,7 +37,6 @@ export function ShapeNode({
   locked,
   children,
 }: ShapeNodeProps) {
-  const select = useSelectionStore((s) => s.select);
   const snapToGrid = useUiStore((s) => s.snapToGrid);
 
   const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
@@ -67,14 +62,10 @@ export function ShapeNode({
     });
   };
 
-  const handleSelect = (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
-    e.cancelBubble = true;
-    select([id]);
-  };
-
   return (
     <Group
       id={id}
+      name="shape-root"
       x={x}
       y={y}
       width={w}
@@ -83,12 +74,9 @@ export function ShapeNode({
       opacity={opacity ?? 1}
       draggable={!locked}
       onDragEnd={handleDragEnd}
-      onMouseDown={handleSelect}
-      onTouchStart={handleSelect}
     >
-      {/* Невидимый хитбокс по bbox.
-          fill="#000" + opacity 0.001: визуально незаметно, но Konva
-          считает ноду «не прозрачной» и включает её в hit-detection. */}
+      {/* Невидимый bbox-хитбокс: чёрный fill + минимальная opacity, чтобы
+          Konva включила его в hit-detection (полностью прозрачные ноды Konva пропускает). */}
       <Rect x={0} y={0} width={w} height={h} fill="#000" opacity={0.001} />
       {children}
     </Group>
