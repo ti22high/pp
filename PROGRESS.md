@@ -39,7 +39,7 @@
 - [x] 2.4. `Canvas.tsx`: Konva `Stage` + layers; зум колесом мыши + Ctrl+0 reset.
 - [x] 2.5. Пан стейджа Space + drag.
 - [x] 2.6. `RectShape` Konva renderer + drag.
-- [ ] 2.7. `Transformer` (Konva) для resize/rotate.
+- [x] 2.7. `Transformer` (Konva) для resize/rotate.
 - [ ] 2.8. `EllipseShape`, `LineShape`, `PathShape` renderers.
 - [ ] 2.9. Toolbar: insert shape buttons.
 - [ ] 2.10. `TextShape` renderer + double-click → TipTap overlay.

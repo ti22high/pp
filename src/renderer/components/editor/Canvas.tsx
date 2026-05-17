@@ -3,7 +3,9 @@ import { Stage, Layer } from 'react-konva';
 import type Konva from 'konva';
 import { useDeckStore } from '@renderer/stores/deck';
 import { useUiStore } from '@renderer/stores/ui';
+import { useSelectionStore } from '@renderer/stores/selection';
 import { Slide } from './Slide';
+import { SelectionTransformer } from './SelectionTransformer';
 
 // Canvas — хост Konva Stage. Размер стейджа адаптируется к контейнеру.
 // Содержимое: один активный слайд, отцентрированный и масштабированный по uiStore.zoom.
@@ -24,7 +26,9 @@ export function Canvas() {
   const setZoom = useUiStore((s) => s.setZoom);
   const stagePan = useUiStore((s) => s.stagePan);
   const setStagePan = useUiStore((s) => s.setStagePan);
+  const clearSelection = useSelectionStore((s) => s.clear);
   const [spaceHeld, setSpaceHeld] = useState(false);
+  const getStage = useCallback(() => stageRef.current, []);
 
   // Признак: пользователь уже менял pan/zoom вручную → не пере-центрируем автоматически.
   const [userMoved, setUserMoved] = useState(false);
@@ -190,9 +194,18 @@ export function Canvas() {
         onMouseMove={handlePanMove}
         onMouseUp={handlePanEnd}
         onMouseLeave={handlePanEnd}
+        onClick={(e) => {
+          // Клик мимо всех фигур (по stage или по фону слайда) — снимаем выделение.
+          if (e.target === e.target.getStage()) {
+            clearSelection();
+          }
+        }}
       >
         <Layer>
           <Slide slide={slide} width={slideW} height={slideH} />
+        </Layer>
+        <Layer>
+          <SelectionTransformer slideId={slide.id} getStage={getStage} />
         </Layer>
       </Stage>
     </div>
