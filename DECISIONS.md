@@ -46,3 +46,14 @@
   - `postinstall: electron-builder install-app-deps` → перенесено в отдельный npm-скрипт `rebuild:native`. Причина: в sandbox при первичной установке скачивание electron headers недоступно (403). Native rebuild для `better-sqlite3` нужен только начиная с Phase 7 — выполнить `npm run rebuild:native` перед стартом Phase 7.
   - `"private": true` — стандартная гигиена, чтобы случайно не опубликовать в npm registry.
 - **Обоснование:** Все замены — минимально необходимый сдвиг к ближайшим стабильным версиям, чтобы (а) `npm install` прошёл, (б) `npm audit` имел не больше одной known-unfixable vulnerability (xlsx). Стек по сути не изменился.
+
+---
+
+### 2026-05-17 | Phase 1, пункт 1.10 | Источник шрифтов
+
+- **Контекст:** SPEC §1.2 фиксирует список ~20 шрифтов, §6.8 показывает, как их загружать через FontFace из `app://fonts/<file>`. Откуда брать сами `.woff2` — спека не указывает.
+- **Решение:** Используем **fontsource.org R2 CDN** (`https://r2.fontsource.org/fonts/<slug>@latest/<subset>-<weight>-<style>.woff2`). Скрипт `scripts/download-fonts.ts` качает все варианты в `resources/fonts/`. Имена сохранённых файлов: `<Family>-<weight>-<style>-<subset>.woff2`.
+- **Веса:** 400 normal + 700 normal для всех; 400 italic — для пропорциональных рабочих шрифтов; моноширинные (Roboto Mono, JetBrains Mono) — только normal.
+- **Подсеты:** latin + cyrillic (по §1.2 — «все с кириллическими сабсетами»). Lato, Poppins, Roboto Mono — только latin, у них нет официальной кириллицы на fontsource.
+- **Альтернатива, рассмотренная и отвергнутая:** ставить fontsource как npm-пакеты (`@fontsource/roboto` и др.) и копировать из `node_modules` — раздуло бы node_modules на ~200 МБ и привязало бы к npm-релизам fontsource.
+- **Обоснование:** fontsource — MIT, без регистрации, стабильный CDN, поддерживает прямые woff2-ссылки. Скрипт идемпотентен (skip if exists), безопасно запускать повторно.

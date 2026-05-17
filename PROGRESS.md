@@ -18,7 +18,7 @@
 - [x] 1.7. `src/renderer/main.tsx` + `App.tsx` + базовый CSS layout (header / filmstrip / canvas / inspector).
 - [x] 1.8. IPC channels enum в `src/shared/ipc-channels.ts`.
 - [x] 1.9. Custom protocol `app://` в main (`protocol.handle`) — для шрифтов и медиа.
-- [ ] 1.10. Скрипт `scripts/download-fonts.ts` — скачать ~20 woff2 шрифтов в `resources/fonts/`.
+- [x] 1.10. Скрипт `scripts/download-fonts.ts` — скачать ~20 woff2 шрифтов в `resources/fonts/`. _(Скрипт коммитится; запуск — на машине пользователя через `npm run fonts:download`, в sandbox 403 от fontsource CDN.)_
 - [ ] 1.11. `src/renderer/lib/fonts.ts`: FontFace loader; вызвать до маунта Canvas.
 - [ ] 1.12. ESLint + Prettier + EditorConfig — критерий: `npm run lint` чистый.
 - [ ] 1.13. Vitest + Playwright skeleton; добавить тест «main window opens».
