@@ -33,7 +33,7 @@
 
 **Цель (§11):** Stage + layers, shape types (text/rect/ellipse/line), drag/resize/rotate, TipTap text overlay, selection, undo/redo, smart guides, snap to grid, group/ungroup, z-order, copy/paste/duplicate, hotkeys.
 
-- [ ] 2.1. Zustand stores: `deckStore`, `uiStore`, `selectionStore`, `historyStore`.
+- [x] 2.1. Zustand stores: `deckStore`, `uiStore`, `selectionStore`, `historyStore`.
 - [ ] 2.2. Zod-схемы модели (`src/renderer/lib/model/schema.ts`).
 - [ ] 2.3. Создать пустую `Deck` factory (1 слайд 1920×1080).
 - [ ] 2.4. `Canvas.tsx`: Konva `Stage` + layers; зум колесом мыши + Ctrl+0 reset.
