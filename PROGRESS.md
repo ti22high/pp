@@ -22,7 +22,7 @@
 - [x] 1.11. `src/renderer/lib/fonts.ts`: FontFace loader; вызвать до маунта Canvas.
 - [x] 1.12. ESLint + Prettier + EditorConfig — критерий: `npm run lint` чистый.
 - [x] 1.13. Vitest + Playwright skeleton; добавить тест «main window opens».
-- [ ] 1.14. `README.md` — обновить под фактический workflow (если нужно).
+- [x] 1.14. `README.md` — обновить под фактический workflow (если нужно).
 - [ ] 1.15. Native menu (`src/main/menu.ts`) с File / Edit / View / Insert / Slide / Format / Help.
 
 **Завершение фазы:** `npm run typecheck && npm run lint && npm test` зелёное → `git tag phase1-complete`.

@@ -2,7 +2,7 @@
 
 Offline-клон Google Slides для Windows. Полнофункциональный редактор презентаций без сети, упаковка — `.exe` (NSIS installer).
 
-**Стек:** Electron 42 + React 19 + TypeScript 6 + Konva 10 + TipTap 3 + Zustand 5 + PptxGenJS 4 + KaTeX 0.16.
+**Стек:** Electron 42 + React 19 + TypeScript 5.7 + Vite 7 + Konva 10 + TipTap 3 + Zustand 5 + PptxGenJS 4 + KaTeX 0.16.
 
 **Платформа:** Windows 10/11 x64.
 
@@ -12,10 +12,14 @@ Offline-клон Google Slides для Windows. Полнофункциональ�
 
 ```bash
 npm install
+npm run fonts:download   # один раз: качает ~20 woff2 в resources/fonts
 npm run dev
 ```
 
 Откроется окно Electron с hot-reload через electron-vite.
+
+> Если `npm install` упал на postinstall — это ожидаемо в headless-окружении (см. `BUGS.md`).
+> На Windows бинарник Electron обычно ставится автоматически; если нет — `node node_modules/electron/install.js`.
 
 ## Сборка инсталлятора (.exe)
 
@@ -28,11 +32,13 @@ npm run build:win
 ## Прочие скрипты
 
 ```bash
-npm run typecheck      # tsc --noEmit
-npm run lint           # eslint . --max-warnings 0
-npm run format         # prettier --write .
-npm test               # vitest run
-npm run test:e2e       # playwright test (Electron-launcher)
+npm run typecheck         # tsc --noEmit
+npm run lint              # eslint . --max-warnings 0
+npm run format            # prettier --write .
+npm test                  # vitest run
+npm run test:e2e          # playwright test (Electron-launcher; нужен npm run build)
+npm run fonts:download    # подкачать bundled woff2 в resources/fonts
+npm run rebuild:native    # пересобрать native-модули под Electron (нужно с Phase 7, better-sqlite3)
 ```
 
 ---
