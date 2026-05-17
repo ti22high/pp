@@ -11,7 +11,7 @@
 
 - [x] 1.1. `git init`, `npm init`; добавить `.gitignore` (node_modules, out, dist, *.log) — критерий: чистый `git status`.
 - [x] 1.2. Скопировать `package.json` из §9, `npm install` — критерий: 0 vulnerabilities high. _(1 high у xlsx без апстрим-фикса, см. BUGS.md и DECISIONS.md; запланирована замена на papaparse в Phase 3.)_
-- [ ] 1.3. Создать структуру папок (§8).
+- [x] 1.3. Создать структуру папок (§8).
 - [ ] 1.4. `electron.vite.config.ts` + `tsconfig.json` + `tsconfig.node.json` — критерий: `npm run typecheck` зелёный.
 - [ ] 1.5. `src/main/index.ts`: создать `BrowserWindow`, загрузить renderer URL/файл — критерий: `npm run dev` открывает окно.
 - [ ] 1.6. `src/preload/index.ts`: `contextBridge.exposeInMainWorld('api', {...})` с типизацией.
