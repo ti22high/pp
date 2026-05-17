@@ -1,9 +1,9 @@
 import { Group, Rect } from 'react-konva';
 import type { Slide as SlideModel } from '@renderer/lib/model/schema';
+import { RectShapeView } from './shapes/RectShapeView';
 
-// Рендер одного слайда внутри Stage. На пункте 2.4 это только белый фон
-// слайда + рамка с тенью. Фигуры (RectShape, EllipseShape и т.д.) появятся
-// начиная с 2.6, и будут отрисованы внутри этой же группы.
+// Рендер одного слайда внутри Stage: фон + все фигуры в z-order.
+// Каждый ShapeView сам подписан на свой кусок deckStore через id.
 
 interface SlideProps {
   slide: SlideModel;
@@ -12,8 +12,6 @@ interface SlideProps {
 }
 
 export function Slide({ slide, width, height }: SlideProps) {
-  // Цвет фона: при background.type === 'color' берём заданный; иначе белый
-  // (theme и image заработают в 2.28 Background editor).
   const bgColor =
     slide.background?.type === 'color' && slide.background.color
       ? slide.background.color
@@ -21,7 +19,6 @@ export function Slide({ slide, width, height }: SlideProps) {
 
   return (
     <Group>
-      {/* Фон слайда с лёгкой тенью, чтобы визуально отделить от canvas-зоны. */}
       <Rect
         x={0}
         y={0}
@@ -32,8 +29,15 @@ export function Slide({ slide, width, height }: SlideProps) {
         shadowBlur={12}
         shadowOpacity={0.18}
         shadowOffset={{ x: 0, y: 2 }}
+        listening={false}
       />
-      {/* Здесь в 2.6+ будут отрисовываться slide.shapes. */}
+      {slide.shapes.map((shape) => {
+        if (shape.type === 'rect') {
+          return <RectShapeView key={shape.id} shape={shape} slideId={slide.id} />;
+        }
+        // Остальные типы — в 2.8/2.10.
+        return null;
+      })}
     </Group>
   );
 }

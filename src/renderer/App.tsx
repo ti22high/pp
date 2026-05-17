@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { VersionsInfo } from '../preload/types';
 import { useDeckStore } from './stores/deck';
 import { useUiStore } from './stores/ui';
-import { createEmptyDeck } from './lib/model/factory';
+import { createEmptyDeck, createRect, appendShape } from './lib/model/factory';
 import { Canvas } from './components/editor/Canvas';
 
 // Главный UI на Phase 2 — четыре зоны (header, filmstrip, canvas, inspector).
@@ -47,7 +47,16 @@ export function App() {
         <p className="meta">
           {activeSlideId ? `Active: ${activeSlideId.slice(0, 8)}…` : 'no active slide'}
         </p>
-        <p className="meta">Filmstrip появится в Phase 2.24.</p>
+        <button
+          type="button"
+          onClick={() => {
+            if (!deck || !activeSlideId) return;
+            setDeck(appendShape(deck, activeSlideId, createRect()));
+          }}
+        >
+          + Rect
+        </button>
+        <p className="meta">Полноценный toolbar — Phase 2.9.</p>
       </aside>
 
       <Canvas />
