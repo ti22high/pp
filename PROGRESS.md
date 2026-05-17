@@ -16,7 +16,7 @@
 - [x] 1.5. `src/main/index.ts`: создать `BrowserWindow`, загрузить renderer URL/файл — критерий: `npm run dev` открывает окно.
 - [x] 1.6. `src/preload/index.ts`: `contextBridge.exposeInMainWorld('api', {...})` с типизацией.
 - [x] 1.7. `src/renderer/main.tsx` + `App.tsx` + базовый CSS layout (header / filmstrip / canvas / inspector).
-- [ ] 1.8. IPC channels enum в `src/shared/ipc-channels.ts`.
+- [x] 1.8. IPC channels enum в `src/shared/ipc-channels.ts`.
 - [ ] 1.9. Custom protocol `app://` в main (`protocol.handle`) — для шрифтов и медиа.
 - [ ] 1.10. Скрипт `scripts/download-fonts.ts` — скачать ~20 woff2 шрифтов в `resources/fonts/`.
 - [ ] 1.11. `src/renderer/lib/fonts.ts`: FontFace loader; вызвать до маунта Canvas.
