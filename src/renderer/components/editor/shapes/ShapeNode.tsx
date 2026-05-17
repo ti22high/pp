@@ -85,8 +85,10 @@ export function ShapeNode({
         select([id]);
       }}
     >
-      {/* Невидимый хитбокс по bbox: ловит клик даже там, где фигура «прозрачна». */}
-      <Rect x={0} y={0} width={w} height={h} fill="transparent" listening />
+      {/* Невидимый хитбокс по bbox: ловит клик даже там, где фигура «прозрачна».
+          fill="transparent" в Konva = alpha 0 и НЕ участвует в hit-тесте.
+          Поэтому используем чёрный с минимальным альфа: визуально невидимо, hit работает. */}
+      <Rect x={0} y={0} width={w} height={h} fill="rgba(0,0,0,0.001)" listening />
       {children}
     </Group>
   );
