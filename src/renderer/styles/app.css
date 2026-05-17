@@ -3,16 +3,16 @@
  */
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   font-size: 14px;
-  --bg-app: #1f1f1f;
-  --bg-panel: #2a2a2a;
-  --bg-canvas: #3a3a3a;
-  --border: #3f3f3f;
-  --text: #e8e8e8;
-  --text-muted: #a0a0a0;
-  --accent: #4a9eff;
+  --bg-app: #fafafa;
+  --bg-panel: #ffffff;
+  --bg-canvas: #f1f3f4;
+  --border: #e0e0e0;
+  --text: #1f1f1f;
+  --text-muted: #5f6368;
+  --accent: #1a73e8;
 }
 
 * {

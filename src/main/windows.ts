@@ -16,7 +16,7 @@ export function createMainWindow(): BrowserWindow {
     minHeight: 600,
     show: false,
     autoHideMenuBar: false,
-    backgroundColor: '#1f1f1f',
+    backgroundColor: '#fafafa',
     title: 'SlidesClone',
     webPreferences: {
       preload: join(__dirname, '../preload/index.mjs'),
