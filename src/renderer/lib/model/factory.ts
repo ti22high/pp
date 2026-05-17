@@ -85,14 +85,22 @@ export function createLine(
   dy = 0,
   arrow = false,
 ): LineShape {
+  // bbox должен быть достаточно «толстым», чтобы линию было удобно кликать
+  // и чтобы Transformer показал видимую рамку. Минимум 20 px по обеим осям.
+  const w = Math.max(20, Math.abs(dx));
+  const h = Math.max(20, Math.abs(dy));
+  // Точки центрируем по вертикали/горизонтали внутри bbox, чтобы линия
+  // визуально лежала по средней линии хитбокса.
+  const cx = w / 2;
+  const cy = h / 2;
   return {
     id: uuid(),
     type: 'line',
     x,
     y,
-    w: Math.abs(dx),
-    h: Math.abs(dy),
-    points: [0, 0, dx, dy],
+    w,
+    h,
+    points: [cx - dx / 2, cy - dy / 2, cx + dx / 2, cy + dy / 2],
     stroke: { color: '#1a73e8', width: 2 },
     arrowEnd: arrow,
   };

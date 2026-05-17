@@ -55,15 +55,15 @@ export function Toolbar() {
       <ToolbarButton
         label="Line"
         onClick={() => {
-          const c = center(240, 0);
-          insert(createLine(c.x, c.y + 540, 240, 0));
+          const c = center(240, 20);
+          insert(createLine(c.x, c.y, 240, 0));
         }}
       />
       <ToolbarButton
         label="Arrow"
         onClick={() => {
-          const c = center(240, 0);
-          insert(createLine(c.x, c.y + 540, 240, 0, true));
+          const c = center(240, 20);
+          insert(createLine(c.x, c.y, 240, 0, true));
         }}
       />
       <ToolbarButton

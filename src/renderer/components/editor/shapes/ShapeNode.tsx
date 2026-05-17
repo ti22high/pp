@@ -1,4 +1,4 @@
-import { Group, Rect } from 'react-konva';
+import { Group, Shape as KonvaShape } from 'react-konva';
 import type Konva from 'konva';
 import type { ReactNode } from 'react';
 import { useDeckStore } from '@renderer/stores/deck';
@@ -20,11 +20,12 @@ interface ShapeNodeProps {
   children: ReactNode;
 }
 
-// Универсальный обёртка для любой фигуры. Решает три проблемы:
+// Универсальный wrapper для любой фигуры. Решает три задачи:
 // 1) Унифицированная модель координат: x/y — top-left bbox в системе слайда;
 //    геометрия внутри (rect, ellipse, line, path) рисуется в локальных
-//    координатах (0..w, 0..h) — Transformer работает корректно для всех.
-// 2) Хитбокс по bbox: невидимый Rect ловит клики по всей площади фигуры,
+//    координатах (0..w, 0..h) — Transformer работает корректно для всех типов.
+// 2) Хитбокс по bbox: специальная Konva.Shape с пустым sceneFunc и hitFunc,
+//    рисующим bbox-прямоугольник, ловит клики по всей площади фигуры,
 //    включая «пустые» углы (как в PowerPoint/Slides).
 // 3) Drag и select-обработка одним местом, не дублируется в каждом ShapeView.
 export function ShapeNode({
@@ -85,10 +86,24 @@ export function ShapeNode({
         select([id]);
       }}
     >
-      {/* Невидимый хитбокс по bbox: ловит клик даже там, где фигура «прозрачна».
-          fill="transparent" в Konva = alpha 0 и НЕ участвует в hit-тесте.
-          Поэтому используем чёрный с минимальным альфа: визуально невидимо, hit работает. */}
-      <Rect x={0} y={0} width={w} height={h} fill="rgba(0,0,0,0.001)" listening />
+      {/* Невидимый хитбокс на весь bbox.
+          sceneFunc пустой → ничего не рисуется в видимом canvas.
+          hitFunc заполняет hit-canvas прямоугольником w×h → любой клик в bbox
+          ловит эта shape и event поднимается до Group. */}
+      <KonvaShape
+        x={0}
+        y={0}
+        width={w}
+        height={h}
+        sceneFunc={() => {}}
+        hitFunc={(ctx, shape) => {
+          ctx.beginPath();
+          ctx.rect(0, 0, shape.width(), shape.height());
+          ctx.closePath();
+          ctx.fillStrokeShape(shape);
+        }}
+        fill="#000"
+      />
       {children}
     </Group>
   );

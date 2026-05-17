@@ -7,20 +7,21 @@ import type { ShapeId } from '@shared/types';
 
 interface SelectionTransformerProps {
   slideId: string;
-  // Stage нужен, чтобы найти Konva-ноды по id выделенных фигур.
   getStage: () => Konva.Stage | null;
 }
 
 // Единый Transformer для выделенных фигур текущего слайда.
-// При rotate/resize меняем не scaleX/Y, а w/h фигуры — иначе при последующих
-// операциях накапливается scale и текст/обводки начинают «жирнеть».
-// Стандартный Konva-паттерн: в onTransformEnd сбрасываем scale и записываем
-// результирующие width/height обратно в модель.
+// В onTransformEnd сбрасываем scale на Group и записываем в модель новые w/h
+// (иначе при каждом следующем resize накапливается scale и обводки «жирнеют»).
 export function SelectionTransformer({ slideId, getStage }: SelectionTransformerProps) {
   const transformerRef = useRef<Konva.Transformer>(null);
   const selectedIds = useSelectionStore((s) => s.selectedShapeIds);
+  // Подписка на modifiedAt — заставляет Transformer пересчитать bbox после
+  // того как фигура изменила свои размеры/позицию (resize, drag, move).
+  const modifiedAt = useDeckStore((s) => s.deck?.modifiedAt);
 
-  // Привязываем Transformer к актуальному набору выделенных нод.
+  // Привязка к актуальному набору выделенных нод + пере-вычисление bbox при
+  // любом изменении модели (modifiedAt).
   useEffect(() => {
     const tr = transformerRef.current;
     const stage = getStage();
@@ -34,8 +35,10 @@ export function SelectionTransformer({ slideId, getStage }: SelectionTransformer
       .map((id) => stage.findOne(`#${cssEscape(id)}`))
       .filter((n): n is Konva.Node => n != null);
     tr.nodes(nodes);
+    // forceUpdate обновляет bbox по текущим размерам нод — нужен после resize.
+    tr.forceUpdate();
     tr.getLayer()?.batchDraw();
-  }, [selectedIds, slideId, getStage]);
+  }, [selectedIds, slideId, getStage, modifiedAt]);
 
   const handleTransformEnd = () => {
     const tr = transformerRef.current;
@@ -60,7 +63,8 @@ export function SelectionTransformer({ slideId, getStage }: SelectionTransformer
         sh.w = nextW;
         sh.h = nextH;
         sh.rotation = node.rotation();
-        // Сбрасываем scale, чтобы при следующем transform отсчёт шёл с 1.
+        // Сброс scale на Group, чтобы дочерние ноды не оставались растянутыми
+        // до React-ре-рендера с новыми w/h.
         node.scaleX(1);
         node.scaleY(1);
         node.width(nextW);
@@ -75,7 +79,6 @@ export function SelectionTransformer({ slideId, getStage }: SelectionTransformer
       ref={transformerRef}
       onTransformEnd={handleTransformEnd}
       rotateEnabled
-      // Минимальный размер при drag-resize, чтобы фигура не схлопнулась в точку.
       boundBoxFunc={(oldBox, newBox) => {
         if (newBox.width < 5 || newBox.height < 5) return oldBox;
         return newBox;
@@ -100,8 +103,6 @@ export function SelectionTransformer({ slideId, getStage }: SelectionTransformer
   );
 }
 
-// Утилита: id могут содержать символы, ломающие CSS-селектор (двоеточия, точки).
-// CSS.escape недоступен в test-окружении — простой fallback на экранирование.
 function cssEscape(s: string): string {
   if (typeof CSS !== 'undefined' && typeof CSS.escape === 'function') {
     return CSS.escape(s);
