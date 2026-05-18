@@ -124,14 +124,10 @@ export function Canvas() {
       if (!slide) return;
       const ids = new Set(slide.shapes.map((s) => s.id));
 
-      // Поднимаемся по дереву от hit-target и ищем первую ноду, чей id входит в set.
-      // Диагностика: пишем в console каждый шаг — поможет понять, на что попал клик
-      // и почему Line/Arrow/Path не выделяются.
-      console.log('[select] target=', e.target.getClassName(), 'id=', e.target.id());
+      // Поднимаемся по дереву от hit-target до первой ноды, чей id есть в slide.shapes.
       let node: Konva.Node | null = e.target;
       while (node && node !== stage) {
         const nodeId = node.id();
-        console.log('  asc:', node.getClassName(), 'id=', nodeId, 'matchSet=', ids.has(nodeId));
         if (nodeId && ids.has(nodeId)) {
           useSelectionStore.getState().select([nodeId]);
           return;

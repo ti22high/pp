@@ -31,9 +31,16 @@ export function SelectionTransformer({ slideId, getStage }: SelectionTransformer
       tr.getLayer()?.batchDraw();
       return;
     }
-    const nodes = selectedIds
-      .map((id) => stage.findOne(`#${cssEscape(id)}`))
-      .filter((n): n is Konva.Node => n != null);
+    const wantedIds = new Set(selectedIds);
+    // Функциональный поиск вместо CSS-селектора `#id`: UUID может начинаться
+    // с цифры, тогда селектор невалиден и findOne ничего не находит.
+    const nodes: Konva.Node[] = [];
+    stage.find((n: Konva.Node) => {
+      if (wantedIds.has(n.id())) {
+        nodes.push(n);
+      }
+      return false;
+    });
     tr.nodes(nodes);
     // forceUpdate обновляет bbox по текущим размерам нод — нужен после resize.
     tr.forceUpdate();
@@ -103,9 +110,3 @@ export function SelectionTransformer({ slideId, getStage }: SelectionTransformer
   );
 }
 
-function cssEscape(s: string): string {
-  if (typeof CSS !== 'undefined' && typeof CSS.escape === 'function') {
-    return CSS.escape(s);
-  }
-  return s.replace(/([!"#$%&'()*+,./:;<=>?@[\\\]^`{|}~])/g, '\\$1');
-}
