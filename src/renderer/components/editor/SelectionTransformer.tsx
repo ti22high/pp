@@ -67,12 +67,18 @@ export function SelectionTransformer({ slideId, getStage }: SelectionTransformer
         const nextH = Math.max(2, node.height() * scaleY);
 
         // Для линии нужно вытянуть и сами точки — иначе bbox растёт,
-        // а штрих остаётся короткий в углу.
+        // а штрих остаётся короткий в углу. Заодно масштабируем толщину штриха
+        // по среднему геометрическому: uniform scale → линейный рост толщины,
+        // одноосный scale → корень из коэффициента (мягче).
         if (sh.type === 'line') {
           const sx = sh.w > 0 ? nextW / sh.w : 1;
           const sy = sh.h > 0 ? nextH / sh.h : 1;
           const [x1, y1, x2, y2] = sh.points;
           sh.points = [x1 * sx, y1 * sy, x2 * sx, y2 * sy];
+          if (sh.stroke) {
+            const strokeScale = Math.sqrt(sx * sy);
+            sh.stroke.width = Math.max(0.5, sh.stroke.width * strokeScale);
+          }
         }
 
         sh.x = node.x();
