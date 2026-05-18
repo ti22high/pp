@@ -39,7 +39,7 @@
 - **Удалено из package.json:**
   - `@tiptap/extension-font-size@3.23.4` — нет такой публикации (последняя `3.0.0-next.3`).
   - `@tiptap/extension-line-height@3.23.4` — пакет вообще не существует.
-  - Реализация FontSize / LineHeight в Phase 2 — через custom TipTap extension поверх `extension-text-style` (стандартный паттерн TipTap 3.x).
+  - Реализация FontSize / LineHeight в Phase 2 — через `TextStyleKit` из `@tiptap/extension-text-style@3.23.4` (в v3 этот пакет уже содержит FontSize, FontFamily, Color, BackgroundColor, LineHeight). Кастомные расширения не понадобились.
 - **Добавлено в devDependencies:**
   - `tsx@4.22.1` — нужен для запуска `scripts/download-fonts.ts` (см. пункт 1.10).
 - **package.json scripts:**

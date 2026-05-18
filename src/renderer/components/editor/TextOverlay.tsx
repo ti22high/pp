@@ -1,6 +1,6 @@
 import { useEffect, useRef, type CSSProperties } from 'react';
 import { EditorContent, useEditor } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
+import { tiptapExtensions } from '@renderer/lib/editor/extensions';
 import type { TextShape } from '@renderer/lib/model/schema';
 import { useDeckStore } from '@renderer/stores/deck';
 import { useUiStore } from '@renderer/stores/ui';
@@ -23,7 +23,7 @@ export function TextOverlay({ slideId, shape, panX, panY, zoom }: TextOverlayPro
   const ref = useRef<HTMLDivElement>(null);
 
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions: tiptapExtensions,
     content: shape.tiptapDoc as object,
     autofocus: 'end',
     editorProps: {

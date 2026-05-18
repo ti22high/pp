@@ -43,7 +43,7 @@
 - [x] 2.8. `EllipseShape`, `LineShape`, `PathShape` renderers.
 - [x] 2.9. Toolbar: insert shape buttons.
 - [x] 2.10. `TextShape` renderer + double-click → TipTap overlay.
-- [ ] 2.11. TipTap setup: StarterKit + 12 расширений (см. §4.4).
+- [x] 2.11. TipTap setup: StarterKit + 12 расширений (см. §4.4).
 - [ ] 2.12. Inspector panel: позиция / размер / rotation поля.
 - [ ] 2.13. Inspector: fill (solid + gradient picker), stroke, opacity.
 - [ ] 2.14. Inspector: shadow, reflection.
