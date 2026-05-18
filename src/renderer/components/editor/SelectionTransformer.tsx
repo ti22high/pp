@@ -63,8 +63,22 @@ export function SelectionTransformer({ slideId, getStage }: SelectionTransformer
         if (!sh) continue;
         const scaleX = node.scaleX();
         const scaleY = node.scaleY();
-        const nextW = Math.max(2, node.width() * scaleX);
-        const nextH = Math.max(2, node.height() * scaleY);
+        const nodeWidth = node.width();
+        const nodeHeight = node.height();
+        const nextW = Math.max(2, nodeWidth * scaleX);
+        const nextH = Math.max(2, nodeHeight * scaleY);
+        console.log('[transformEnd]', {
+          id,
+          type: sh.type,
+          scaleX,
+          scaleY,
+          nodeWidth,
+          nodeHeight,
+          nextW,
+          nextH,
+          oldW: sh.w,
+          oldH: sh.h,
+        });
 
         // Для линии: масштабируем точки пропорционально bbox, чтобы штрих
         // вытянулся вместе с рамкой. Толщину штриха меняем ТОЛЬКО при
