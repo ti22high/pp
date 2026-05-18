@@ -124,6 +124,18 @@ export function Canvas() {
       if (!slide) return;
       const ids = new Set(slide.shapes.map((s) => s.id));
 
+      // Если клик попал на анкор/ротатор Transformer'а — не трогаем выделение,
+      // иначе resize/rotate ломается (Transformer теряет ноды).
+      // Konva помечает анкоры через хэлпер hasName.
+      if (
+        typeof (e.target as Konva.Node).hasName === 'function' &&
+        ((e.target as Konva.Node).hasName('_anchor') ||
+          (e.target as Konva.Node).hasName('rotater') ||
+          (e.target as Konva.Node).hasName('back'))
+      ) {
+        return;
+      }
+
       // Поднимаемся по дереву от hit-target до первой ноды, чей id есть в slide.shapes.
       let node: Konva.Node | null = e.target;
       while (node && node !== stage) {
