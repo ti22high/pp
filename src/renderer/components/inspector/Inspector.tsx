@@ -6,6 +6,8 @@ import type { ShapeId, SlideId } from '@shared/types';
 import { TransformInspector } from './TransformInspector';
 import { FillInspector } from './FillInspector';
 import { StrokeInspector } from './StrokeInspector';
+import { ShadowInspector } from './ShadowInspector';
+import { ReflectionInspector } from './ReflectionInspector';
 import { OpacityInspector } from './OpacityInspector';
 
 // Корень правой панели свойств.
@@ -43,7 +45,14 @@ function SingleShapeInspector({ slideId, shapeId }: { slideId: SlideId; shapeId:
       const slide = s.deck?.slides[slideId];
       const sh = slide?.shapes.find((x) => x.id === shapeId);
       if (!sh) return null;
-      return { type: sh.type, fill: sh.fill, stroke: sh.stroke, opacity: sh.opacity };
+      return {
+        type: sh.type,
+        fill: sh.fill,
+        stroke: sh.stroke,
+        shadow: sh.shadow,
+        reflection: sh.reflection,
+        opacity: sh.opacity,
+      };
     }),
   );
   if (!shapeFacets) return null;
@@ -62,6 +71,12 @@ function SingleShapeInspector({ slideId, shapeId }: { slideId: SlideId; shapeId:
       {showStroke && (
         <StrokeInspector slideId={slideId} shapeId={shapeId} stroke={shapeFacets.stroke} />
       )}
+      <ShadowInspector slideId={slideId} shapeId={shapeId} shadow={shapeFacets.shadow} />
+      <ReflectionInspector
+        slideId={slideId}
+        shapeId={shapeId}
+        reflection={shapeFacets.reflection}
+      />
       <OpacityInspector slideId={slideId} shapeId={shapeId} opacity={shapeFacets.opacity} />
     </>
   );

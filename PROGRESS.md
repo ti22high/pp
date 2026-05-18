@@ -46,7 +46,7 @@
 - [x] 2.11. TipTap setup: StarterKit + 12 расширений (см. §4.4).
 - [x] 2.12. Inspector panel: позиция / размер / rotation поля.
 - [x] 2.13. Inspector: fill (solid + gradient picker), stroke, opacity.
-- [ ] 2.14. Inspector: shadow, reflection.
+- [x] 2.14. Inspector: shadow, reflection.
 - [ ] 2.15. Selection: single click; Shift+click multi-select; rubber band.
 - [ ] 2.16. Smart guides algorithm (`src/renderer/lib/snap.ts`).
 - [ ] 2.17. Snap to grid (toggle в View menu).

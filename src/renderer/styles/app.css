@@ -319,3 +319,10 @@ body,
   color: var(--text-muted);
   flex-shrink: 0;
 }
+
+/* Маленькая инлайн-подсказка внутри лейблов Inspector-а (например,
+   "Enabled (рендер — Phase 3)"). */
+.inspector-meta {
+  font-size: 10px;
+  color: var(--text-muted);
+}

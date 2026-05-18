@@ -56,6 +56,20 @@ export const shadowSchema = z.object({
   offsetY: z.number(),
   blur: z.number().min(0),
   color: colorSchema,
+  // alpha хранится отдельным полем — Konva принимает shadowOpacity отдельно
+  // от shadowColor. Если undefined — берётся alpha из самого colorSchema
+  // (либо 1, если color без alpha).
+  opacity: z.number().min(0).max(1).optional(),
+});
+
+// Отражение под фигурой (Slides «Reflection»). UI-секция — Phase 2.14;
+// сам рендер на Konva — Phase 3 (требует клонирования ноды с masked gradient).
+// До Phase 3 поле сохраняется в модели, но визуально не отображается.
+export const reflectionSchema = z.object({
+  alpha: z.number().min(0).max(1), // насколько яркое (0..1)
+  distance: z.number().min(0),     // отступ в px от низа фигуры
+  size: z.number().min(0).max(1),  // высота отражения в долях h фигуры
+  blur: z.number().min(0).optional(),
 });
 
 // Анимация (SPEC §1.8). На Phase 2 — заглушка, реализуется в Phase 4.
@@ -105,6 +119,7 @@ const baseShape = {
   fill: fillSchema.optional(),
   stroke: strokeSchema.optional(),
   shadow: shadowSchema.optional(),
+  reflection: reflectionSchema.optional(),
   hyperlink: hyperlinkSchema.optional(),
   altText: z.string().optional(),
   animations: z.array(animationSchema).optional(),
@@ -214,6 +229,7 @@ export type TextShape = z.infer<typeof textShapeSchema>;
 export type Fill = z.infer<typeof fillSchema>;
 export type Stroke = z.infer<typeof strokeSchema>;
 export type Shadow = z.infer<typeof shadowSchema>;
+export type Reflection = z.infer<typeof reflectionSchema>;
 export type Hyperlink = z.infer<typeof hyperlinkSchema>;
 export type Animation = z.infer<typeof animationSchema>;
 export type AnimationPreset = z.infer<typeof animationPresetSchema>;

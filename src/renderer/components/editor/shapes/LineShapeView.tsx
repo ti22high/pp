@@ -1,7 +1,7 @@
 import { Line, Arrow } from 'react-konva';
 import type { LineShape } from '@renderer/lib/model/schema';
 import { ShapeNode } from './ShapeNode';
-import { resolveStroke } from './paint';
+import { resolveStroke, resolveShadow } from './paint';
 
 interface LineShapeViewProps {
   shape: LineShape;
@@ -12,6 +12,7 @@ interface LineShapeViewProps {
 // shape.points = [x1, y1, x2, y2] относительно top-left bbox фигуры.
 export function LineShapeView({ shape, slideId }: LineShapeViewProps) {
   const stroke = resolveStroke(shape.stroke);
+  const shadow = resolveShadow(shape.shadow);
   const isArrow = shape.arrowStart || shape.arrowEnd;
   return (
     <ShapeNode
@@ -33,6 +34,7 @@ export function LineShapeView({ shape, slideId }: LineShapeViewProps) {
           fill={stroke.stroke}
           strokeScaleEnabled={false}
           {...stroke}
+          {...shadow}
         />
       ) : (
         <Line
@@ -40,6 +42,7 @@ export function LineShapeView({ shape, slideId }: LineShapeViewProps) {
           hitStrokeWidth={16}
           strokeScaleEnabled={false}
           {...stroke}
+          {...shadow}
         />
       )}
     </ShapeNode>

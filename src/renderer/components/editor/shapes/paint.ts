@@ -2,7 +2,7 @@
 // Используется всеми <ShapeView> компонентами.
 // Gradient-конвертация: Konva принимает массив [stop, color, stop, color, ...].
 
-import type { Fill, Stroke } from '@renderer/lib/model/schema';
+import type { Fill, Stroke, Shadow } from '@renderer/lib/model/schema';
 
 export interface FillProps {
   fill?: string;
@@ -65,5 +65,26 @@ export function resolveStroke(stroke: Stroke | undefined): StrokeProps {
     stroke: stroke.color,
     strokeWidth: stroke.width,
     dash: stroke.dash,
+  };
+}
+
+export interface ShadowProps {
+  shadowColor?: string;
+  shadowBlur?: number;
+  shadowOffsetX?: number;
+  shadowOffsetY?: number;
+  shadowOpacity?: number;
+}
+
+// Маппинг нашей Shadow → Konva shadow-props. Konva принимает opacity отдельно;
+// если в модели нет — оставляем undefined (Konva возьмёт 1).
+export function resolveShadow(shadow: Shadow | undefined): ShadowProps {
+  if (!shadow) return {};
+  return {
+    shadowColor: shadow.color,
+    shadowBlur: shadow.blur,
+    shadowOffsetX: shadow.offsetX,
+    shadowOffsetY: shadow.offsetY,
+    shadowOpacity: shadow.opacity,
   };
 }

@@ -42,3 +42,13 @@
 - **Статус:** `WORKAROUND` — xlsx нужен только в Phase 3.11 (CSV→table import) и Phase 5.25 (CSV для chart data). До этого момента он лежит в node_modules, но в коде не вызывается, эксплойт-вектор отсутствует.
 - **План на Phase 3:** оценить замену на чистый CSV-парсер (`papaparse` MIT) — он покрывает оба use-case без xlsx; XLSX-импорт в спеке не требуется. Если меняем — удалить xlsx из deps и закрыть запись `FIXED`.
 - **Блокирует:** ничего на Phase 1–2. Условно — Phase 3.11, Phase 5.25.
+
+---
+
+### 2026-05-18 | Phase 2, пункт 2.14 | Reflection-секция: UI без визуального рендера
+
+- **Описание:** Inspector-секция «Reflection» (alpha / distance / size) пишет значения в `shape.reflection`, но на канвасе ничего не меняется. Konva из коробки не поддерживает отражение — нужен клонированный нод (flipped по Y) с masked gradient-альфой.
+- **Воспроизведение:** Выделить любую фигуру → Inspector → Reflection → Enabled. На канвасе тень-отражения нет.
+- **Статус:** `KNOWN_LIMITATION` — реализация рендера запланирована на Phase 3 («Advanced editing | … shadow, reflection …» из §11). Поле в схеме (`reflectionSchema`) добавлено заранее, чтобы сохранить совместимость JSON.
+- **Что нужно для рендера:** В каждом ShapeView под основным нодой клонировать визуальный слой (Konva `node.clone()` или дубликат с тем же fill/stroke), повернуть `scaleY=-1`, опустить на `bbox.h + reflection.distance`, применить алфа-маску — линейный gradient от `reflection.alpha` сверху к 0 снизу, высота = `reflection.size * h`. Для текста / image — clone-paint. Для group (когда появятся в 2.20) — рекурсивно.
+- **Блокирует:** ничего на Phase 2. UI-контролы и сохранение в JSON работают, рендер ожидается в Phase 3.

@@ -3,7 +3,7 @@ import { Path } from 'react-konva';
 import Konva from 'konva';
 import type { PathShape } from '@renderer/lib/model/schema';
 import { ShapeNode } from './ShapeNode';
-import { resolveFill, resolveStroke } from './paint';
+import { resolveFill, resolveStroke, resolveShadow } from './paint';
 
 interface PathShapeViewProps {
   shape: PathShape;
@@ -18,6 +18,7 @@ interface PathShapeViewProps {
 export function PathShapeView({ shape, slideId }: PathShapeViewProps) {
   const fill = resolveFill(shape.fill);
   const stroke = resolveStroke(shape.stroke);
+  const shadow = resolveShadow(shape.shadow);
   const natural = useMemo(() => {
     const tmp = new Konva.Path({ data: shape.pathData });
     const rect = tmp.getSelfRect();
@@ -51,6 +52,7 @@ export function PathShapeView({ shape, slideId }: PathShapeViewProps) {
         strokeScaleEnabled={false}
         {...fill}
         {...stroke}
+        {...shadow}
       />
     </ShapeNode>
   );

@@ -1,7 +1,7 @@
 import { Rect } from 'react-konva';
 import type { RectShape } from '@renderer/lib/model/schema';
 import { ShapeNode } from './ShapeNode';
-import { resolveFill, resolveStroke } from './paint';
+import { resolveFill, resolveStroke, resolveShadow } from './paint';
 
 interface RectShapeViewProps {
   shape: RectShape;
@@ -11,6 +11,7 @@ interface RectShapeViewProps {
 export function RectShapeView({ shape, slideId }: RectShapeViewProps) {
   const fillProps = resolveFill(shape.fill);
   const strokeProps = resolveStroke(shape.stroke);
+  const shadowProps = resolveShadow(shape.shadow);
   return (
     <ShapeNode
       id={shape.id}
@@ -31,6 +32,7 @@ export function RectShapeView({ shape, slideId }: RectShapeViewProps) {
         cornerRadius={shape.cornerRadius ?? 0}
         {...fillProps}
         {...strokeProps}
+        {...shadowProps}
       />
     </ShapeNode>
   );

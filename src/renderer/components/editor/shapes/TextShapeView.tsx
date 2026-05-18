@@ -3,6 +3,7 @@ import { Text } from 'react-konva';
 import type { TextShape } from '@renderer/lib/model/schema';
 import { useUiStore } from '@renderer/stores/ui';
 import { ShapeNode } from './ShapeNode';
+import { resolveShadow } from './paint';
 
 interface TextShapeViewProps {
   shape: TextShape;
@@ -36,6 +37,7 @@ export function TextShapeView({ shape, slideId }: TextShapeViewProps) {
   const editingShapeId = useUiStore((s) => s.editingShapeId);
   const setEditingShape = useUiStore((s) => s.setEditingShape);
   const plain = useMemo(() => extractPlainText(shape.tiptapDoc), [shape.tiptapDoc]);
+  const shadow = resolveShadow(shape.shadow);
   const isEditing = editingShapeId === shape.id;
 
   // Подгоняем выравнивание по вертикали через padding-y у Konva.Text:
@@ -69,6 +71,7 @@ export function TextShapeView({ shape, slideId }: TextShapeViewProps) {
         listening
         onDblClick={() => setEditingShape(shape.id)}
         onDblTap={() => setEditingShape(shape.id)}
+        {...shadow}
       />
     </ShapeNode>
   );

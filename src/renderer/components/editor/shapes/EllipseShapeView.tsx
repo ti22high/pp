@@ -1,7 +1,7 @@
 import { Ellipse } from 'react-konva';
 import type { EllipseShape } from '@renderer/lib/model/schema';
 import { ShapeNode } from './ShapeNode';
-import { resolveFill, resolveStroke } from './paint';
+import { resolveFill, resolveStroke, resolveShadow } from './paint';
 
 interface EllipseShapeViewProps {
   shape: EllipseShape;
@@ -13,6 +13,7 @@ interface EllipseShapeViewProps {
 export function EllipseShapeView({ shape, slideId }: EllipseShapeViewProps) {
   const fillProps = resolveFill(shape.fill);
   const strokeProps = resolveStroke(shape.stroke);
+  const shadowProps = resolveShadow(shape.shadow);
   return (
     <ShapeNode
       id={shape.id}
@@ -32,6 +33,7 @@ export function EllipseShapeView({ shape, slideId }: EllipseShapeViewProps) {
         radiusY={shape.h / 2}
         {...fillProps}
         {...strokeProps}
+        {...shadowProps}
       />
     </ShapeNode>
   );
