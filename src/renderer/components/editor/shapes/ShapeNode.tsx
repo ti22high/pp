@@ -39,6 +39,31 @@ export function ShapeNode({
 }: ShapeNodeProps) {
   const snapToGrid = useUiStore((s) => s.snapToGrid);
 
+  // Live-апдейт позиции в стор на каждый dragmove (Inspector видит координаты
+  // в реальном времени). Snap к сетке применяем только на dragend, иначе
+  // движение будет дёргаться по 10 px.
+  const writePosition = (node: Konva.Node, x: number, y: number) => {
+    useDeckStore.setState((state) => {
+      if (!state.deck) return;
+      const slide = state.deck.slides[slideId];
+      if (!slide) return;
+      const sh = slide.shapes.find((s) => s.id === id);
+      if (sh) {
+        sh.x = x;
+        sh.y = y;
+      }
+      state.deck.modifiedAt = new Date().toISOString();
+    });
+    // Корректируем DOM-ноду на случай snap-а, не вызывая лишний batchDraw.
+    if (node.x() !== x) node.x(x);
+    if (node.y() !== y) node.y(y);
+  };
+
+  const handleDragMove = (e: Konva.KonvaEventObject<DragEvent>) => {
+    const node = e.target;
+    writePosition(node, node.x(), node.y());
+  };
+
   const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
     const node = e.target;
     let nextX = node.x();
@@ -46,20 +71,8 @@ export function ShapeNode({
     if (snapToGrid) {
       nextX = Math.round(nextX / 10) * 10;
       nextY = Math.round(nextY / 10) * 10;
-      node.x(nextX);
-      node.y(nextY);
     }
-    useDeckStore.setState((state) => {
-      if (!state.deck) return;
-      const slide = state.deck.slides[slideId];
-      if (!slide) return;
-      const sh = slide.shapes.find((s) => s.id === id);
-      if (sh) {
-        sh.x = nextX;
-        sh.y = nextY;
-      }
-      state.deck.modifiedAt = new Date().toISOString();
-    });
+    writePosition(node, nextX, nextY);
   };
 
   return (
@@ -73,6 +86,7 @@ export function ShapeNode({
       rotation={rotation ?? 0}
       opacity={opacity ?? 1}
       draggable={!locked}
+      onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
     >
       {/* Невидимый bbox-хитбокс: чёрный fill + минимальная opacity, чтобы

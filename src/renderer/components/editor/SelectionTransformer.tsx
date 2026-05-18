@@ -74,7 +74,11 @@ export function SelectionTransformer({ slideId, getStage }: SelectionTransformer
     tr.getLayer()?.batchDraw();
   }, [selectedIds, slideId, getStage, modifiedAt]);
 
-  const handleTransformEnd = () => {
+  // Запекание scale в w/h + запись в модель. Вызывается и на каждый
+  // transform (live-апдейт Inspector-а), и на transformend (финальный коммит).
+  // Сброс scale на ноду в середине drag-а — рекомендованный Konva-паттерн,
+  // см. https://konvajs.org/docs/select_and_transform/Resize_Limits.html.
+  const bakeTransform = () => {
     const tr = transformerRef.current;
     if (!tr) return;
     const nodes = tr.nodes();
@@ -124,7 +128,8 @@ export function SelectionTransformer({ slideId, getStage }: SelectionTransformer
   return (
     <Transformer
       ref={transformerRef}
-      onTransformEnd={handleTransformEnd}
+      onTransform={bakeTransform}
+      onTransformEnd={bakeTransform}
       rotateEnabled
       boundBoxFunc={(oldBox, newBox) => {
         if (newBox.width < 5 || newBox.height < 5) return oldBox;
