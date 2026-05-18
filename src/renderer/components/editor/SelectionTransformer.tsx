@@ -66,18 +66,20 @@ export function SelectionTransformer({ slideId, getStage }: SelectionTransformer
         const nextW = Math.max(2, node.width() * scaleX);
         const nextH = Math.max(2, node.height() * scaleY);
 
-        // Для линии нужно вытянуть и сами точки — иначе bbox растёт,
-        // а штрих остаётся короткий в углу. Заодно масштабируем толщину штриха
-        // по среднему геометрическому: uniform scale → линейный рост толщины,
-        // одноосный scale → корень из коэффициента (мягче).
+        // Для линии: масштабируем точки пропорционально bbox, чтобы штрих
+        // вытянулся вместе с рамкой. Толщину штриха меняем ТОЛЬКО при
+        // uniform-resize (drag за угол, sx≈sy) — иначе одноосное растяжение
+        // (drag за середину стороны) делало бы линию длиннее, но и пересчитывало
+        // толщину, что неинтуитивно.
         if (sh.type === 'line') {
           const sx = sh.w > 0 ? nextW / sh.w : 1;
           const sy = sh.h > 0 ? nextH / sh.h : 1;
           const [x1, y1, x2, y2] = sh.points;
           sh.points = [x1 * sx, y1 * sy, x2 * sx, y2 * sy];
-          if (sh.stroke) {
-            const strokeScale = Math.sqrt(sx * sy);
-            sh.stroke.width = Math.max(0.5, sh.stroke.width * strokeScale);
+          // Считаем uniform, если sx и sy отличаются не больше чем на 5 %.
+          const isUniform = Math.abs(sx - sy) / Math.max(sx, sy) < 0.05;
+          if (isUniform && sh.stroke) {
+            sh.stroke.width = Math.max(0.5, sh.stroke.width * sx);
           }
         }
 
@@ -119,8 +121,13 @@ export function SelectionTransformer({ slideId, getStage }: SelectionTransformer
       anchorSize={9}
       anchorCornerRadius={2}
       borderStroke="#1a73e8"
+      borderStrokeWidth={1}
       anchorStroke="#1a73e8"
+      anchorStrokeWidth={1}
       anchorFill="#ffffff"
+      // Отступ рамки от bbox — иначе у тонких фигур (линий, узких rect)
+      // рамка наслаивается на саму фигуру и не отличается от штриха.
+      padding={4}
       rotateAnchorOffset={28}
     />
   );
