@@ -65,6 +65,16 @@ export function SelectionTransformer({ slideId, getStage }: SelectionTransformer
         const scaleY = node.scaleY();
         const nextW = Math.max(2, node.width() * scaleX);
         const nextH = Math.max(2, node.height() * scaleY);
+
+        // Для линии нужно вытянуть и сами точки — иначе bbox растёт,
+        // а штрих остаётся короткий в углу.
+        if (sh.type === 'line') {
+          const sx = sh.w > 0 ? nextW / sh.w : 1;
+          const sy = sh.h > 0 ? nextH / sh.h : 1;
+          const [x1, y1, x2, y2] = sh.points;
+          sh.points = [x1 * sx, y1 * sy, x2 * sx, y2 * sy];
+        }
+
         sh.x = node.x();
         sh.y = node.y();
         sh.w = nextW;
