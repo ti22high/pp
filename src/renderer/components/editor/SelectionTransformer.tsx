@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Transformer } from 'react-konva';
 import type Konva from 'konva';
 import { useSelectionStore } from '@renderer/stores/selection';
@@ -19,6 +19,33 @@ export function SelectionTransformer({ slideId, getStage }: SelectionTransformer
   // Подписка на modifiedAt — заставляет Transformer пересчитать bbox после
   // того как фигура изменила свои размеры/позицию (resize, drag, move).
   const modifiedAt = useDeckStore((s) => s.deck?.modifiedAt);
+
+  // Если в выделении есть линия (одномерная геометрия), убираем middle-анкоры
+  // и оставляем только углы — drag за середину edge у линии бессмысленен
+  // (так же ведут себя Slides и PowerPoint).
+  const selectedHasLine = useDeckStore((s) => {
+    const slide = s.deck?.slides[slideId];
+    if (!slide) return false;
+    return slide.shapes.some(
+      (sh) => selectedIds.includes(sh.id) && sh.type === 'line',
+    );
+  });
+  const enabledAnchors = useMemo(
+    () =>
+      selectedHasLine
+        ? (['top-left', 'top-right', 'bottom-left', 'bottom-right'] as const)
+        : ([
+            'top-left',
+            'top-center',
+            'top-right',
+            'middle-left',
+            'middle-right',
+            'bottom-left',
+            'bottom-center',
+            'bottom-right',
+          ] as const),
+    [selectedHasLine],
+  );
 
   // Привязка к актуальному набору выделенных нод + пере-вычисление bbox при
   // любом изменении модели (modifiedAt).
@@ -63,22 +90,8 @@ export function SelectionTransformer({ slideId, getStage }: SelectionTransformer
         if (!sh) continue;
         const scaleX = node.scaleX();
         const scaleY = node.scaleY();
-        const nodeWidth = node.width();
-        const nodeHeight = node.height();
-        const nextW = Math.max(2, nodeWidth * scaleX);
-        const nextH = Math.max(2, nodeHeight * scaleY);
-        console.log('[transformEnd]', {
-          id,
-          type: sh.type,
-          scaleX,
-          scaleY,
-          nodeWidth,
-          nodeHeight,
-          nextW,
-          nextH,
-          oldW: sh.w,
-          oldH: sh.h,
-        });
+        const nextW = Math.max(2, node.width() * scaleX);
+        const nextH = Math.max(2, node.height() * scaleY);
 
         // Для линии: масштабируем точки пропорционально bbox, чтобы штрих
         // вытянулся вместе с рамкой. Толщину штриха меняем ТОЛЬКО при
@@ -122,16 +135,7 @@ export function SelectionTransformer({ slideId, getStage }: SelectionTransformer
         if (newBox.width < 5 || newBox.height < 5) return oldBox;
         return newBox;
       }}
-      enabledAnchors={[
-        'top-left',
-        'top-center',
-        'top-right',
-        'middle-left',
-        'middle-right',
-        'bottom-left',
-        'bottom-center',
-        'bottom-right',
-      ]}
+      enabledAnchors={enabledAnchors as unknown as string[]}
       anchorSize={9}
       anchorCornerRadius={2}
       borderStroke="#1a73e8"
