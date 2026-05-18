@@ -86,6 +86,8 @@ body,
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  /* Anchor для абсолютно позиционированного TextOverlay поверх Stage. */
+  position: relative;
 }
 
 .app-canvas .placeholder {
