@@ -82,15 +82,20 @@ body,
 .app-canvas {
   grid-area: canvas;
   background: var(--bg-canvas);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   overflow: hidden;
-  /* Anchor для абсолютно позиционированного TextOverlay поверх Stage. */
+  /* Anchor для абсолютно позиционированного TextOverlay поверх Stage.
+     Flex-центрирование убрано: Stage уже подгоняется ResizeObserver-ом под
+     размер контейнера и должен сидеть в (0,0), иначе DOM-оверлей с
+     position:absolute считает координаты не относительно левого-верхнего
+     угла Stage, а относительно центра. */
   position: relative;
 }
 
 .app-canvas .placeholder {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   color: var(--text-muted);
   font-size: 13px;
 }
