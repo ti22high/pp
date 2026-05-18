@@ -40,10 +40,10 @@ export function TransformInspector({ slideId, shapeId }: TransformInspectorProps
     <section className="inspector-section">
       <p className="panel-title">Transform</p>
       <div className="inspector-grid-2">
-        <NumberField label="X" value={shape.x} onCommit={(v) => update({ x: v })} />
-        <NumberField label="Y" value={shape.y} onCommit={(v) => update({ y: v })} />
-        <NumberField label="W" value={shape.w} min={2} onCommit={(v) => update({ w: v })} />
-        <NumberField label="H" value={shape.h} min={2} onCommit={(v) => update({ h: v })} />
+        <NumberField compact label="X" value={shape.x} onCommit={(v) => update({ x: v })} />
+        <NumberField compact label="Y" value={shape.y} onCommit={(v) => update({ y: v })} />
+        <NumberField compact label="W" value={shape.w} min={2} onCommit={(v) => update({ w: v })} />
+        <NumberField compact label="H" value={shape.h} min={2} onCommit={(v) => update({ h: v })} />
       </div>
       <NumberField
         label="Rotation"

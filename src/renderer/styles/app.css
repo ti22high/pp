@@ -200,11 +200,17 @@ body,
   margin-bottom: 6px;
 }
 .inspector-label {
-  width: 24px;
-  text-align: right;
+  width: 56px;
+  text-align: left;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   flex-shrink: 0;
+}
+/* Узкий лейбл — для однобуквенных полей X/Y/W/H внутри 2-колоночной сетки,
+   чтобы input занимал максимум доступной ширины. */
+.inspector-label--mini {
+  width: 16px;
+  text-align: right;
 }
 .inspector-input-wrap {
   flex: 1;

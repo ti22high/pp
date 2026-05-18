@@ -10,6 +10,8 @@ interface NumberFieldProps {
   step?: number;
   // Суффикс — отображается рядом с input-ом (например, "°" для rotation).
   suffix?: string;
+  // Узкий лейбл — для однобуквенных полей в 2-колоночной сетке (X/Y/W/H).
+  compact?: boolean;
 }
 
 // Числовое поле с локальным буфером.
@@ -22,7 +24,15 @@ interface NumberFieldProps {
 //
 // `value` из props — источник истины (модель). Если меняется снаружи
 // (drag/resize на канвасе), синхронизируем буфер.
-export function NumberField({ label, value, onCommit, min, step = 1, suffix }: NumberFieldProps) {
+export function NumberField({
+  label,
+  value,
+  onCommit,
+  min,
+  step = 1,
+  suffix,
+  compact = false,
+}: NumberFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [buffer, setBuffer] = useState<string>(() => format(value));
   // Флаг «в фокусе»: пока пользователь редактирует, внешние обновления
@@ -46,7 +56,7 @@ export function NumberField({ label, value, onCommit, min, step = 1, suffix }: N
 
   return (
     <label className="inspector-row">
-      <span className="inspector-label">{label}</span>
+      <span className={`inspector-label${compact ? ' inspector-label--mini' : ''}`}>{label}</span>
       <span className="inspector-input-wrap">
         <input
           ref={inputRef}
