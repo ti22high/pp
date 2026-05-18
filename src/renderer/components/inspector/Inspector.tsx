@@ -1,3 +1,4 @@
+import { useShallow } from 'zustand/shallow';
 import { useDeckStore } from '@renderer/stores/deck';
 import { useSelectionStore } from '@renderer/stores/selection';
 import { useUiStore } from '@renderer/stores/ui';
@@ -34,12 +35,17 @@ export function Inspector() {
 // Подписка на тип фигуры — selector тонкий (только type/fill/stroke/opacity),
 // чтобы перерисовка происходила только при изменении этих полей.
 function SingleShapeInspector({ slideId, shapeId }: { slideId: SlideId; shapeId: ShapeId }) {
-  const shapeFacets = useDeckStore((s) => {
-    const slide = s.deck?.slides[slideId];
-    const sh = slide?.shapes.find((x) => x.id === shapeId);
-    if (!sh) return null;
-    return { type: sh.type, fill: sh.fill, stroke: sh.stroke, opacity: sh.opacity };
-  });
+  // useShallow обязателен: селектор возвращает новый объект на каждый вызов,
+  // и без shallow-сравнения Zustand v5 будет триггерить ре-рендер на любое
+  // изменение стора → бесконечный цикл → React падает в белый экран.
+  const shapeFacets = useDeckStore(
+    useShallow((s) => {
+      const slide = s.deck?.slides[slideId];
+      const sh = slide?.shapes.find((x) => x.id === shapeId);
+      if (!sh) return null;
+      return { type: sh.type, fill: sh.fill, stroke: sh.stroke, opacity: sh.opacity };
+    }),
+  );
   if (!shapeFacets) return null;
 
   // Что показываем по типу:
