@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import type { SlideId } from '@shared/types';
+import type { SlideId, ShapeId } from '@shared/types';
 
 // UI-стор: zoom стейджа, активный слайд, видимость панелей и переключатели View.
 // Не имеет отношения к данным документа — переживёт open/close файла.
@@ -14,7 +14,10 @@ interface UiState {
   snapToGrid: boolean;
   showFilmstrip: boolean;
   showInspector: boolean;
+  // id текстовой фигуры, открытой в TipTap-оверлее (null = режим просмотра).
+  editingShapeId: ShapeId | null;
   setActiveSlide: (id: SlideId | null) => void;
+  setEditingShape: (id: ShapeId | null) => void;
   setZoom: (zoom: number) => void;
   setStagePan: (pan: { x: number; y: number }) => void;
   toggleRuler: () => void;
@@ -34,9 +37,14 @@ export const useUiStore = create<UiState>()(
     snapToGrid: false,
     showFilmstrip: true,
     showInspector: true,
+    editingShapeId: null,
     setActiveSlide: (id) =>
       set((s) => {
         s.activeSlideId = id;
+      }),
+    setEditingShape: (id) =>
+      set((s) => {
+        s.editingShapeId = id;
       }),
     setZoom: (zoom) =>
       set((s) => {

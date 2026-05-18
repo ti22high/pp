@@ -6,6 +6,7 @@ import { useUiStore } from '@renderer/stores/ui';
 import { useSelectionStore } from '@renderer/stores/selection';
 import { Slide } from './Slide';
 import { SelectionTransformer } from './SelectionTransformer';
+import { TextOverlay } from './TextOverlay';
 
 // Canvas — хост Konva Stage. Размер стейджа адаптируется к контейнеру.
 // Содержимое: один активный слайд, отцентрированный и масштабированный по uiStore.zoom.
@@ -243,8 +244,35 @@ export function Canvas() {
           <SelectionTransformer slideId={slide.id} getStage={getStage} />
         </Layer>
       </Stage>
+      <TextOverlayHost slideId={slide.id} panX={stagePan.x} panY={stagePan.y} zoom={zoom} />
     </div>
   );
+}
+
+// Хост DOM-оверлея для текущей редактируемой текстовой фигуры.
+// Вынесен в отдельный компонент, чтобы подписки на стейт не приводили к
+// перерендеру всего Canvas (Stage — дорого).
+function TextOverlayHost({
+  slideId,
+  panX,
+  panY,
+  zoom,
+}: {
+  slideId: string;
+  panX: number;
+  panY: number;
+  zoom: number;
+}) {
+  const editingShapeId = useUiStore((s) => s.editingShapeId);
+  const shape = useDeckStore((s) => {
+    if (!editingShapeId) return null;
+    const slide = s.deck?.slides[slideId];
+    if (!slide) return null;
+    const sh = slide.shapes.find((x) => x.id === editingShapeId);
+    return sh && sh.type === 'text' ? sh : null;
+  });
+  if (!shape) return null;
+  return <TextOverlay slideId={slideId} shape={shape} panX={panX} panY={panY} zoom={zoom} />;
 }
 
 // Утилита: считается ли событие пришедшим из текстового поля,

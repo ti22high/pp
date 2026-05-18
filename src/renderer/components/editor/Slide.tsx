@@ -4,6 +4,7 @@ import { RectShapeView } from './shapes/RectShapeView';
 import { EllipseShapeView } from './shapes/EllipseShapeView';
 import { LineShapeView } from './shapes/LineShapeView';
 import { PathShapeView } from './shapes/PathShapeView';
+import { TextShapeView } from './shapes/TextShapeView';
 
 // Рендер одного слайда внутри Stage: фон + все фигуры в z-order.
 // Каждый ShapeView сам подписан на свой кусок deckStore через id.
@@ -44,8 +45,10 @@ export function Slide({ slide, width, height }: SlideProps) {
             return <LineShapeView key={shape.id} shape={shape} slideId={slide.id} />;
           case 'path':
             return <PathShapeView key={shape.id} shape={shape} slideId={slide.id} />;
+          case 'text':
+            return <TextShapeView key={shape.id} shape={shape} slideId={slide.id} />;
           default:
-            // TextShape — пункт 2.10; image/table/chart/equation/video — Phase 3.
+            // image/table/chart/equation/video — Phase 3.
             return null;
         }
       })}
