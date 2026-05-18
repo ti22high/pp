@@ -143,9 +143,9 @@ export function SelectionTransformer({ slideId, getStage }: SelectionTransformer
       anchorStroke="#1a73e8"
       anchorStrokeWidth={1}
       anchorFill="#ffffff"
-      // Отступ рамки от bbox — иначе у тонких фигур (линий, узких rect)
-      // рамка наслаивается на саму фигуру и не отличается от штриха.
-      padding={4}
+      // Минимальный отступ от bbox — больше 2 px сильно бросается в глаза
+      // у тонких форм (линии, узких rect), но 0 склеивает рамку со штрихом.
+      padding={2}
       rotateAnchorOffset={28}
     />
   );
