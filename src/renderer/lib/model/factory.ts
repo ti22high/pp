@@ -2,6 +2,7 @@
 // Используется при File → New, Open Recent → fallback, и в тестах.
 
 import { v4 as uuid } from 'uuid';
+import Konva from 'konva';
 import { DEFAULT_SLIDE_WIDTH, DEFAULT_SLIDE_HEIGHT } from '@shared/constants';
 import type {
   Deck,
@@ -109,17 +110,19 @@ export function createLine(
 export function createPath(
   x = 100,
   y = 100,
-  w = 160,
-  h = 160,
   pathData = 'M0,80 Q40,0 80,80 T160,80',
 ): PathShape {
+  // Считаем натуральный bbox SVG-данных, чтобы Group сразу имел корректный
+  // размер и Transformer обтягивал фигуру вплотную (без зазоров).
+  const tmp = new Konva.Path({ data: pathData });
+  const rect = tmp.getSelfRect();
   return {
     id: uuid(),
     type: 'path',
     x,
     y,
-    w,
-    h,
+    w: Math.max(2, rect.width),
+    h: Math.max(2, rect.height),
     pathData,
     stroke: { color: '#1a73e8', width: 2 },
   };

@@ -69,8 +69,8 @@ export function Toolbar() {
       <ToolbarButton
         label="Path"
         onClick={() => {
-          const c = center(160, 160);
-          insert(createPath(c.x, c.y, 160, 160));
+          const c = center(160, 40);
+          insert(createPath(c.x, c.y));
         }}
       />
       <span className="toolbar-sep" />
