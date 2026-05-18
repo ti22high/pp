@@ -93,21 +93,16 @@ export function SelectionTransformer({ slideId, getStage }: SelectionTransformer
         const nextW = Math.max(2, node.width() * scaleX);
         const nextH = Math.max(2, node.height() * scaleY);
 
-        // Для линии: масштабируем точки пропорционально bbox, чтобы штрих
-        // вытянулся вместе с рамкой. Толщину штриха меняем ТОЛЬКО при
-        // uniform-resize (drag за угол, sx≈sy) — иначе одноосное растяжение
-        // (drag за середину стороны) делало бы линию длиннее, но и пересчитывало
-        // толщину, что неинтуитивно.
+        // Для линии масштабируем сами точки пропорционально bbox,
+        // чтобы штрих вытянулся вместе с рамкой. Толщину штриха не трогаем —
+        // как в Slides, она задаётся явно через Inspector (Phase 2.13).
+        // Иначе stroke накапливается при каждом resize и линия становится
+        // толще и толще, а bbox Transformer-а расходится с самой линией.
         if (sh.type === 'line') {
           const sx = sh.w > 0 ? nextW / sh.w : 1;
           const sy = sh.h > 0 ? nextH / sh.h : 1;
           const [x1, y1, x2, y2] = sh.points;
           sh.points = [x1 * sx, y1 * sy, x2 * sx, y2 * sy];
-          // Считаем uniform, если sx и sy отличаются не больше чем на 5 %.
-          const isUniform = Math.abs(sx - sy) / Math.max(sx, sy) < 0.05;
-          if (isUniform && sh.stroke) {
-            sh.stroke.width = Math.max(0.5, sh.stroke.width * sx);
-          }
         }
 
         sh.x = node.x();
