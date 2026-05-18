@@ -5,6 +5,7 @@ import { useUiStore } from './stores/ui';
 import { createEmptyDeck } from './lib/model/factory';
 import { Canvas } from './components/editor/Canvas';
 import { Toolbar } from './components/toolbar/Toolbar';
+import { Inspector } from './components/inspector/Inspector';
 
 // Главный UI редактора. Структура: header / toolbar / (filmstrip + canvas + inspector).
 // При первом маунте создаём пустой deck — остальные компоненты подписываются на него.
@@ -56,10 +57,7 @@ export function App() {
 
       <Canvas />
 
-      <aside className="app-inspector">
-        <p className="panel-title">Inspector</p>
-        <p className="meta">Свойства фигуры появятся в Phase 2.12.</p>
-      </aside>
+      <Inspector />
     </div>
   );
 }
