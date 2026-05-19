@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Stage, Layer } from 'react-konva';
+import { Stage, Layer, Rect } from 'react-konva';
 import type Konva from 'konva';
 import { useDeckStore } from '@renderer/stores/deck';
 import { useUiStore } from '@renderer/stores/ui';
 import { useSelectionStore } from '@renderer/stores/selection';
+import type { ShapeId } from '@shared/types';
 import { Slide } from './Slide';
 import { SelectionTransformer } from './SelectionTransformer';
 import { TextOverlay } from './TextOverlay';
@@ -38,6 +39,29 @@ export function Canvas() {
   useEffect(() => {
     stagePanRef.current = stagePan;
   }, [stagePan]);
+
+  // Rubber band — прямоугольник выделения, который пользователь рисует drag-ом
+  // на пустом месте слайда. Координаты в slide-coords (т.е. с поправкой
+  // на pan/zoom), чтобы оверлей-Rect внутри Stage с scaleX/Y={zoom} был
+  // позиционирован корректно.
+  const [rubberBand, setRubberBand] = useState<{
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+  } | null>(null);
+  const rubberStartRef = useRef<{
+    x: number;
+    y: number;
+    additive: boolean; // shift зажат → добавляем к существующему выделению
+    baseIds: ShapeId[]; // снимок выделения на момент начала drag-а (для additive)
+  } | null>(null);
+  // Ref на zoom — нужен в обработчиках mousedown/move без перепересоздания
+  // callback-ов на каждый zoom-апдейт.
+  const zoomRef = useRef(zoom);
+  useEffect(() => {
+    zoomRef.current = zoom;
+  }, [zoom]);
 
   // Отслеживаем размер контейнера через ResizeObserver.
   useEffect(() => {
@@ -93,10 +117,10 @@ export function Canvas() {
   }, [setZoom]);
 
   // Один обработчик mousedown на Stage:
-  // - если Space зажат → начало pan,
-  // - если клик попал в любую ноду, чей id входит в множество shape-id
-  //   текущего слайда (или в потомка такой ноды) → select эту фигуру,
-  // - иначе → снять выделение.
+  // - Space зажат → начало pan,
+  // - клик на анкоре Transformer-а → не трогаем выделение,
+  // - клик в shape → select (Shift+click → toggle multi-select),
+  // - клик в пустоту → начало rubber-band (Shift зажат → additive).
   const handleStageMouseDown = useCallback(
     (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
       const stage = stageRef.current;
@@ -127,7 +151,6 @@ export function Canvas() {
 
       // Если клик попал на анкор/ротатор Transformer'а — не трогаем выделение,
       // иначе resize/rotate ломается (Transformer теряет ноды).
-      // Konva помечает анкоры через хэлпер hasName.
       if (
         typeof (e.target as Konva.Node).hasName === 'function' &&
         ((e.target as Konva.Node).hasName('_anchor') ||
@@ -137,36 +160,111 @@ export function Canvas() {
         return;
       }
 
+      const shift = (e.evt as MouseEvent).shiftKey === true;
+
       // Поднимаемся по дереву от hit-target до первой ноды, чей id есть в slide.shapes.
       let node: Konva.Node | null = e.target;
       while (node && node !== stage) {
         const nodeId = node.id();
         if (nodeId && ids.has(nodeId)) {
-          useSelectionStore.getState().select([nodeId]);
+          const sel = useSelectionStore.getState();
+          if (shift) sel.toggle(nodeId);
+          else sel.select([nodeId]);
           return;
         }
         node = node.getParent();
       }
-      useSelectionStore.getState().clear();
+
+      // Клик в пустоту — старт rubber band.
+      const pointer = stage.getPointerPosition();
+      if (!pointer) return;
+      const z = zoomRef.current;
+      const startX = (pointer.x - stagePanRef.current.x) / z;
+      const startY = (pointer.y - stagePanRef.current.y) / z;
+      const baseIds = shift ? [...useSelectionStore.getState().selectedShapeIds] : [];
+      rubberStartRef.current = { x: startX, y: startY, additive: shift, baseIds };
+      setRubberBand({ x: startX, y: startY, w: 0, h: 0 });
+      if (!shift) useSelectionStore.getState().clear();
     },
     [spaceHeld],
   );
 
-  const handlePanMove = useCallback(() => {
-    const start = panStartRef.current;
+  const handleStageMouseMove = useCallback(() => {
     const stage = stageRef.current;
-    if (!start || !stage) return;
+    if (!stage) return;
     const pointer = stage.getPointerPosition();
     if (!pointer) return;
-    setUserMoved(true);
-    setStagePan({
-      x: start.panX + (pointer.x - start.x),
-      y: start.panY + (pointer.y - start.y),
-    });
+
+    // Pan имеет приоритет.
+    const start = panStartRef.current;
+    if (start) {
+      setUserMoved(true);
+      setStagePan({
+        x: start.panX + (pointer.x - start.x),
+        y: start.panY + (pointer.y - start.y),
+      });
+      return;
+    }
+
+    // Rubber band — обновляем прямоугольник в slide-coords.
+    const rb = rubberStartRef.current;
+    if (rb) {
+      const z = zoomRef.current;
+      const curX = (pointer.x - stagePanRef.current.x) / z;
+      const curY = (pointer.y - stagePanRef.current.y) / z;
+      setRubberBand({
+        x: Math.min(rb.x, curX),
+        y: Math.min(rb.y, curY),
+        w: Math.abs(curX - rb.x),
+        h: Math.abs(curY - rb.y),
+      });
+    }
   }, [setStagePan]);
 
-  const handlePanEnd = useCallback(() => {
+  const handleStageMouseUp = useCallback(() => {
     panStartRef.current = null;
+
+    const rb = rubberStartRef.current;
+    if (rb) {
+      rubberStartRef.current = null;
+      // Финальный прямоугольник берём из state, чтобы не пересчитывать.
+      // Если drag был фактически кликом (≈0×0) — ничего не выделяем сверх того,
+      // что уже сделал mousedown (clear/baseIds).
+      setRubberBand((prev) => {
+        if (prev && (prev.w > 1 || prev.h > 1)) {
+          const deckNow = useDeckStore.getState().deck;
+          const activeId = useUiStore.getState().activeSlideId;
+          if (deckNow && activeId) {
+            const slide = deckNow.slides[activeId];
+            if (slide) {
+              const hits: ShapeId[] = [];
+              for (const sh of slide.shapes) {
+                // Простой axis-aligned intersect — rotation/flip игнорируем
+                // (как в Slides: rubber band ловит bbox без учёта поворота).
+                if (
+                  sh.x < prev.x + prev.w &&
+                  sh.x + sh.w > prev.x &&
+                  sh.y < prev.y + prev.h &&
+                  sh.y + sh.h > prev.y
+                ) {
+                  hits.push(sh.id);
+                }
+              }
+              const sel = useSelectionStore.getState();
+              if (rb.additive) {
+                // baseIds + hits, без дубликатов.
+                const merged = [...rb.baseIds];
+                for (const id of hits) if (!merged.includes(id)) merged.push(id);
+                sel.select(merged);
+              } else {
+                sel.select(hits);
+              }
+            }
+          }
+        }
+        return null;
+      });
+    }
   }, []);
 
   // Зум колесом — относительно позиции указателя.
@@ -233,15 +331,29 @@ export function Canvas() {
         y={stagePan.y}
         onWheel={handleWheel}
         onMouseDown={handleStageMouseDown}
-        onMouseMove={handlePanMove}
-        onMouseUp={handlePanEnd}
-        onMouseLeave={handlePanEnd}
+        onMouseMove={handleStageMouseMove}
+        onMouseUp={handleStageMouseUp}
+        onMouseLeave={handleStageMouseUp}
       >
         <Layer>
           <Slide slide={slide} width={slideW} height={slideH} />
         </Layer>
         <Layer>
           <SelectionTransformer slideId={slide.id} getStage={getStage} />
+          {rubberBand && (
+            <Rect
+              x={rubberBand.x}
+              y={rubberBand.y}
+              width={rubberBand.w}
+              height={rubberBand.h}
+              fill="rgba(26, 115, 232, 0.08)"
+              stroke="#1a73e8"
+              strokeWidth={1}
+              dash={[4, 2]}
+              strokeScaleEnabled={false}
+              listening={false}
+            />
+          )}
         </Layer>
       </Stage>
       <TextOverlayHost slideId={slide.id} panX={stagePan.x} panY={stagePan.y} zoom={zoom} />
