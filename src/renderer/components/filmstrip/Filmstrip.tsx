@@ -29,19 +29,21 @@ export function Filmstrip() {
   return (
     <aside className="app-filmstrip">
       <p className="panel-title">Слайды ({slideOrder.length})</p>
-      <Virtuoso
-        style={{ height: 'calc(100% - 24px)' }}
-        data={slideOrder}
-        itemContent={(index, slideId) => (
-          <FilmstripItem
-            slideId={slideId}
-            index={index}
-            active={slideId === activeSlideId}
-            onSelect={setActiveSlide}
-            onReorder={onReorder}
-          />
-        )}
-      />
+      <div className="app-filmstrip-list">
+        <Virtuoso
+          style={{ height: '100%' }}
+          data={slideOrder}
+          itemContent={(index, slideId) => (
+            <FilmstripItem
+              slideId={slideId}
+              index={index}
+              active={slideId === activeSlideId}
+              onSelect={setActiveSlide}
+              onReorder={onReorder}
+            />
+          )}
+        />
+      </div>
     </aside>
   );
 }
