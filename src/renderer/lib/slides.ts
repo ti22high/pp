@@ -5,6 +5,7 @@ import { useDeckStore } from '@renderer/stores/deck';
 import { useUiStore } from '@renderer/stores/ui';
 import { useSelectionStore } from '@renderer/stores/selection';
 import { createEmptySlide, cloneSlide } from '@renderer/lib/model/factory';
+import { getLayout, type LayoutKey } from '@renderer/lib/model/layouts';
 
 export function newSlide(): void {
   const activeId = useUiStore.getState().activeSlideId;
@@ -77,6 +78,33 @@ export function deleteSlide(): void {
   });
   useUiStore.getState().setActiveSlide(nextActive);
   useSelectionStore.getState().clear();
+}
+
+// Применяет встроенный layout к активному слайду: добавляет placeholder-фигуры
+// (старые сохраняются). Координаты в layout-ах базированы на 1920×1080
+// и пропорционально масштабируются под текущий deck.size.
+export function applyLayout(key: LayoutKey): void {
+  const activeId = useUiStore.getState().activeSlideId;
+  if (!activeId) return;
+  const layout = getLayout(key);
+  if (!layout) return;
+  useDeckStore.setState((state) => {
+    if (!state.deck) return;
+    const slide = state.deck.slides[activeId];
+    if (!slide) return;
+    const sx = state.deck.size.w / 1920;
+    const sy = state.deck.size.h / 1080;
+    const placeholders = layout.build().map((sh) => ({
+      ...sh,
+      x: sh.x * sx,
+      y: sh.y * sy,
+      w: sh.w * sx,
+      h: sh.h * sy,
+    }));
+    slide.shapes.push(...placeholders);
+    slide.layoutId = key;
+    state.deck.modifiedAt = new Date().toISOString();
+  });
 }
 
 export function toggleHiddenSlide(): void {

@@ -401,3 +401,90 @@ body,
   content: ' ⊘';
   font-size: 10px;
 }
+
+/* Модальные диалоги (Layout-пикер, далее — Background-editor, Slide-size,
+   Hyperlink в 2.28+). Простая centered-box без библиотек. */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+.modal {
+  background: var(--bg-panel);
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  min-width: 600px;
+  max-width: 90vw;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+.modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.modal__header h2 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+}
+.modal__close {
+  background: transparent;
+  border: 0;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 0 4px;
+}
+.modal__close:hover {
+  color: var(--text);
+}
+
+.layout-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  padding: 16px;
+  overflow-y: auto;
+}
+.layout-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  padding: 6px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+.layout-card:hover {
+  border-color: var(--accent);
+  background: rgba(26, 115, 232, 0.04);
+}
+.layout-card__label {
+  font-size: 11px;
+  color: var(--text);
+  text-align: center;
+}
+.layout-thumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+}
+.layout-thumb__ph {
+  position: absolute;
+  background: rgba(95, 99, 104, 0.18);
+  border-radius: 1px;
+}
