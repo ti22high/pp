@@ -1,4 +1,5 @@
 import { memo, useState } from 'react';
+import Konva from 'konva';
 import { useDeckStore } from '@renderer/stores/deck';
 import type { SlideId } from '@shared/types';
 import type { Fill } from '@renderer/lib/model/schema';
@@ -97,6 +98,32 @@ export const FilmstripItem = memo(function FilmstripItemBase({
                 />
               );
             }
+            if (sh.type === 'path') {
+              const natural = pathNaturalBox(sh.pathData);
+              return (
+                <svg
+                  key={sh.id}
+                  className="fs-item__shape"
+                  style={{
+                    left: sh.x,
+                    top: sh.y,
+                    width: sh.w,
+                    height: sh.h,
+                    overflow: 'visible',
+                  }}
+                  viewBox={`${natural.x} ${natural.y} ${natural.w} ${natural.h}`}
+                  preserveAspectRatio="none"
+                >
+                  <path
+                    d={sh.pathData}
+                    fill={fill ?? 'none'}
+                    stroke={stroke ?? '#5f6368'}
+                    strokeWidth={sh.stroke?.width ?? 2}
+                    vectorEffect="non-scaling-stroke"
+                  />
+                </svg>
+              );
+            }
             return (
               <div
                 key={sh.id}
@@ -121,6 +148,25 @@ export const FilmstripItem = memo(function FilmstripItemBase({
     </div>
   );
 });
+
+// Натуральный bbox SVG-данных пути — повторяет логику PathShapeView, чтобы
+// preserveAspectRatio="none" в SVG корректно ровно растянул кривую на bbox
+// фигуры (как Konva.Path в основной отрисовке).
+const pathBoxCache = new Map<string, { x: number; y: number; w: number; h: number }>();
+function pathNaturalBox(data: string): { x: number; y: number; w: number; h: number } {
+  const cached = pathBoxCache.get(data);
+  if (cached) return cached;
+  const tmp = new Konva.Path({ data });
+  const rect = tmp.getSelfRect();
+  const box = {
+    x: rect.x,
+    y: rect.y,
+    w: Math.max(1, rect.width),
+    h: Math.max(1, rect.height),
+  };
+  pathBoxCache.set(data, box);
+  return box;
+}
 
 function solidColor(fill: Fill | undefined): string | null {
   if (!fill) return null;
