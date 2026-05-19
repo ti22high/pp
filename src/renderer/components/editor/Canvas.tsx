@@ -168,8 +168,14 @@ export function Canvas() {
         const nodeId = node.id();
         if (nodeId && ids.has(nodeId)) {
           const sel = useSelectionStore.getState();
-          if (shift) sel.toggle(nodeId);
-          else sel.select([nodeId]);
+          if (shift) {
+            sel.toggle(nodeId);
+          } else if (!sel.selectedShapeIds.includes(nodeId)) {
+            // Клик по не-выделенной фигуре → заменяем выделение на неё.
+            // Если фигура уже выделена (в т. ч. в составе мульти) — НЕ трогаем
+            // выделение, чтобы последующий drag двигал всю группу.
+            sel.select([nodeId]);
+          }
           return;
         }
         node = node.getParent();
