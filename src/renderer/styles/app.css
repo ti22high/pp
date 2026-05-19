@@ -394,6 +394,17 @@ body,
   transform-origin: top left;
   pointer-events: none;
 }
+.fs-item__bg-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
 .fs-item__shape {
   position: absolute;
   border-style: solid;

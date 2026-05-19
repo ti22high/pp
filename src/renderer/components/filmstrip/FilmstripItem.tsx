@@ -67,12 +67,21 @@ export const FilmstripItem = memo(function FilmstripItemBase({
         style={{
           width: THUMB_W,
           height: thumbH,
-          background: bgColor,
-          backgroundImage: bgImage ? `url(${JSON.stringify(bgImage)})` : undefined,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          backgroundColor: bgColor,
         }}
       >
+        {bgImage && (
+          // Нативный <img> вместо CSS background-image: с очень большими data
+          // URL (картинки 3000+px) inline-style backgroundImage в Chromium
+          // ненадёжен — иногда не отрисовывается. <img> декодирует ровно один
+          // раз и стабильно работает с любым размером.
+          <img
+            src={bgImage}
+            alt=""
+            draggable={false}
+            className="fs-item__bg-img"
+          />
+        )}
         {/* Внутренний слой 1920×1080 (или какой реально slide) — здесь
             фигуры в их «настоящих» координатах. CSS scale уменьшает всё
             до thumb-размера. Текст рендерится в реальном font-size, поэтому
