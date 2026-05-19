@@ -147,3 +147,47 @@
 - **Решение:** Добавляю опциональное поле `text?: unknown` (TipTap JSON) в `baseShape`. Любая фигура (кроме линии) по `onDblClick` открывает существующий `TextOverlay`. Для TextShape он по-прежнему пишет в `tiptapDoc`, для остальных — в `text`. Plain-rendering текста внутри фигуры — общий компонент `ShapeTextLabel` поверх Rect/Ellipse/Path.
 - **Совместимость с будущим:** все TipTap-расширения (Bold/Italic/Color/FontSize/…) применяются к ОДНОМУ редактору в `TextOverlay` — следовательно, как только Inspector (Phase 2.13-ext / Format menu / Phase 2.35) научится посылать команды форматирования в активный TipTap-editor, форматирование автоматически заработает и для TextShape, и для текста-в-фигуре.
 - **Что НЕ в этом расширении:** vertical-align внутри фигуры (по умолчанию center), auto-resize fontSize под bbox (Slides «Shrink text on overflow»), индивидуальные padding-ы — добавим в Phase 3 как часть «Advanced editing».
+
+---
+
+### 2026-05-19 | Phase 2 ext | Multi-drag через Canvas-level (не Konva native)
+
+- **Контекст:** Konva native drag (`draggable` на Group) для одиночной фигуры работал, но для группы (когда selectedIds.length ≥ 2) давал «дрожь» при моих попытках двигать остальных императивно: React-рендер новых model-state-ов сталкивался с Konva-trackbox-логикой, плюс `SelectionTransformer` re-attach-ил ноды на каждый modifiedAt.
+- **Решение:** В мульти-выделении (2+) у ShapeNode `draggable=false`. Multi-drag целиком на Canvas-уровне через `multiDragRef`: при mousedown на любой фигуре в multi-selection стартуем своё отслеживание pointer-а; на mousemove императивно двигаем все Konva-ноды + пишем позиции в стор. SelectionTransformer-эффект на modifiedAt был разделён: re-attach только на selectedIds-change, forceUpdate-only на modifiedAt — это сняло «дрожь» при live-обновлении стора.
+- **Side-effects:** filmstrip и Inspector обновляются вживую во время multi-drag (потому что стор тикает каждый mousemove). React.memo на ShapeView + immer-sharing ссылок исключает re-render не-перемещаемых фигур.
+
+---
+
+### 2026-05-19 | Phase 2.24 ext | Filmstrip thumbnail через CSS-transform scale
+
+- **Контекст:** Изначально рендерил каждую фигуру в filmstrip как `<div>` с `%`-координатами и font-size 6 px для текста. Получалось не пропорционально канвасу: текст обрезался, шрифт нечитаемый. Альтернатива — PNG-thumbnail через OffscreenCanvas (§6.9, Phase 3+).
+- **Решение:** В FilmstripItem-е рисую внутренний слой размером 1920×1080 (real slide-coords) и применяю `transform: scale(THUMB_W / slideW)` на родителя. Фигуры рендерятся с настоящими `x/y/w/h`, шрифт — родной 20 px. После scale-а на ~0.07 получается миниатюрное превью пропорциональное канвасу. Path рендерится через `<svg><path>` с `vector-effect: non-scaling-stroke`, чтобы штрих не утолщался от scale.
+- **Не реализовано:** Реальный PNG-thumbnail через OffscreenCanvas+Worker + IndexedDB-cache (§6.9) — большая работа, отложена в Phase 3+.
+
+---
+
+### 2026-05-19 | Phase 2.27 fix | Apply layout = новый слайд, не overlay на текущий
+
+- **Контекст:** Изначально «Применить макет» добавлял placeholder-фигуры в **текущий** слайд (поверх существующих). Пользовательский ожидал поведение как в Slides «New slide with layout» — отдельный слайд из шаблона.
+- **Решение:** Меню переименовано в **Слайд → Новый слайд из макета…** `applyLayout(key)` теперь создаёт новый Slide с placeholder-ами и вставляет после активного. Текущий слайд не меняется. Старая логика «слить layout на существующий» удалена.
+
+---
+
+### 2026-05-19 | Auto-fit zoom на старте и Cmd+0
+
+- **Контекст:** Дефолтный `zoom = 1` при canvas-области < 1920×1080 (типичный случай) делал слайд больше канваса — пользователь не видел границ слайда, всё казалось «белым». Slides и PowerPoint при открытии fit-ят слайд под окно с отступом.
+- **Решение:** В Canvas auto-center-эффект подбирает `fitZoom = min(stageW/slideW, stageH/slideH) * 0.95`, ставит pan по центру. Срабатывает пока `userMoved=false`. Cmd+0 / меню «Сбросить масштаб» возвращает `userMoved=false` → fit повторяется.
+
+---
+
+### 2026-05-19 | Cmd+A — выделение фигур, не текста браузера
+
+- **Контекст:** В меню «Правка → Выделить всё» был `role: 'selectAll'` — вызывает `webContents.selectAll()`, выделяет произвольный текст на странице (URL, header, плейсхолдеры). Пользовательский ожидал — выделить все фигуры активного слайда.
+- **Решение:** Меню → custom click `edit:select-all`. `useShapeClipboard` слушает Cmd/Ctrl+A и вызывает `selectAll()` из `lib/clipboard.ts`, который выделяет `slide.shapes.map(s => s.id)`. Внутри text-input / contenteditable Cmd+A работает нативно (выделяет текст поля) — наш хук пропускает.
+
+---
+
+### 2026-05-19 | macOS ApplePressAndHoldEnabled=false
+
+- **Контекст:** macOS по умолчанию на удержание буквы показывает picker диакритик (é, è, ê...). Это перехватывает auto-repeat и пользователь не мог «зажать» клавишу для повтора ввода в TipTap.
+- **Решение:** В `src/main/index.ts` до `app.whenReady()`: `systemPreferences.setUserDefault('ApplePressAndHoldEnabled', 'boolean', false)`. Применяется к app-defaults; вступает в силу со следующего запуска. Picker диакритик в нашем приложении отключён, key-repeat работает нативно.
