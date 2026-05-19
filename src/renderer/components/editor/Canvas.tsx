@@ -30,7 +30,8 @@ export function Canvas() {
   const setZoom = useUiStore((s) => s.setZoom);
   const stagePan = useUiStore((s) => s.stagePan);
   const setStagePan = useUiStore((s) => s.setStagePan);
-  const [spaceHeld, setSpaceHeld] = useState(false);
+  const spaceHeld = useUiStore((s) => s.panMode);
+  const setSpaceHeld = useUiStore((s) => s.setPanMode);
   const getStage = useCallback(() => stageRef.current, []);
 
   // Признак: пользователь уже менял pan/zoom вручную → не пере-центрируем автоматически.
@@ -125,7 +126,7 @@ export function Canvas() {
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
     };
-  }, [setZoom]);
+  }, [setZoom, setSpaceHeld]);
 
   // Один обработчик mousedown на Stage:
   // - Space зажат → начало pan,
@@ -298,8 +299,9 @@ export function Canvas() {
             others.push({ x: sh.x, y: sh.y, w: sh.w, h: sh.h });
           }
         }
-        // Слайд НЕ включаем как snap-цель при multi-drag — см. комментарий
-        // в ShapeNode.handleDragMove. Это уменьшает «разъезд» группы.
+        if (deckNow?.size) {
+          others.push({ x: 0, y: 0, w: deckNow.size.w, h: deckNow.size.h });
+        }
         const movedBoxes: SnapBox[] = md.nodes.map((n) => ({
           x: n.startX + dx,
           y: n.startY + dy,

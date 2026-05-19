@@ -16,8 +16,12 @@ interface UiState {
   showInspector: boolean;
   // id текстовой фигуры, открытой в TipTap-оверлее (null = режим просмотра).
   editingShapeId: ShapeId | null;
+  // Space зажат → режим pan. Все фигуры становятся non-draggable, чтобы
+  // клик/drag шёл в стейдж, а не в Konva native drag фигуры.
+  panMode: boolean;
   setActiveSlide: (id: SlideId | null) => void;
   setEditingShape: (id: ShapeId | null) => void;
+  setPanMode: (on: boolean) => void;
   setZoom: (zoom: number) => void;
   setStagePan: (pan: { x: number; y: number }) => void;
   toggleRuler: () => void;
@@ -38,6 +42,7 @@ export const useUiStore = create<UiState>()(
     showFilmstrip: true,
     showInspector: true,
     editingShapeId: null,
+    panMode: false,
     setActiveSlide: (id) =>
       set((s) => {
         s.activeSlideId = id;
@@ -45,6 +50,10 @@ export const useUiStore = create<UiState>()(
     setEditingShape: (id) =>
       set((s) => {
         s.editingShapeId = id;
+      }),
+    setPanMode: (on) =>
+      set((s) => {
+        s.panMode = on;
       }),
     setZoom: (zoom) =>
       set((s) => {

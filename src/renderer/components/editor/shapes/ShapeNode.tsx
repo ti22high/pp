@@ -43,6 +43,9 @@ export function ShapeNode({
   children,
 }: ShapeNodeProps) {
   const snapToGrid = useUiStore((s) => s.snapToGrid);
+  // Space зажат → запрещаем native drag фигур, чтобы клик/drag шёл в Stage
+  // (pan), а не в Konva native drag Group-а.
+  const panMode = useUiStore((s) => s.panMode);
 
   // Старт group-drag-а: исходные позиции всех остальных selected-нод
   // (на момент начала drag-а текущей) + старт самой dragged-ноды.
@@ -113,11 +116,10 @@ export function ShapeNode({
           others.push({ x: sh.x, y: sh.y, w: sh.w, h: sh.h });
         }
       }
-      // Слайд в snap-цели включаем только для single-drag. При group-drag
-      // союз-bbox группы редко совпадает с центром слайда «по делу» —
-      // лишь мешает удерживать относительные позиции и даёт «разъезд»
-      // когда snap то срабатывает, то нет.
-      if (!group && deckNow?.size) {
+      // Слайд как snap-цель — и для single, и для multi-drag.
+      // (Раньше пробовал убрать для multi из-за гипотезы про «разъезд»,
+      // но это было не из-за слайда — UX-критично иметь центровку группы.)
+      if (deckNow?.size) {
         others.push({ x: 0, y: 0, w: deckNow.size.w, h: deckNow.size.h });
       }
 
@@ -220,7 +222,7 @@ export function ShapeNode({
       height={h}
       rotation={rotation ?? 0}
       opacity={opacity ?? 1}
-      draggable={!locked}
+      draggable={!locked && !panMode}
       onDragStart={handleDragStart}
       onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
