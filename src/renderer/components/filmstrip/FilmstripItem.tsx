@@ -60,9 +60,12 @@ export const FilmstripItem = memo(function FilmstripItemBase({
         {slide.shapes.map((sh) => {
           const fill = solidColor(sh.fill);
           const stroke = sh.stroke?.color ?? null;
-          // Текст / прочие фигуры без видимой заливки и обводки — показываем
-          // плашкой светло-серой, чтобы в превью было видно «там что-то есть».
-          const isInvisible = !fill && !stroke;
+          // Plain-текст из самой фигуры (TextShape) или из её "text"-оверлея
+          // (rect/ellipse/path с текстом внутри).
+          const plain =
+            sh.type === 'text'
+              ? extractPlain(sh.tiptapDoc)
+              : extractPlain(sh.text);
           return (
             <div
               key={sh.id}
@@ -72,11 +75,13 @@ export const FilmstripItem = memo(function FilmstripItemBase({
                 top: `${(sh.y / slideH) * 100}%`,
                 width: `${(sh.w / slideW) * 100}%`,
                 height: `${(sh.h / slideH) * 100}%`,
-                background: fill ?? (isInvisible ? 'rgba(95, 99, 104, 0.18)' : 'transparent'),
+                background: fill ?? 'transparent',
                 borderColor: stroke ?? 'transparent',
                 borderRadius: sh.type === 'ellipse' ? '50%' : 0,
               }}
-            />
+            >
+              {plain && <span className="fs-item__text">{plain}</span>}
+            </div>
           );
         })}
       </div>
@@ -88,4 +93,23 @@ function solidColor(fill: Fill | undefined): string | null {
   if (!fill) return null;
   if (fill.kind === 'solid') return fill.color;
   return null;
+}
+
+function extractPlain(doc: unknown): string {
+  if (!doc || typeof doc !== 'object') return '';
+  const out: string[] = [];
+  const walk = (node: unknown): void => {
+    if (!node || typeof node !== 'object') return;
+    const n = node as { type?: string; text?: string; content?: unknown[] };
+    if (n.type === 'text' && typeof n.text === 'string') {
+      out.push(n.text);
+      return;
+    }
+    if (Array.isArray(n.content)) {
+      for (const child of n.content) walk(child);
+      if (n.type === 'paragraph' || n.type === 'heading') out.push(' ');
+    }
+  };
+  walk(doc);
+  return out.join('').trim();
 }
