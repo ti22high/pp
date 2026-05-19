@@ -61,7 +61,7 @@
 - [x] 2.26. Layouts: 10 встроенных layout-ов из §1.1.
 - [x] 2.27. Apply layout command.
 - [x] 2.28. Background editor (color / image / reset).
-- [ ] 2.29. Slide size dialog (4:3, 16:9, custom).
+- [x] 2.29. Slide size dialog (4:3, 16:9, custom).
 - [ ] 2.30. Rulers (top + left).
 - [ ] 2.31. Guides (add / edit / clear, snap to guides).
 - [ ] 2.32. Page numbers (insert + on/off в master).

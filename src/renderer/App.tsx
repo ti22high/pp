@@ -9,6 +9,7 @@ import { Inspector } from './components/inspector/Inspector';
 import { Filmstrip } from './components/filmstrip/Filmstrip';
 import { LayoutPicker } from './components/ui/LayoutPicker';
 import { BackgroundEditor } from './components/ui/BackgroundEditor';
+import { SlideSizeDialog } from './components/ui/SlideSizeDialog';
 import { useMenuCommands } from './hooks/useMenuCommands';
 import { useShapeClipboard } from './hooks/useShapeClipboard';
 import { useUndoRedo } from './hooks/useUndoRedo';
@@ -19,6 +20,7 @@ export function App() {
   const [versions, setVersions] = useState<VersionsInfo | null>(null);
   const [layoutPickerOpen, setLayoutPickerOpen] = useState(false);
   const [bgEditorOpen, setBgEditorOpen] = useState(false);
+  const [slideSizeOpen, setSlideSizeOpen] = useState(false);
   const deck = useDeckStore((s) => s.deck);
   const setDeck = useDeckStore((s) => s.setDeck);
   const setActiveSlide = useUiStore((s) => s.setActiveSlide);
@@ -35,6 +37,7 @@ export function App() {
     return window.api.onMenuCommand((cmd) => {
       if (cmd === 'slide:apply-layout') setLayoutPickerOpen(true);
       else if (cmd === 'slide:background') setBgEditorOpen(true);
+      else if (cmd === 'file:slide-size') setSlideSizeOpen(true);
     });
   }, []);
 
@@ -75,6 +78,7 @@ export function App() {
 
       <LayoutPicker open={layoutPickerOpen} onClose={() => setLayoutPickerOpen(false)} />
       <BackgroundEditor open={bgEditorOpen} onClose={() => setBgEditorOpen(false)} />
+      <SlideSizeDialog open={slideSizeOpen} onClose={() => setSlideSizeOpen(false)} />
     </div>
   );
 }

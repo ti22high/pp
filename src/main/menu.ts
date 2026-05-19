@@ -66,6 +66,8 @@ const template: MenuItemConstructorOptions[] = [
         click: () => sendCommand('file:save-as'),
       },
       { type: 'separator' },
+      { label: 'Размер слайда…', click: () => sendCommand('file:slide-size') },
+      { type: 'separator' },
       {
         label: 'Экспорт',
         submenu: [

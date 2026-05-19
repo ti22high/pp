@@ -154,6 +154,39 @@ export function setAllSlidesBackground(
   });
 }
 
+// Меняет размер слайда деки. Если `scaleContent=true` — все фигуры всех
+// слайдов масштабируются пропорционально (отдельные коэффициенты по X и Y).
+// Без масштабирования фигуры остаются на прежних координатах; те, что
+// выпали за пределы нового размера, пользователь подвинет сам.
+//
+// Размеры — в пикселях слайд-координат (px @96 DPI). Конверсия из in/cm/pt
+// в px делается в UI-слое SlideSizeDialog.
+export function setDeckSize(w: number, h: number, scaleContent: boolean): void {
+  if (!(w > 0) || !(h > 0)) return;
+  useDeckStore.setState((state) => {
+    if (!state.deck) return;
+    const oldW = state.deck.size.w;
+    const oldH = state.deck.size.h;
+    if (oldW === w && oldH === h) return;
+    state.deck.size = { w, h };
+    if (scaleContent && oldW > 0 && oldH > 0) {
+      const sx = w / oldW;
+      const sy = h / oldH;
+      for (const id of state.deck.slideOrder) {
+        const slide = state.deck.slides[id];
+        if (!slide) continue;
+        for (const sh of slide.shapes) {
+          sh.x = sh.x * sx;
+          sh.y = sh.y * sy;
+          sh.w = sh.w * sx;
+          sh.h = sh.h * sy;
+        }
+      }
+    }
+    state.deck.modifiedAt = new Date().toISOString();
+  });
+}
+
 export function toggleHiddenSlide(): void {
   const activeId = useUiStore.getState().activeSlideId;
   if (!activeId) return;
