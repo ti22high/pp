@@ -27,8 +27,17 @@ function isInTextField(target: EventTarget | null): boolean {
 export function useShapeClipboard() {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (!(e.ctrlKey || e.metaKey)) return;
       if (isInTextField(e.target)) return; // нативный копи-паст текста
+      // Delete / Backspace — удаление выделенного (без модификаторов).
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        const sel = useSelectionStore.getState().selectedShapeIds;
+        if (sel.length === 0) return;
+        e.preventDefault();
+        deleteSelected();
+        return;
+      }
+      if (!(e.ctrlKey || e.metaKey)) return;
       const key = e.key.toLowerCase();
       if (key === 'c') {
         e.preventDefault();

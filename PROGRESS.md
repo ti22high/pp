@@ -54,7 +54,7 @@
 - [x] 2.19. Z-order commands (`bringToFront`, etc).
 - [x] 2.20. Group / Ungroup.
 - [x] 2.21. Copy / Paste / Cut / Duplicate (Ctrl+C/V/X/D).
-- [ ] 2.22. Delete (Del).
+- [x] 2.22. Delete (Del).
 - [ ] 2.23. Undo / Redo (`src/renderer/lib/undo.ts`) + Ctrl+Z / Ctrl+Y.
 - [ ] 2.24. Filmstrip с `react-virtuoso`, drag-reorder слайдов.
 - [ ] 2.25. New slide, Duplicate, Delete, Hide commands.
