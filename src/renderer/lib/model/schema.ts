@@ -124,6 +124,9 @@ const baseShape = {
   altText: z.string().optional(),
   animations: z.array(animationSchema).optional(),
   locked: z.boolean().optional(),
+  // Идентификатор группы. Фигуры с одним groupId трактуются как единое
+  // целое при выделении (клик по любой → выделяются все).
+  groupId: z.string().optional(),
 };
 
 // Конкретные типы фигур (Phase 2: rect, ellipse, line, path, text;

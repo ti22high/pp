@@ -6,6 +6,7 @@ import type Konva from 'konva';
 import { useDeckStore } from '@renderer/stores/deck';
 import { useUiStore } from '@renderer/stores/ui';
 import { useSelectionStore } from '@renderer/stores/selection';
+import { expandToGroups } from '@renderer/lib/group';
 import type { ShapeId } from '@shared/types';
 import { Slide } from './Slide';
 import { SelectionTransformer } from './SelectionTransformer';
@@ -196,14 +197,22 @@ export function Canvas() {
         const nodeId = node.id() as ShapeId;
         if (nodeId && ids.has(nodeId)) {
           const sel = useSelectionStore.getState();
+          // Группа: при клике расширяем до всех членов группы.
+          const expanded = expandToGroups([nodeId], slide.shapes);
           if (shift) {
-            sel.toggle(nodeId);
+            // Shift+click: toggle всю группу (или фигуру если она не в группе).
+            const setSel = new Set(sel.selectedShapeIds);
+            const allIn = expanded.every((x) => setSel.has(x));
+            if (allIn) {
+              sel.select(sel.selectedShapeIds.filter((x) => !expanded.includes(x)));
+            } else {
+              sel.select([...new Set([...sel.selectedShapeIds, ...expanded])]);
+            }
             return;
           }
           if (!sel.selectedShapeIds.includes(nodeId)) {
-            // Клик по не-выделенной фигуре → заменяем выделение, Konva
-            // native drag (одиночка) запустится с draggable=true.
-            sel.select([nodeId]);
+            // Клик по не-выделенной фигуре → заменяем выделение всей группой.
+            sel.select(expanded);
             return;
           }
           // Уже в выделении.
@@ -450,13 +459,14 @@ export function Canvas() {
                 }
               }
               const sel = useSelectionStore.getState();
+              // Расширяем до полных групп.
+              const expandedHits = expandToGroups(hits, slide.shapes);
               if (rb.additive) {
-                // baseIds + hits, без дубликатов.
                 const merged = [...rb.baseIds];
-                for (const id of hits) if (!merged.includes(id)) merged.push(id);
+                for (const id of expandedHits) if (!merged.includes(id)) merged.push(id);
                 sel.select(merged);
               } else {
-                sel.select(hits);
+                sel.select(expandedHits);
               }
             }
           }

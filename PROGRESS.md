@@ -52,7 +52,7 @@
 - [x] 2.17. Snap to grid (toggle в View menu).
 - [x] 2.18. Align / Distribute commands.
 - [x] 2.19. Z-order commands (`bringToFront`, etc).
-- [ ] 2.20. Group / Ungroup.
+- [x] 2.20. Group / Ungroup.
 - [ ] 2.21. Copy / Paste / Cut / Duplicate (Ctrl+C/V/X/D).
 - [ ] 2.22. Delete (Del).
 - [ ] 2.23. Undo / Redo (`src/renderer/lib/undo.ts`) + Ctrl+Z / Ctrl+Y.

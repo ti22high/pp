@@ -206,6 +206,9 @@ const template: MenuItemConstructorOptions[] = [
       {
         label: 'Расположить объекты',
         submenu: [
+          { label: 'Сгруппировать', accelerator: 'CmdOrCtrl+G', click: () => sendCommand('arrange:group') },
+          { label: 'Разгруппировать', accelerator: 'CmdOrCtrl+Shift+G', click: () => sendCommand('arrange:ungroup') },
+          { type: 'separator' },
           { label: 'На передний план', accelerator: 'CmdOrCtrl+Shift+]', click: () => sendCommand('arrange:to-front') },
           { label: 'Переместить вперёд', accelerator: 'CmdOrCtrl+]', click: () => sendCommand('arrange:forward') },
           { label: 'Переместить назад', accelerator: 'CmdOrCtrl+[', click: () => sendCommand('arrange:backward') },
