@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { Rect } from 'react-konva';
 import type { RectShape } from '@renderer/lib/model/schema';
 import { ShapeNode } from './ShapeNode';
+import { ShapeTextLabel } from './ShapeTextLabel';
 import { resolveFill, resolveStroke, resolveShadow } from './paint';
 
 interface RectShapeViewProps {
@@ -40,6 +41,9 @@ export const RectShapeView = memo(function RectShapeViewBase({ shape, slideId }:
         {...strokeProps}
         {...shadowProps}
       />
+      {shape.text != null && (
+        <ShapeTextLabel shapeId={shape.id} tiptapDoc={shape.text} w={shape.w} h={shape.h} />
+      )}
     </ShapeNode>
   );
 });

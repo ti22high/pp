@@ -138,3 +138,12 @@
 - **Виртуализация:** `react-virtuoso` — даже при 100+ слайдах рендерится только видимая часть filmstrip-а.
 - **Drag-reorder:** HTML5 DnD (`draggable`, `dataTransfer`), insertion перед target. Не работает за пределами видимой части — но при 100+ слайдах это редкий кейс; «drag через скролл» можно добавить позднее.
 - **Что отложено в Phase 3:** честный PNG-thumbnail через OffscreenCanvas + IDB-cache (§6.9 целиком).
+
+---
+
+### 2026-05-19 | Phase 2 extension | Text внутри произвольной фигуры (double-click)
+
+- **Контекст:** §12 явно описывает только `TextShape` с собственным `tiptapDoc` (пункт 2.10). Slides/PowerPoint позволяют двойным кликом на любую фигуру (rect/ellipse/path) ввести текст «внутри» — это часть базового UX-ожидания.
+- **Решение:** Добавляю опциональное поле `text?: unknown` (TipTap JSON) в `baseShape`. Любая фигура (кроме линии) по `onDblClick` открывает существующий `TextOverlay`. Для TextShape он по-прежнему пишет в `tiptapDoc`, для остальных — в `text`. Plain-rendering текста внутри фигуры — общий компонент `ShapeTextLabel` поверх Rect/Ellipse/Path.
+- **Совместимость с будущим:** все TipTap-расширения (Bold/Italic/Color/FontSize/…) применяются к ОДНОМУ редактору в `TextOverlay` — следовательно, как только Inspector (Phase 2.13-ext / Format menu / Phase 2.35) научится посылать команды форматирования в активный TipTap-editor, форматирование автоматически заработает и для TextShape, и для текста-в-фигуре.
+- **Что НЕ в этом расширении:** vertical-align внутри фигуры (по умолчанию center), auto-resize fontSize под bbox (Slides «Shrink text on overflow»), индивидуальные padding-ы — добавим в Phase 3 как часть «Advanced editing».

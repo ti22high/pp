@@ -624,8 +624,7 @@ function TextOverlayHost({
     if (!editingShapeId) return null;
     const slide = s.deck?.slides[slideId];
     if (!slide) return null;
-    const sh = slide.shapes.find((x) => x.id === editingShapeId);
-    return sh && sh.type === 'text' ? sh : null;
+    return slide.shapes.find((x) => x.id === editingShapeId) ?? null;
   });
   if (!shape) return null;
   return <TextOverlay slideId={slideId} shape={shape} panX={panX} panY={panY} zoom={zoom} />;

@@ -36,7 +36,6 @@ function extractPlainText(doc: unknown): string {
 // memo: см. RectShapeView — мемоизация для group-drag.
 export const TextShapeView = memo(function TextShapeViewBase({ shape, slideId }: TextShapeViewProps) {
   const editingShapeId = useUiStore((s) => s.editingShapeId);
-  const setEditingShape = useUiStore((s) => s.setEditingShape);
   const plain = useMemo(() => extractPlainText(shape.tiptapDoc), [shape.tiptapDoc]);
   const shadow = resolveShadow(shape.shadow);
   const isEditing = editingShapeId === shape.id;
@@ -69,9 +68,7 @@ export const TextShapeView = memo(function TextShapeViewBase({ shape, slideId }:
         fontFamily="Roboto, Arial, sans-serif"
         fill="#202124"
         wrap="word"
-        listening
-        onDblClick={() => setEditingShape(shape.id)}
-        onDblTap={() => setEditingShape(shape.id)}
+        listening={false}
         {...shadow}
       />
     </ShapeNode>

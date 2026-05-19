@@ -1,13 +1,14 @@
 import { useEffect, useRef, type CSSProperties } from 'react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import { tiptapExtensions } from '@renderer/lib/editor/extensions';
-import type { TextShape } from '@renderer/lib/model/schema';
+import type { Shape } from '@renderer/lib/model/schema';
 import { useDeckStore } from '@renderer/stores/deck';
 import { useUiStore } from '@renderer/stores/ui';
 
 interface TextOverlayProps {
   slideId: string;
-  shape: TextShape;
+  // Любая фигура: для TextShape пишем в tiptapDoc, для остальных — в text.
+  shape: Shape;
   // Параметры стейджа: pan/zoom — чтобы оверлей сел поверх Konva-фигуры
   // в screen-координатах контейнера .app-canvas.
   panX: number;
@@ -22,9 +23,13 @@ export function TextOverlay({ slideId, shape, panX, panY, zoom }: TextOverlayPro
   const setEditingShape = useUiStore((s) => s.setEditingShape);
   const ref = useRef<HTMLDivElement>(null);
 
+  const initialContent =
+    (shape.type === 'text' ? shape.tiptapDoc : (shape.text as object | undefined)) ??
+    emptyDoc();
+
   const editor = useEditor({
     extensions: tiptapExtensions,
-    content: shape.tiptapDoc as object,
+    content: initialContent as object,
     autofocus: 'end',
     editorProps: {
       attributes: {
@@ -45,8 +50,11 @@ export function TextOverlay({ slideId, shape, panX, panY, zoom }: TextOverlayPro
       const slide = state.deck.slides[slideId];
       if (!slide) return;
       const sh = slide.shapes.find((s) => s.id === shape.id);
-      if (sh && sh.type === 'text') {
+      if (!sh) return;
+      if (sh.type === 'text') {
         sh.tiptapDoc = json;
+      } else {
+        sh.text = json;
       }
       state.deck.modifiedAt = new Date().toISOString();
     });
@@ -108,4 +116,8 @@ export function TextOverlay({ slideId, shape, panX, panY, zoom }: TextOverlayPro
       <EditorContent editor={editor} />
     </div>
   );
+}
+
+function emptyDoc(): object {
+  return { type: 'doc', content: [{ type: 'paragraph' }] };
 }

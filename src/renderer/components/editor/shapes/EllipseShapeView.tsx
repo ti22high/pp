@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { Ellipse } from 'react-konva';
 import type { EllipseShape } from '@renderer/lib/model/schema';
 import { ShapeNode } from './ShapeNode';
+import { ShapeTextLabel } from './ShapeTextLabel';
 import { resolveFill, resolveStroke, resolveShadow } from './paint';
 
 interface EllipseShapeViewProps {
@@ -38,6 +39,9 @@ export const EllipseShapeView = memo(function EllipseShapeViewBase({ shape, slid
         {...strokeProps}
         {...shadowProps}
       />
+      {shape.text != null && (
+        <ShapeTextLabel shapeId={shape.id} tiptapDoc={shape.text} w={shape.w} h={shape.h} />
+      )}
     </ShapeNode>
   );
 });

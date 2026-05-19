@@ -3,6 +3,7 @@ import { Path } from 'react-konva';
 import Konva from 'konva';
 import type { PathShape } from '@renderer/lib/model/schema';
 import { ShapeNode } from './ShapeNode';
+import { ShapeTextLabel } from './ShapeTextLabel';
 import { resolveFill, resolveStroke, resolveShadow } from './paint';
 
 interface PathShapeViewProps {
@@ -55,6 +56,9 @@ export const PathShapeView = memo(function PathShapeViewBase({ shape, slideId }:
         {...stroke}
         {...shadow}
       />
+      {shape.text != null && (
+        <ShapeTextLabel shapeId={shape.id} tiptapDoc={shape.text} w={shape.w} h={shape.h} />
+      )}
     </ShapeNode>
   );
 });

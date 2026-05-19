@@ -46,6 +46,12 @@ export function ShapeNode({
   const inMultiSelection = useSelectionStore(
     (s) => s.selectedShapeIds.length >= 2 && s.selectedShapeIds.includes(id),
   );
+  const setEditingShape = useUiStore((s) => s.setEditingShape);
+  // Тип фигуры из стора — нужен, чтобы решить, можно ли поверх двойным
+  // кликом открыть text-оверлей (линия — нельзя).
+  const shapeType = useDeckStore(
+    (s) => s.deck?.slides[slideId]?.shapes.find((sh) => sh.id === id)?.type,
+  );
 
   const handleDragMove = (e: Konva.KonvaEventObject<DragEvent>) => {
     const node = e.target;
@@ -140,6 +146,14 @@ export function ShapeNode({
       draggable={!locked && !inMultiSelection}
       onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
+      onDblClick={() => {
+        if (shapeType === 'line') return; // линия — без текста внутри
+        setEditingShape(id);
+      }}
+      onDblTap={() => {
+        if (shapeType === 'line') return;
+        setEditingShape(id);
+      }}
     >
       <Rect x={0} y={0} width={w} height={h} fill="#000" opacity={0.001} />
       {children}

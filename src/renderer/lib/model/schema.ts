@@ -127,6 +127,10 @@ const baseShape = {
   // Идентификатор группы. Фигуры с одним groupId трактуются как единое
   // целое при выделении (клик по любой → выделяются все).
   groupId: z.string().optional(),
+  // Опциональный TipTap-doc внутри фигуры. У TextShape основной контент —
+  // tiptapDoc; у остальных (rect/ellipse/path) это «текст в фигуре» как в
+  // Slides: double-click → редактируем поверх фигуры.
+  text: z.unknown().optional(),
 };
 
 // Конкретные типы фигур (Phase 2: rect, ellipse, line, path, text;
