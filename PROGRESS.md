@@ -68,6 +68,7 @@
 - [ ] 2.33. Hyperlink dialog (URL / slide / email / bookmark).
 - [ ] 2.34. Special characters picker.
 - [ ] 2.35. Keyboard shortcuts — полный набор (Ctrl+M new, Ctrl+/ help, …).
+- [ ] 2.36. Context menu (правый клик по фигуре): z-order, copy/cut/paste, duplicate, group/ungroup, delete. (См. DECISIONS.md 2026-05-19.)
 - [ ] 2.T. Тесты: unit для `snap.ts`, `undo.ts`, schema parsing; E2E «create slide, add shape, undo».
 
 **Завершение фазы:** `git tag phase2-complete`.
