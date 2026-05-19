@@ -39,35 +39,35 @@ export function Toolbar() {
   return (
     <div className="toolbar">
       <ToolbarButton
-        label="Rect"
+        label="Прямоугольник"
         onClick={() => {
           const c = center(320, 200);
           insert(createRect(c.x, c.y, 320, 200));
         }}
       />
       <ToolbarButton
-        label="Ellipse"
+        label="Эллипс"
         onClick={() => {
           const c = center(240, 240);
           insert(createEllipse(c.x, c.y, 240, 240));
         }}
       />
       <ToolbarButton
-        label="Line"
+        label="Линия"
         onClick={() => {
           const c = center(240, 20);
           insert(createLine(c.x, c.y, 240, 0));
         }}
       />
       <ToolbarButton
-        label="Arrow"
+        label="Стрелка"
         onClick={() => {
           const c = center(240, 20);
           insert(createLine(c.x, c.y, 240, 0, true));
         }}
       />
       <ToolbarButton
-        label="Path"
+        label="Кривая"
         onClick={() => {
           const c = center(160, 40);
           insert(createPath(c.x, c.y));
@@ -75,10 +75,10 @@ export function Toolbar() {
       />
       <span className="toolbar-sep" />
       <ToolbarButton
-        label="Text"
+        label="Текст"
         onClick={() => {
           const c = center(480, 80);
-          insert(createText(c.x, c.y, 480, 80, 'Click to edit'));
+          insert(createText(c.x, c.y, 480, 80, 'Введите текст'));
         }}
       />
     </div>

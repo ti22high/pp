@@ -51,11 +51,11 @@ export function App() {
       </div>
 
       <aside className="app-filmstrip">
-        <p className="panel-title">Slides ({slideCount})</p>
+        <p className="panel-title">Слайды ({slideCount})</p>
         <p className="meta">
-          {activeSlideId ? `Active: ${activeSlideId.slice(0, 8)}…` : 'no active slide'}
+          {activeSlideId ? `Активный: ${activeSlideId.slice(0, 8)}…` : 'нет активного слайда'}
         </p>
-        <p className="meta">Filmstrip-превью — Phase 2.24.</p>
+        <p className="meta">Превью слайдов — Phase 2.24.</p>
       </aside>
 
       <Canvas />

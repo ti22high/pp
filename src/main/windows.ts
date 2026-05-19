@@ -30,6 +30,18 @@ export function createMainWindow(): BrowserWindow {
     win.show();
   });
 
+  // Гасим встроенный webContents zoom: пользователь должен видеть только
+  // Stage-зум, а Cmd/Ctrl +/-/0 — управлять им через наше меню. Иначе на
+  // Cmd/Ctrl+- помимо нашего zoom-out срабатывает ещё и chromium-овый
+  // zoom-out, и страница ужимается до невидимого.
+  win.webContents.setVisualZoomLevelLimits(1, 1).catch(() => {});
+  win.webContents.on('did-finish-load', () => {
+    void win.webContents.setZoomFactor(1);
+  });
+  win.webContents.on('zoom-changed', () => {
+    void win.webContents.setZoomFactor(1);
+  });
+
   // Внешние ссылки открываем в системном браузере, не в окне приложения.
   win.webContents.setWindowOpenHandler(({ url }) => {
     void shell.openExternal(url);

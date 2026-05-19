@@ -6,8 +6,11 @@ import { IpcChannels } from '../shared/ipc-channels.js';
 // команды (File → Open, Insert → Image и т.п.) будут вешать обработчики
 // в Phase 2-7. Сейчас пункты шлют canonical-команду в renderer через
 // IpcChannels.MenuCommand, чтобы UI мог подписаться и логировать/обработать.
+//
+// Все user-facing подписи — на русском. Электроновские role-based items
+// (undo/redo/cut/copy/paste/...) тоже переопределяем label-ом, чтобы они
+// были по-русски независимо от системного locale.
 
-// Отправляет команду в активное окно (renderer слушает через preload bridge).
 function sendCommand(command: string): void {
   const win = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0];
   if (win) {
@@ -24,75 +27,75 @@ const template: MenuItemConstructorOptions[] = [
         {
           label: app.name,
           submenu: [
-            { role: 'about' },
+            { label: 'О программе SlidesClone', role: 'about' },
             { type: 'separator' },
-            { role: 'services' },
+            { label: 'Службы', role: 'services' },
             { type: 'separator' },
-            { role: 'hide' },
-            { role: 'hideOthers' },
-            { role: 'unhide' },
+            { label: 'Скрыть SlidesClone', role: 'hide' },
+            { label: 'Скрыть остальные', role: 'hideOthers' },
+            { label: 'Показать все', role: 'unhide' },
             { type: 'separator' },
-            { role: 'quit' },
+            { label: 'Выйти из SlidesClone', role: 'quit' },
           ],
         } satisfies MenuItemConstructorOptions,
       ] as const)
     : []),
 
   {
-    label: 'File',
+    label: 'Файл',
     submenu: [
       {
-        label: 'New',
+        label: 'Создать',
         accelerator: 'CmdOrCtrl+N',
         click: () => sendCommand('file:new'),
       },
       {
-        label: 'Open…',
+        label: 'Открыть…',
         accelerator: 'CmdOrCtrl+O',
         click: () => sendCommand('file:open'),
       },
       { type: 'separator' },
       {
-        label: 'Save',
+        label: 'Сохранить',
         accelerator: 'CmdOrCtrl+S',
         click: () => sendCommand('file:save'),
       },
       {
-        label: 'Save As…',
+        label: 'Сохранить как…',
         accelerator: 'CmdOrCtrl+Shift+S',
         click: () => sendCommand('file:save-as'),
       },
       { type: 'separator' },
       {
-        label: 'Export',
+        label: 'Экспорт',
         submenu: [
           { label: 'PDF…', click: () => sendCommand('file:export-pdf') },
           { label: 'PPTX…', click: () => sendCommand('file:export-pptx') },
-          { label: 'PNG (per slide)…', click: () => sendCommand('file:export-png') },
-          { label: 'SVG (per slide)…', click: () => sendCommand('file:export-svg') },
+          { label: 'PNG (по слайдам)…', click: () => sendCommand('file:export-png') },
+          { label: 'SVG (по слайдам)…', click: () => sendCommand('file:export-svg') },
           { label: 'TXT outline…', click: () => sendCommand('file:export-txt') },
         ],
       },
       { type: 'separator' },
-      isMac ? { role: 'close' } : { role: 'quit' },
+      isMac ? { label: 'Закрыть окно', role: 'close' } : { label: 'Выйти', role: 'quit' },
     ],
   },
 
   {
-    label: 'Edit',
+    label: 'Правка',
     submenu: [
-      { role: 'undo' },
-      { role: 'redo' },
+      { label: 'Отменить', role: 'undo' },
+      { label: 'Повторить', role: 'redo' },
       { type: 'separator' },
-      { role: 'cut' },
-      { role: 'copy' },
-      { role: 'paste' },
-      { role: 'delete' },
+      { label: 'Вырезать', role: 'cut' },
+      { label: 'Копировать', role: 'copy' },
+      { label: 'Вставить', role: 'paste' },
+      { label: 'Удалить', role: 'delete' },
       { type: 'separator' },
-      { role: 'selectAll' },
+      { label: 'Выделить всё', role: 'selectAll' },
       { type: 'separator' },
       {
-        label: 'Find and replace…',
+        label: 'Найти и заменить…',
         accelerator: 'CmdOrCtrl+H',
         click: () => sendCommand('edit:find-replace'),
       },
@@ -100,83 +103,83 @@ const template: MenuItemConstructorOptions[] = [
   },
 
   {
-    label: 'View',
+    label: 'Вид',
     submenu: [
       {
-        label: 'Zoom in',
+        label: 'Увеличить',
         accelerator: 'CmdOrCtrl+=',
         click: () => sendCommand('view:zoom-in'),
       },
       {
-        label: 'Zoom out',
+        label: 'Уменьшить',
         accelerator: 'CmdOrCtrl+-',
         click: () => sendCommand('view:zoom-out'),
       },
       {
-        label: 'Reset zoom',
+        label: 'Сбросить масштаб',
         accelerator: 'CmdOrCtrl+0',
         click: () => sendCommand('view:zoom-reset'),
       },
       { type: 'separator' },
       {
-        label: 'Show ruler',
+        label: 'Показывать линейку',
         type: 'checkbox',
         checked: true,
         click: () => sendCommand('view:toggle-ruler'),
       },
       {
-        label: 'Show grid',
+        label: 'Показывать сетку',
         type: 'checkbox',
         checked: false,
         click: () => sendCommand('view:toggle-grid'),
       },
       {
-        label: 'Snap to grid',
+        label: 'Привязка к сетке',
         type: 'checkbox',
         checked: false,
         click: () => sendCommand('view:toggle-snap-grid'),
       },
       { type: 'separator' },
-      { role: 'togglefullscreen' },
-      { role: 'toggleDevTools' },
+      { label: 'Полноэкранный режим', role: 'togglefullscreen' },
+      { label: 'Инструменты разработчика', role: 'toggleDevTools' },
     ],
   },
 
   {
-    label: 'Insert',
+    label: 'Вставка',
     submenu: [
-      { label: 'Text box', click: () => sendCommand('insert:text') },
-      { label: 'Image…', click: () => sendCommand('insert:image') },
-      { label: 'Shape…', click: () => sendCommand('insert:shape') },
-      { label: 'Table…', click: () => sendCommand('insert:table') },
-      { label: 'Chart…', click: () => sendCommand('insert:chart') },
-      { label: 'Line', click: () => sendCommand('insert:line') },
-      { label: 'Equation…', click: () => sendCommand('insert:equation') },
+      { label: 'Текстовое поле', click: () => sendCommand('insert:text') },
+      { label: 'Изображение…', click: () => sendCommand('insert:image') },
+      { label: 'Фигура…', click: () => sendCommand('insert:shape') },
+      { label: 'Таблица…', click: () => sendCommand('insert:table') },
+      { label: 'Диаграмма…', click: () => sendCommand('insert:chart') },
+      { label: 'Линия', click: () => sendCommand('insert:line') },
+      { label: 'Формула…', click: () => sendCommand('insert:equation') },
       { type: 'separator' },
-      { label: 'Video…', click: () => sendCommand('insert:video') },
-      { label: 'Audio…', click: () => sendCommand('insert:audio') },
+      { label: 'Видео…', click: () => sendCommand('insert:video') },
+      { label: 'Аудио…', click: () => sendCommand('insert:audio') },
       { type: 'separator' },
-      { label: 'Comment', accelerator: 'CmdOrCtrl+Alt+M', click: () => sendCommand('insert:comment') },
-      { label: 'Hyperlink…', accelerator: 'CmdOrCtrl+K', click: () => sendCommand('insert:hyperlink') },
-      { label: 'Special characters…', click: () => sendCommand('insert:special-chars') },
+      { label: 'Комментарий', accelerator: 'CmdOrCtrl+Alt+M', click: () => sendCommand('insert:comment') },
+      { label: 'Гиперссылка…', accelerator: 'CmdOrCtrl+K', click: () => sendCommand('insert:hyperlink') },
+      { label: 'Специальные символы…', click: () => sendCommand('insert:special-chars') },
     ],
   },
 
   {
-    label: 'Slide',
+    label: 'Слайд',
     submenu: [
-      { label: 'New slide', accelerator: 'CmdOrCtrl+M', click: () => sendCommand('slide:new') },
-      { label: 'Duplicate slide', click: () => sendCommand('slide:duplicate') },
-      { label: 'Delete slide', click: () => sendCommand('slide:delete') },
-      { label: 'Skip slide', type: 'checkbox', click: () => sendCommand('slide:toggle-hidden') },
+      { label: 'Новый слайд', accelerator: 'CmdOrCtrl+M', click: () => sendCommand('slide:new') },
+      { label: 'Дублировать слайд', click: () => sendCommand('slide:duplicate') },
+      { label: 'Удалить слайд', click: () => sendCommand('slide:delete') },
+      { label: 'Пропустить слайд', type: 'checkbox', click: () => sendCommand('slide:toggle-hidden') },
       { type: 'separator' },
-      { label: 'Apply layout…', click: () => sendCommand('slide:apply-layout') },
-      { label: 'Edit theme…', click: () => sendCommand('slide:edit-theme') },
-      { label: 'Background…', click: () => sendCommand('slide:background') },
-      { label: 'Transition…', click: () => sendCommand('slide:transition') },
+      { label: 'Применить макет…', click: () => sendCommand('slide:apply-layout') },
+      { label: 'Изменить тему…', click: () => sendCommand('slide:edit-theme') },
+      { label: 'Фон…', click: () => sendCommand('slide:background') },
+      { label: 'Переход…', click: () => sendCommand('slide:transition') },
       { type: 'separator' },
       {
-        label: 'Present',
+        label: 'Начать показ',
         accelerator: 'F5',
         click: () => sendCommand('slide:present'),
       },
@@ -184,36 +187,39 @@ const template: MenuItemConstructorOptions[] = [
   },
 
   {
-    label: 'Format',
+    label: 'Формат',
     submenu: [
-      { label: 'Bold', accelerator: 'CmdOrCtrl+B', click: () => sendCommand('format:bold') },
-      { label: 'Italic', accelerator: 'CmdOrCtrl+I', click: () => sendCommand('format:italic') },
-      { label: 'Underline', accelerator: 'CmdOrCtrl+U', click: () => sendCommand('format:underline') },
+      { label: 'Полужирный', accelerator: 'CmdOrCtrl+B', click: () => sendCommand('format:bold') },
+      { label: 'Курсив', accelerator: 'CmdOrCtrl+I', click: () => sendCommand('format:italic') },
+      { label: 'Подчёркнутый', accelerator: 'CmdOrCtrl+U', click: () => sendCommand('format:underline') },
       { type: 'separator' },
-      { label: 'Align', submenu: [
-        { label: 'Left', click: () => sendCommand('format:align-left') },
-        { label: 'Center', click: () => sendCommand('format:align-center') },
-        { label: 'Right', click: () => sendCommand('format:align-right') },
-        { label: 'Justify', click: () => sendCommand('format:align-justify') },
-      ] },
-      { label: 'Clear formatting', accelerator: 'CmdOrCtrl+\\', click: () => sendCommand('format:clear') },
+      {
+        label: 'Выравнивание',
+        submenu: [
+          { label: 'По левому краю', click: () => sendCommand('format:align-left') },
+          { label: 'По центру', click: () => sendCommand('format:align-center') },
+          { label: 'По правому краю', click: () => sendCommand('format:align-right') },
+          { label: 'По ширине', click: () => sendCommand('format:align-justify') },
+        ],
+      },
+      { label: 'Очистить форматирование', accelerator: 'CmdOrCtrl+\\', click: () => sendCommand('format:clear') },
     ],
   },
 
   {
-    label: 'Help',
+    label: 'Справка',
     submenu: [
       {
-        label: 'Keyboard shortcuts',
+        label: 'Сочетания клавиш',
         accelerator: 'CmdOrCtrl+/',
         click: () => sendCommand('help:shortcuts'),
       },
       {
-        label: 'Documentation',
+        label: 'Документация',
         click: () => void shell.openExternal('https://github.com/ti22high/pp'),
       },
       { type: 'separator' },
-      { label: 'About SlidesClone', click: () => sendCommand('help:about') },
+      { label: 'О программе SlidesClone', click: () => sendCommand('help:about') },
     ],
   },
 ];
