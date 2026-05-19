@@ -731,7 +731,13 @@ function UserGuidesLayer({
             name="user-guide"
             hitStrokeWidth={10}
             draggable
-            dragBoundFunc={(p) => ({ x: p.x, y: 0 })}
+            onDragMove={(e) => {
+              // Konva dragBoundFunc принимает absolute screen-coords и не
+              // понимает stage zoom/pan, поэтому ось фиксируем здесь — в
+              // layer-coords. Y всегда 0: точки [pos, 0..slideH] перемещаются
+              // целиком по X через position.x.
+              e.target.y(0);
+            }}
             onDragEnd={(e) => {
               moveUserGuide(g.id, e.target.x() + g.pos);
               e.target.position({ x: 0, y: 0 });
@@ -756,7 +762,9 @@ function UserGuidesLayer({
             name="user-guide"
             hitStrokeWidth={10}
             draggable
-            dragBoundFunc={(p) => ({ x: 0, y: p.y })}
+            onDragMove={(e) => {
+              e.target.x(0);
+            }}
             onDragEnd={(e) => {
               moveUserGuide(g.id, e.target.y() + g.pos);
               e.target.position({ x: 0, y: 0 });
