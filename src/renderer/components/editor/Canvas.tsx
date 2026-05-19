@@ -18,31 +18,6 @@ import { TextOverlay } from './TextOverlay';
 const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 8;
 const ZOOM_STEP = 1.1;
-// Сколько px слайда минимум должно оставаться в видимой области по каждой
-// оси при pan/zoom — чтобы пользователь не «потерял» слайд за краем канваса.
-const MIN_VISIBLE_PX = 100;
-
-function clampPan(
-  pan: { x: number; y: number },
-  stageSize: { width: number; height: number },
-  slideW: number,
-  slideH: number,
-  zoom: number,
-): { x: number; y: number } {
-  const sw = slideW * zoom;
-  const sh = slideH * zoom;
-  // Если слайд больше канваса — даём панить так, чтобы хотя бы 100 px видны.
-  // Если меньше — допускаем минимальный заход за край, но не позволяем
-  // полностью уйти.
-  const minX = MIN_VISIBLE_PX - sw;
-  const maxX = stageSize.width - MIN_VISIBLE_PX;
-  const minY = MIN_VISIBLE_PX - sh;
-  const maxY = stageSize.height - MIN_VISIBLE_PX;
-  return {
-    x: Math.max(minX, Math.min(maxX, pan.x)),
-    y: Math.max(minY, Math.min(maxY, pan.y)),
-  };
-}
 
 export function Canvas() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -327,15 +302,10 @@ export function Canvas() {
     const start = panStartRef.current;
     if (start) {
       setUserMoved(true);
-      setStagePan(
-        clampPan(
-          { x: start.panX + (pointer.x - start.x), y: start.panY + (pointer.y - start.y) },
-          stageSize,
-          slideW,
-          slideH,
-          zoomRef.current,
-        ),
-      );
+      setStagePan({
+        x: start.panX + (pointer.x - start.x),
+        y: start.panY + (pointer.y - start.y),
+      });
       return;
     }
 
@@ -408,7 +378,7 @@ export function Canvas() {
         h: Math.abs(curY - rb.y),
       });
     }
-  }, [setStagePan, stageSize, slideW, slideH]);
+  }, [setStagePan]);
 
   const handleStageMouseUp = useCallback(() => {
     panStartRef.current = null;
@@ -502,20 +472,12 @@ export function Canvas() {
       };
       setUserMoved(true);
       setZoom(newScale);
-      setStagePan(
-        clampPan(
-          {
-            x: pointer.x - mouseRelToContent.x * newScale,
-            y: pointer.y - mouseRelToContent.y * newScale,
-          },
-          stageSize,
-          slideW,
-          slideH,
-          newScale,
-        ),
-      );
+      setStagePan({
+        x: pointer.x - mouseRelToContent.x * newScale,
+        y: pointer.y - mouseRelToContent.y * newScale,
+      });
     },
-    [zoom, setZoom, setStagePan, stageSize, slideW, slideH],
+    [zoom, setZoom, setStagePan],
   );
 
   // Зум через меню (Вид → Увеличить/Уменьшить/Сбросить) — пивот вокруг
@@ -540,21 +502,16 @@ export function Canvas() {
         };
         setUserMoved(true);
         setZoom(newScale);
-        setStagePan(
-          clampPan(
-            { x: ax - anchorContent.x * newScale, y: ay - anchorContent.y * newScale },
-            stageSize,
-            slideW,
-            slideH,
-            newScale,
-          ),
-        );
+        setStagePan({
+          x: ax - anchorContent.x * newScale,
+          y: ay - anchorContent.y * newScale,
+        });
       } else if (cmd === 'view:zoom-reset') {
         setUserMoved(false); // авто-центрирование снова возьмёт верх
         setZoom(1);
       }
     });
-  }, [stageSize, slideW, slideH, setZoom, setStagePan]);
+  }, [stageSize, setZoom, setStagePan]);
 
   if (!deck || !activeSlideId) {
     return (
