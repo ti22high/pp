@@ -93,6 +93,11 @@ const template: MenuItemConstructorOptions[] = [
       { label: 'Удалить', role: 'delete' },
       { type: 'separator' },
       { label: 'Выделить всё', role: 'selectAll' },
+      {
+        label: 'Дублировать',
+        accelerator: 'CmdOrCtrl+D',
+        click: () => sendCommand('edit:duplicate'),
+      },
       { type: 'separator' },
       {
         label: 'Найти и заменить…',
