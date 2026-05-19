@@ -97,33 +97,24 @@ export function ShapeNode({
     const ny = node.y();
     const group = groupRef.current;
 
+    // Только для самой dragged-фигуры пишем в стор каждый dragmove
+    // (нужно Inspector-у показывать координаты live). Для остальных в группе
+    // во время drag-а ТОЛЬКО двигаем Konva-ноды — без setState, иначе React
+    // пере-рендерит их Group-ы с x/y-prop-ами, что конфликтует с Konva
+    // (Transformer перепрыгивает, выделение слетает). Финальный коммит
+    // позиций остальных идёт в handleDragEnd.
     useDeckStore.setState((state) => {
       if (!state.deck) return;
       const slide = state.deck.slides[slideId];
       if (!slide) return;
-      // Текущая фигура.
       const sh = slide.shapes.find((s) => s.id === id);
       if (sh) {
         sh.x = nx;
         sh.y = ny;
       }
-      // Остальные из группы — двигаем на ту же дельту.
-      if (group) {
-        const dx = nx - group.selfStart.x;
-        const dy = ny - group.selfStart.y;
-        for (const o of group.others) {
-          const osh = slide.shapes.find((s) => s.id === o.id);
-          if (osh) {
-            osh.x = o.startX + dx;
-            osh.y = o.startY + dy;
-          }
-        }
-      }
       state.deck.modifiedAt = new Date().toISOString();
     });
 
-    // Двигаем Konva-ноды напрямую, чтобы Transformer и видимая позиция
-    // обновились без ожидания React-ре-рендера (он догонит позже).
     if (group) {
       const dx = nx - group.selfStart.x;
       const dy = ny - group.selfStart.y;
@@ -131,6 +122,8 @@ export function ShapeNode({
         o.node.x(o.startX + dx);
         o.node.y(o.startY + dy);
       }
+      // Принудительно перерисовать слой — Transformer пересчитает рамку.
+      node.getLayer()?.batchDraw();
     }
   };
 
