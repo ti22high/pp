@@ -386,6 +386,28 @@ export function Canvas() {
         o.node.x(o.startX + dx);
         o.node.y(o.startY + dy);
       }
+      // Параллельно пишем новые позиции в модель — filmstrip и Inspector
+      // подписаны на стор и без этого не обновляются live во время drag-а.
+      // Работает потому, что ShapeView-ы мемоизированы (React.memo) — при
+      // мутации только moved-фигур остальные не перерисовываются, и
+      // Transformer-эффект на modifiedAt делает только forceUpdate (без
+      // re-attach), что не конфликтует с нашим императивным move.
+      const slideIdNow = useUiStore.getState().activeSlideId;
+      if (slideIdNow) {
+        useDeckStore.setState((state) => {
+          if (!state.deck) return;
+          const slide = state.deck.slides[slideIdNow];
+          if (!slide) return;
+          for (const o of md.nodes) {
+            const sh = slide.shapes.find((s) => s.id === o.id);
+            if (sh) {
+              sh.x = o.startX + dx;
+              sh.y = o.startY + dy;
+            }
+          }
+          state.deck.modifiedAt = new Date().toISOString();
+        });
+      }
       // batchDraw — иначе Transformer не пересчитает рамку.
       md.nodes[0]?.node.getLayer()?.batchDraw();
       return;
