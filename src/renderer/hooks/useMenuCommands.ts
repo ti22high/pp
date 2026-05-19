@@ -7,6 +7,7 @@ import { reorderZ, type ZOrderKind } from '@renderer/lib/zorder';
 import { canGroup, canUngroup } from '@renderer/lib/group';
 import { undo, redo } from '@renderer/lib/undo';
 import { selectAll as selectAllShapes, duplicate as duplicateShapes } from '@renderer/lib/clipboard';
+import { newSlide, duplicateSlide, deleteSlide, toggleHiddenSlide } from '@renderer/lib/slides';
 
 // Подписка на команды native-меню (Файл / Правка / Вид / …) и роутинг их
 // в соответствующие store-действия. Команды приходят строкой через
@@ -70,6 +71,18 @@ export function useMenuCommands() {
           break;
         case 'edit:duplicate':
           duplicateShapes();
+          break;
+        case 'slide:new':
+          newSlide();
+          break;
+        case 'slide:duplicate':
+          duplicateSlide();
+          break;
+        case 'slide:delete':
+          deleteSlide();
+          break;
+        case 'slide:toggle-hidden':
+          toggleHiddenSlide();
           break;
         default:
           // Остальные команды обрабатываются в своих компонентах

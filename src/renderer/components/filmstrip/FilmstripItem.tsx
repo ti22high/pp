@@ -34,7 +34,7 @@ export const FilmstripItem = memo(function FilmstripItemBase({
 
   return (
     <div
-      className={`fs-item${active ? ' fs-item--active' : ''}${dropTarget ? ' fs-item--drop' : ''}`}
+      className={`fs-item${active ? ' fs-item--active' : ''}${dropTarget ? ' fs-item--drop' : ''}${slide.hidden ? ' fs-item--hidden' : ''}`}
       draggable
       onClick={() => onSelect(slideId)}
       onDragStart={(e) => {

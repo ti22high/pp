@@ -384,3 +384,10 @@ body,
   box-sizing: border-box;
   pointer-events: none;
 }
+.fs-item--hidden {
+  opacity: 0.45;
+}
+.fs-item--hidden .fs-item__num::after {
+  content: ' ⊘';
+  font-size: 10px;
+}
