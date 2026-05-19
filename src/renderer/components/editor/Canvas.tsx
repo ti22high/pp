@@ -181,12 +181,44 @@ export function Canvas() {
         node = node.getParent();
       }
 
-      // Клик в пустоту — старт rubber band.
+      // Клик в пустоту — старт rubber band, но только если pointer вне
+      // bbox-объединения текущего выделения. Внутри рамки выделения (например,
+      // в зазоре между фигурами) — оставляем выделение в покое, как в Slides:
+      // случайный клик в «теле» multi-selection не должен сбрасывать его.
       const pointer = stage.getPointerPosition();
       if (!pointer) return;
       const z = zoomRef.current;
       const startX = (pointer.x - stagePanRef.current.x) / z;
       const startY = (pointer.y - stagePanRef.current.y) / z;
+
+      if (!shift) {
+        const selIds = useSelectionStore.getState().selectedShapeIds;
+        if (selIds.length > 0) {
+          const selSet = new Set(selIds);
+          let minX = Infinity;
+          let minY = Infinity;
+          let maxX = -Infinity;
+          let maxY = -Infinity;
+          for (const sh of slide.shapes) {
+            if (!selSet.has(sh.id)) continue;
+            if (sh.x < minX) minX = sh.x;
+            if (sh.y < minY) minY = sh.y;
+            if (sh.x + sh.w > maxX) maxX = sh.x + sh.w;
+            if (sh.y + sh.h > maxY) maxY = sh.y + sh.h;
+          }
+          if (
+            Number.isFinite(minX) &&
+            startX >= minX &&
+            startX <= maxX &&
+            startY >= minY &&
+            startY <= maxY
+          ) {
+            // Внутри selection-bbox — ничего не делаем.
+            return;
+          }
+        }
+      }
+
       const baseIds = shift ? [...useSelectionStore.getState().selectedShapeIds] : [];
       rubberStartRef.current = { x: startX, y: startY, additive: shift, baseIds };
       setRubberBand({ x: startX, y: startY, w: 0, h: 0 });
