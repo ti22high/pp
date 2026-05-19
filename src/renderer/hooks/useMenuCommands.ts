@@ -3,6 +3,7 @@ import { useUiStore } from '@renderer/stores/ui';
 import { useDeckStore } from '@renderer/stores/deck';
 import { useSelectionStore } from '@renderer/stores/selection';
 import { alignShapes, distributeShapes, type AlignKind } from '@renderer/lib/align';
+import { reorderZ, type ZOrderKind } from '@renderer/lib/zorder';
 
 // Подписка на команды native-меню (Файл / Правка / Вид / …) и роутинг их
 // в соответствующие store-действия. Команды приходят строкой через
@@ -43,6 +44,12 @@ export function useMenuCommands() {
         case 'arrange:distribute-v':
           applyDistribute('vertical');
           break;
+        case 'arrange:to-front':
+        case 'arrange:forward':
+        case 'arrange:backward':
+        case 'arrange:to-back':
+          applyZOrder(command.split(':')[1] as ZOrderKind);
+          break;
         default:
           // Остальные команды обрабатываются в своих компонентах
           // (Canvas — zoom, File-меню — Phase 5, и т.д.).
@@ -74,6 +81,24 @@ function applyAlign(kind: AlignKind) {
         sh.y = m.y;
       }
     }
+    state.deck.modifiedAt = new Date().toISOString();
+  });
+}
+
+function applyZOrder(kind: ZOrderKind) {
+  const sel = useSelectionStore.getState().selectedShapeIds;
+  if (sel.length === 0) return;
+  const slideId = useUiStore.getState().activeSlideId;
+  if (!slideId) return;
+  useDeckStore.setState((state) => {
+    if (!state.deck) return;
+    const slide = state.deck.slides[slideId];
+    if (!slide) return;
+    const currentOrder = slide.shapes.map((s) => s.id);
+    const newOrder = reorderZ(currentOrder, sel, kind);
+    // Перестраиваем массив shape-объектов в новом порядке.
+    const byId = new Map(slide.shapes.map((s) => [s.id, s] as const));
+    slide.shapes = newOrder.map((id) => byId.get(id)!).filter(Boolean);
     state.deck.modifiedAt = new Date().toISOString();
   });
 }

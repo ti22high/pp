@@ -206,6 +206,11 @@ const template: MenuItemConstructorOptions[] = [
       {
         label: 'Расположить объекты',
         submenu: [
+          { label: 'На передний план', accelerator: 'CmdOrCtrl+Shift+]', click: () => sendCommand('arrange:to-front') },
+          { label: 'Переместить вперёд', accelerator: 'CmdOrCtrl+]', click: () => sendCommand('arrange:forward') },
+          { label: 'Переместить назад', accelerator: 'CmdOrCtrl+[', click: () => sendCommand('arrange:backward') },
+          { label: 'На задний план', accelerator: 'CmdOrCtrl+Shift+[', click: () => sendCommand('arrange:to-back') },
+          { type: 'separator' },
           { label: 'Выровнять по левому краю', click: () => sendCommand('arrange:align-left') },
           { label: 'Выровнять по центру (по горизонтали)', click: () => sendCommand('arrange:align-center-h') },
           { label: 'Выровнять по правому краю', click: () => sendCommand('arrange:align-right') },

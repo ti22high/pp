@@ -51,7 +51,7 @@
 - [x] 2.16. Smart guides algorithm (`src/renderer/lib/snap.ts`).
 - [x] 2.17. Snap to grid (toggle в View menu).
 - [x] 2.18. Align / Distribute commands.
-- [ ] 2.19. Z-order commands (`bringToFront`, etc).
+- [x] 2.19. Z-order commands (`bringToFront`, etc).
 - [ ] 2.20. Group / Ungroup.
 - [ ] 2.21. Copy / Paste / Cut / Duplicate (Ctrl+C/V/X/D).
 - [ ] 2.22. Delete (Del).
