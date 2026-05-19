@@ -1,18 +1,16 @@
 import { useEffect } from 'react';
 import { useUiStore } from '@renderer/stores/ui';
 
-// Подписка на команды native-меню (File / Edit / View / …) и роутинг их
+// Подписка на команды native-меню (Файл / Правка / Вид / …) и роутинг их
 // в соответствующие store-действия. Команды приходят строкой через
 // contextBridge → `window.api.onMenuCommand`.
 //
-// Список покрытых команд расширяется по мере появления фичей.
-// На Phase 2.17 — только View-toggle-grid / View-toggle-snap-grid.
+// view:zoom-in/out/reset обрабатываются в Canvas — там есть stageSize и
+// логика пивота вокруг центра канваса. Поэтому здесь только toggles.
 export function useMenuCommands() {
   const toggleGrid = useUiStore((s) => s.toggleGrid);
   const toggleRuler = useUiStore((s) => s.toggleRuler);
   const toggleSnapToGrid = useUiStore((s) => s.toggleSnapToGrid);
-  const setZoom = useUiStore((s) => s.setZoom);
-  const zoom = useUiStore((s) => s.zoom);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !window.api) return;
@@ -27,20 +25,12 @@ export function useMenuCommands() {
         case 'view:toggle-ruler':
           toggleRuler();
           break;
-        case 'view:zoom-in':
-          setZoom(zoom * 1.1);
-          break;
-        case 'view:zoom-out':
-          setZoom(zoom / 1.1);
-          break;
-        case 'view:zoom-reset':
-          setZoom(1);
-          break;
         default:
-          // Пока без обработчика — добавим в соответствующей фазе.
+          // Остальные команды обрабатываются в своих компонентах
+          // (Canvas — zoom, File-меню — Phase 5, и т.д.).
           break;
       }
     });
     return unsubscribe;
-  }, [toggleGrid, toggleRuler, toggleSnapToGrid, setZoom, zoom]);
+  }, [toggleGrid, toggleRuler, toggleSnapToGrid]);
 }
