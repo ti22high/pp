@@ -14,10 +14,17 @@ export const shapeIdSchema = z.string().min(1);
 // Цвета: hex (#RRGGBB или #RRGGBBAA) либо CSS-имена.
 export const colorSchema = z.string().regex(/^#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$|^[a-zA-Z]+$/);
 
-// Hyperlink — на URL, на слайд, на email, на закладку (SPEC §1.14).
+// Hyperlink — на URL, на слайд (по id или относительный), на email, на закладку
+// (SPEC §1.14). В Phase 2 UI поддерживает только `slide` и `slide-rel` —
+// см. DECISIONS.md 2026-05-19 (Phase 2.33). `url` / `email` остаются в схеме
+// для round-trip импорта .pptx (Phase 5).
 export const hyperlinkSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('url'), url: z.string().url() }),
   z.object({ kind: z.literal('slide'), slideId: slideIdSchema }),
+  z.object({
+    kind: z.literal('slide-rel'),
+    rel: z.enum(['next', 'prev', 'first', 'last']),
+  }),
   z.object({ kind: z.literal('email'), email: z.string().email() }),
   z.object({ kind: z.literal('bookmark'), bookmarkId: z.string() }),
 ]);

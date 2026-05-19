@@ -187,6 +187,25 @@ export function setDeckSize(w: number, h: number, scaleContent: boolean): void {
   });
 }
 
+// Ставит / убирает гиперссылку на указанной фигуре. `hl=undefined` снимает
+// ссылку. Используется HyperlinkDialog.
+export function setShapeHyperlink(
+  slideId: string,
+  shapeId: string,
+  hl: import('@renderer/lib/model/schema').Hyperlink | undefined,
+): void {
+  useDeckStore.setState((state) => {
+    if (!state.deck) return;
+    const slide = state.deck.slides[slideId];
+    if (!slide) return;
+    const sh = slide.shapes.find((x) => x.id === shapeId);
+    if (!sh) return;
+    if (hl) sh.hyperlink = hl;
+    else delete sh.hyperlink;
+    state.deck.modifiedAt = new Date().toISOString();
+  });
+}
+
 // Обновляет настройки номеров слайдов (§1.13). Прозрачно создаёт объект,
 // если его ещё не было в деке.
 export function setPageNumbers(enabled: boolean, skipFirst: boolean): void {

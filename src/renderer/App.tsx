@@ -11,6 +11,7 @@ import { LayoutPicker } from './components/ui/LayoutPicker';
 import { BackgroundEditor } from './components/ui/BackgroundEditor';
 import { SlideSizeDialog } from './components/ui/SlideSizeDialog';
 import { PageNumbersDialog } from './components/ui/PageNumbersDialog';
+import { HyperlinkDialog } from './components/ui/HyperlinkDialog';
 import { useMenuCommands } from './hooks/useMenuCommands';
 import { useShapeClipboard } from './hooks/useShapeClipboard';
 import { useUndoRedo } from './hooks/useUndoRedo';
@@ -23,6 +24,7 @@ export function App() {
   const [bgEditorOpen, setBgEditorOpen] = useState(false);
   const [slideSizeOpen, setSlideSizeOpen] = useState(false);
   const [pageNumbersOpen, setPageNumbersOpen] = useState(false);
+  const [hyperlinkOpen, setHyperlinkOpen] = useState(false);
   const deck = useDeckStore((s) => s.deck);
   const setDeck = useDeckStore((s) => s.setDeck);
   const setActiveSlide = useUiStore((s) => s.setActiveSlide);
@@ -41,6 +43,7 @@ export function App() {
       else if (cmd === 'slide:background') setBgEditorOpen(true);
       else if (cmd === 'file:slide-size') setSlideSizeOpen(true);
       else if (cmd === 'insert:page-number') setPageNumbersOpen(true);
+      else if (cmd === 'insert:hyperlink') setHyperlinkOpen(true);
     });
   }, []);
 
@@ -85,6 +88,10 @@ export function App() {
       <PageNumbersDialog
         open={pageNumbersOpen}
         onClose={() => setPageNumbersOpen(false)}
+      />
+      <HyperlinkDialog
+        open={hyperlinkOpen}
+        onClose={() => setHyperlinkOpen(false)}
       />
     </div>
   );

@@ -65,7 +65,7 @@
 - [x] 2.30. Rulers (top + left).
 - [x] 2.31. Guides (add / edit / clear, snap to guides).
 - [x] 2.32. Page numbers (insert + on/off в master).
-- [ ] 2.33. Hyperlink dialog (URL / slide / email / bookmark).
+- [x] 2.33. Hyperlink dialog (slide + bookmark stub; без URL/email — см. DECISIONS.md 2026-05-19).
 - [ ] 2.34. Special characters picker.
 - [ ] 2.35. Keyboard shortcuts — полный набор (Ctrl+M new, Ctrl+/ help, …).
 - [ ] 2.36. Context menu (правый клик по фигуре): z-order, copy/cut/paste, duplicate, group/ungroup, delete. (См. DECISIONS.md 2026-05-19.)
@@ -109,6 +109,8 @@
 - [ ] 3.28. Clear formatting.
 - [ ] 3.29. Replace image preserves crop region.
 - [ ] 3.30. Tests: chart rendering, equation rendering, connector auto-snap.
+- [ ] 3.31. Импорт пользовательских шрифтов (.ttf/.otf) — drag-n-drop или File → Шрифты…; хранение в `userData/fonts/<hash>.<ext>`, регистрация через FontFace. (См. DECISIONS.md 2026-05-19.)
+- [ ] 3.32. Импорт пользовательских SVG-фигур в Shape library — парсинг `<path d>` → `pathShape`, кнопка «Добавить свою фигуру…» в Shape library panel (после 3.20).
 
 **Завершение фазы:** `git tag phase3-complete`.
 
@@ -167,6 +169,7 @@
 - [ ] 5.23. Post-process для animation timing XML.
 - [ ] 5.24. PDF export (§6.3) с hidden print window.
 - [ ] 5.25. PNG/JPEG per slide (Konva `stage.toDataURL`), SVG export, TXT outline, CSV import для chart data.
+- [ ] 5.26. Сохранить как шаблон (.gslx → `userData/templates/<id>.gslx`) + галерея пользовательских шаблонов в окне «Создать презентацию». (См. DECISIONS.md 2026-05-19.)
 - [ ] 5.T. Тесты: round-trip 5 reference `.pptx` файлов; визуальный diff PDF.
 
 **Завершение фазы:** `git tag phase5-complete`.
