@@ -113,7 +113,11 @@ export function ShapeNode({
           others.push({ x: sh.x, y: sh.y, w: sh.w, h: sh.h });
         }
       }
-      if (deckNow?.size) {
+      // Слайд в snap-цели включаем только для single-drag. При group-drag
+      // союз-bbox группы редко совпадает с центром слайда «по делу» —
+      // лишь мешает удерживать относительные позиции и даёт «разъезд»
+      // когда snap то срабатывает, то нет.
+      if (!group && deckNow?.size) {
         others.push({ x: 0, y: 0, w: deckNow.size.w, h: deckNow.size.h });
       }
 

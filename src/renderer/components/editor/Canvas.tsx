@@ -298,9 +298,8 @@ export function Canvas() {
             others.push({ x: sh.x, y: sh.y, w: sh.w, h: sh.h });
           }
         }
-        if (deckNow?.size) {
-          others.push({ x: 0, y: 0, w: deckNow.size.w, h: deckNow.size.h });
-        }
+        // Слайд НЕ включаем как snap-цель при multi-drag — см. комментарий
+        // в ShapeNode.handleDragMove. Это уменьшает «разъезд» группы.
         const movedBoxes: SnapBox[] = md.nodes.map((n) => ({
           x: n.startX + dx,
           y: n.startY + dy,

@@ -154,9 +154,11 @@ export function SelectionTransformer({ slideId, getStage }: SelectionTransformer
       anchorStroke="#1a73e8"
       anchorStrokeWidth={1}
       anchorFill="#ffffff"
-      // Минимальный отступ от bbox — больше 2 px сильно бросается в глаза
-      // у тонких форм (линии, узких rect), но 0 склеивает рамку со штрихом.
-      padding={2}
+      // padding=0 — рамка сидит впритык к bbox фигуры. Раньше был 2,
+      // но он давал заметный визуальный зазор; теперь штрих рамки идёт
+      // ровно по краю Group-bbox (для line/rect со stroke штрих может
+      // слегка торчать наружу — это OK, в Slides ведёт себя так же).
+      padding={0}
       rotateAnchorOffset={28}
     />
   );
