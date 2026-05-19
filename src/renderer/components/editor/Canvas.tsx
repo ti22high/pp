@@ -163,8 +163,10 @@ export function Canvas() {
       const stage = stageRef.current;
       if (!stage) return;
 
-      // Pan mode имеет приоритет.
-      if (spaceHeld) {
+      // Pan mode имеет приоритет. Читаем panMode свежим из стора —
+      // защита от stale-closure при чередовании Space-keydown и mousedown
+      // в одном тике React-а.
+      if (useUiStore.getState().panMode) {
         const pointer = stage.getPointerPosition();
         if (!pointer) return;
         panStartRef.current = {
@@ -315,7 +317,7 @@ export function Canvas() {
       setRubberBand({ x: startX, y: startY, w: 0, h: 0 });
       if (!shift) useSelectionStore.getState().clear();
     },
-    [spaceHeld],
+    [],
   );
 
   const handleStageMouseMove = useCallback(() => {
