@@ -197,6 +197,8 @@ const template: MenuItemConstructorOptions[] = [
       { label: 'Видео…', click: () => sendCommand('insert:video') },
       { label: 'Аудио…', click: () => sendCommand('insert:audio') },
       { type: 'separator' },
+      { label: 'Номер слайда…', click: () => sendCommand('insert:page-number') },
+      { type: 'separator' },
       { label: 'Комментарий', accelerator: 'CmdOrCtrl+Alt+M', click: () => sendCommand('insert:comment') },
       { label: 'Гиперссылка…', accelerator: 'CmdOrCtrl+K', click: () => sendCommand('insert:hyperlink') },
       { label: 'Специальные символы…', click: () => sendCommand('insert:special-chars') },

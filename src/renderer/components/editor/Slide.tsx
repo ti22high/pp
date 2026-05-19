@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Group, Rect, Image as KonvaImage } from 'react-konva';
+import { Group, Rect, Text, Image as KonvaImage } from 'react-konva';
 import type { Slide as SlideModel } from '@renderer/lib/model/schema';
+import { useDeckStore } from '@renderer/stores/deck';
 import { RectShapeView } from './shapes/RectShapeView';
 import { EllipseShapeView } from './shapes/EllipseShapeView';
 import { LineShapeView } from './shapes/LineShapeView';
@@ -24,6 +25,16 @@ export function Slide({ slide, width, height }: SlideProps) {
   const bgImageSrc =
     slide.background?.type === 'image' ? slide.background.src : null;
   const bgImage = useBackgroundImage(bgImageSrc);
+
+  // Номер слайда (§1.13). Показываем в правом нижнем углу. Skip-first
+  // — стандартный UX «не нумеровать титульный слайд».
+  const pageNumbers = useDeckStore((s) => s.deck?.pageNumbers);
+  const slideIndex = useDeckStore((s) => s.deck?.slideOrder.indexOf(slide.id) ?? -1);
+  const showNumber =
+    pageNumbers?.enabled &&
+    slideIndex >= 0 &&
+    !(pageNumbers.skipFirst && slideIndex === 0);
+  const pageLabel = showNumber ? String(slideIndex + 1) : '';
 
   return (
     <Group>
@@ -66,6 +77,20 @@ export function Slide({ slide, width, height }: SlideProps) {
             return null;
         }
       })}
+      {pageLabel && (
+        <Text
+          x={width - 80}
+          y={height - 36}
+          width={60}
+          height={20}
+          text={pageLabel}
+          fontSize={16}
+          fontFamily="Roboto, Arial, sans-serif"
+          fill="#5f6368"
+          align="right"
+          listening={false}
+        />
+      )}
     </Group>
   );
 }

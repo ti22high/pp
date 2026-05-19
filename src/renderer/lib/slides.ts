@@ -187,6 +187,16 @@ export function setDeckSize(w: number, h: number, scaleContent: boolean): void {
   });
 }
 
+// Обновляет настройки номеров слайдов (§1.13). Прозрачно создаёт объект,
+// если его ещё не было в деке.
+export function setPageNumbers(enabled: boolean, skipFirst: boolean): void {
+  useDeckStore.setState((state) => {
+    if (!state.deck) return;
+    state.deck.pageNumbers = { enabled, skipFirst };
+    state.deck.modifiedAt = new Date().toISOString();
+  });
+}
+
 export function toggleHiddenSlide(): void {
   const activeId = useUiStore.getState().activeSlideId;
   if (!activeId) return;

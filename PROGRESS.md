@@ -64,7 +64,7 @@
 - [x] 2.29. Slide size dialog (4:3, 16:9, custom).
 - [x] 2.30. Rulers (top + left).
 - [x] 2.31. Guides (add / edit / clear, snap to guides).
-- [ ] 2.32. Page numbers (insert + on/off в master).
+- [x] 2.32. Page numbers (insert + on/off в master).
 - [ ] 2.33. Hyperlink dialog (URL / slide / email / bookmark).
 - [ ] 2.34. Special characters picker.
 - [ ] 2.35. Keyboard shortcuts — полный набор (Ctrl+M new, Ctrl+/ help, …).

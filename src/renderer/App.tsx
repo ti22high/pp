@@ -10,6 +10,7 @@ import { Filmstrip } from './components/filmstrip/Filmstrip';
 import { LayoutPicker } from './components/ui/LayoutPicker';
 import { BackgroundEditor } from './components/ui/BackgroundEditor';
 import { SlideSizeDialog } from './components/ui/SlideSizeDialog';
+import { PageNumbersDialog } from './components/ui/PageNumbersDialog';
 import { useMenuCommands } from './hooks/useMenuCommands';
 import { useShapeClipboard } from './hooks/useShapeClipboard';
 import { useUndoRedo } from './hooks/useUndoRedo';
@@ -21,6 +22,7 @@ export function App() {
   const [layoutPickerOpen, setLayoutPickerOpen] = useState(false);
   const [bgEditorOpen, setBgEditorOpen] = useState(false);
   const [slideSizeOpen, setSlideSizeOpen] = useState(false);
+  const [pageNumbersOpen, setPageNumbersOpen] = useState(false);
   const deck = useDeckStore((s) => s.deck);
   const setDeck = useDeckStore((s) => s.setDeck);
   const setActiveSlide = useUiStore((s) => s.setActiveSlide);
@@ -38,6 +40,7 @@ export function App() {
       if (cmd === 'slide:apply-layout') setLayoutPickerOpen(true);
       else if (cmd === 'slide:background') setBgEditorOpen(true);
       else if (cmd === 'file:slide-size') setSlideSizeOpen(true);
+      else if (cmd === 'insert:page-number') setPageNumbersOpen(true);
     });
   }, []);
 
@@ -79,6 +82,10 @@ export function App() {
       <LayoutPicker open={layoutPickerOpen} onClose={() => setLayoutPickerOpen(false)} />
       <BackgroundEditor open={bgEditorOpen} onClose={() => setBgEditorOpen(false)} />
       <SlideSizeDialog open={slideSizeOpen} onClose={() => setSlideSizeOpen(false)} />
+      <PageNumbersDialog
+        open={pageNumbersOpen}
+        onClose={() => setPageNumbersOpen(false)}
+      />
     </div>
   );
 }

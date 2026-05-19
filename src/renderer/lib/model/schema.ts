@@ -220,6 +220,15 @@ export const userGuideSchema = z.object({
 });
 export type UserGuide = z.infer<typeof userGuideSchema>;
 
+// Настройки номеров слайдов (§1.13). Хранятся на уровне деки — общие
+// для всей презентации. Положение фиксировано (правый нижний угол слайда);
+// расширения (выбор позиции, шрифт, формат «1/10») — за рамки MVP.
+export const pageNumbersSchema = z.object({
+  enabled: z.boolean(),
+  skipFirst: z.boolean(),
+});
+export type PageNumbersConfig = z.infer<typeof pageNumbersSchema>;
+
 // Корневой документ.
 export const deckSchema = z.object({
   id: z.string(),
@@ -231,6 +240,7 @@ export const deckSchema = z.object({
   slideOrder: z.array(slideIdSchema),
   slides: z.record(slideIdSchema, slideSchema),
   guides: z.array(userGuideSchema).optional(),
+  pageNumbers: pageNumbersSchema.optional(),
   createdAt: z.string(),
   modifiedAt: z.string(),
 });
