@@ -48,7 +48,7 @@
 - [x] 2.13. Inspector: fill (solid + gradient picker), stroke, opacity.
 - [x] 2.14. Inspector: shadow, reflection.
 - [x] 2.15. Selection: single click; Shift+click multi-select; rubber band.
-- [ ] 2.16. Smart guides algorithm (`src/renderer/lib/snap.ts`).
+- [x] 2.16. Smart guides algorithm (`src/renderer/lib/snap.ts`).
 - [ ] 2.17. Snap to grid (toggle в View menu).
 - [ ] 2.18. Align / Distribute commands.
 - [ ] 2.19. Z-order commands (`bringToFront`, etc).

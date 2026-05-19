@@ -5,6 +5,8 @@ import type { ReactNode } from 'react';
 import { useDeckStore } from '@renderer/stores/deck';
 import { useSelectionStore } from '@renderer/stores/selection';
 import { useUiStore } from '@renderer/stores/ui';
+import { useGuidesStore } from '@renderer/stores/guides';
+import { computeSnap, unionBox, type SnapBox } from '@renderer/lib/snap';
 import type { ShapeId } from '@shared/types';
 
 interface ShapeNodeProps {
@@ -93,18 +95,64 @@ export function ShapeNode({
 
   const handleDragMove = (e: Konva.KonvaEventObject<DragEvent>) => {
     const node = e.target;
-    const nx = node.x();
-    const ny = node.y();
+    let nx = node.x();
+    let ny = node.y();
     const group = groupRef.current;
 
+    // Smart guides — снепаем dragged к anchor-ам остальных фигур и краёв слайда.
+    // threshold = 6 px на экране, делим на zoom чтобы оставалось 6 экранных px.
+    const deckNow = useDeckStore.getState().deck;
+    const slideNow = deckNow?.slides[slideId];
+    if (slideNow) {
+      const movedIds = new Set<ShapeId>([id]);
+      if (group) for (const o of group.others) movedIds.add(o.id);
+
+      const others: SnapBox[] = [];
+      for (const sh of slideNow.shapes) {
+        if (!movedIds.has(sh.id)) {
+          others.push({ x: sh.x, y: sh.y, w: sh.w, h: sh.h });
+        }
+      }
+      if (deckNow?.size) {
+        others.push({ x: 0, y: 0, w: deckNow.size.w, h: deckNow.size.h });
+      }
+
+      const zoom = useUiStore.getState().zoom || 1;
+      const threshold = 6 / zoom;
+
+      let snapBox: SnapBox;
+      if (group) {
+        // Union bbox: dragged + others, в их текущих позициях.
+        const dxRaw = nx - group.selfStart.x;
+        const dyRaw = ny - group.selfStart.y;
+        const boxes: SnapBox[] = [{ x: nx, y: ny, w: node.width(), h: node.height() }];
+        for (const o of group.others) {
+          boxes.push({
+            x: o.startX + dxRaw,
+            y: o.startY + dyRaw,
+            w: o.node.width(),
+            h: o.node.height(),
+          });
+        }
+        const u = unionBox(boxes);
+        snapBox = u ?? boxes[0];
+      } else {
+        snapBox = { x: nx, y: ny, w: node.width(), h: node.height() };
+      }
+
+      const snap = computeSnap(snapBox, others, threshold);
+      if (snap.dx !== 0) {
+        nx += snap.dx;
+        node.x(nx);
+      }
+      if (snap.dy !== 0) {
+        ny += snap.dy;
+        node.y(ny);
+      }
+      useGuidesStore.getState().setGuides(snap.guides);
+    }
+
     if (group) {
-      // Multi-drag: НИЧЕГО не пишем в стор на каждый dragmove. Любая запись
-      // создаёт новый snapshot deck-а, Slide перерендеривается, Transformer
-      // через эффект на modifiedAt дёргает forceUpdate — всё вместе даёт
-      // дрожь у multi-выделения, особенно когда фигур много / есть тени.
-      // Двигаем ноды императивно — Konva сама перерисует стейдж в своём
-      // drag-цикле, Transformer тоже подтянется на ближайшем draw-тике.
-      // Финальный коммит координат — в handleDragEnd.
       const dx = nx - group.selfStart.x;
       const dy = ny - group.selfStart.y;
       for (const o of group.others) {
@@ -155,6 +203,7 @@ export function ShapeNode({
     if (node.x() !== nextX) node.x(nextX);
     if (node.y() !== nextY) node.y(nextY);
     groupRef.current = null;
+    useGuidesStore.getState().clear();
   };
 
   return (

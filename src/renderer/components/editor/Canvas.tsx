@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Stage, Layer, Rect } from 'react-konva';
+import { Stage, Layer, Rect, Line } from 'react-konva';
+import { useGuidesStore } from '@renderer/stores/guides';
+import { computeSnap, unionBox, type SnapBox } from '@renderer/lib/snap';
 import type Konva from 'konva';
 import { useDeckStore } from '@renderer/stores/deck';
 import { useUiStore } from '@renderer/stores/ui';
@@ -281,8 +283,39 @@ export function Canvas() {
       const z = zoomRef.current;
       const curX = (pointer.x - stagePanRef.current.x) / z;
       const curY = (pointer.y - stagePanRef.current.y) / z;
-      const dx = curX - md.startX;
-      const dy = curY - md.startY;
+      let dx = curX - md.startX;
+      let dy = curY - md.startY;
+
+      // Snap по union-bbox перемещаемых нод.
+      const deckNow = useDeckStore.getState().deck;
+      const activeId = useUiStore.getState().activeSlideId;
+      const slideNow = deckNow && activeId ? deckNow.slides[activeId] : null;
+      if (slideNow) {
+        const movedIds = new Set(md.nodes.map((n) => n.id));
+        const others: SnapBox[] = [];
+        for (const sh of slideNow.shapes) {
+          if (!movedIds.has(sh.id)) {
+            others.push({ x: sh.x, y: sh.y, w: sh.w, h: sh.h });
+          }
+        }
+        if (deckNow?.size) {
+          others.push({ x: 0, y: 0, w: deckNow.size.w, h: deckNow.size.h });
+        }
+        const movedBoxes: SnapBox[] = md.nodes.map((n) => ({
+          x: n.startX + dx,
+          y: n.startY + dy,
+          w: n.node.width(),
+          h: n.node.height(),
+        }));
+        const u = unionBox(movedBoxes);
+        if (u) {
+          const snap = computeSnap(u, others, 6 / z);
+          dx += snap.dx;
+          dy += snap.dy;
+          useGuidesStore.getState().setGuides(snap.guides);
+        }
+      }
+
       for (const o of md.nodes) {
         o.node.x(o.startX + dx);
         o.node.y(o.startY + dy);
@@ -314,6 +347,7 @@ export function Canvas() {
     const md = multiDragRef.current;
     if (md) {
       multiDragRef.current = null;
+      useGuidesStore.getState().clear();
       useDeckStore.setState((state) => {
         if (!state.deck) return;
         const slide = state.deck.slides[Object.keys(state.deck.slides)[0]];
@@ -462,6 +496,7 @@ export function Canvas() {
               listening={false}
             />
           )}
+          <GuideLayer slideW={slideW} slideH={slideH} />
         </Layer>
       </Stage>
       <TextOverlayHost slideId={slide.id} panX={stagePan.x} panY={stagePan.y} zoom={zoom} />
@@ -493,6 +528,39 @@ function TextOverlayHost({
   });
   if (!shape) return null;
   return <TextOverlay slideId={slideId} shape={shape} panX={panX} panY={panY} zoom={zoom} />;
+}
+
+// Слой smart-guides: рисует красные линии-направляющие на всю длину слайда
+// в координатах слайда. Подписан на отдельный стор useGuidesStore, который
+// обновляется в onDragMove (ShapeNode + Canvas multi-drag).
+function GuideLayer({ slideW, slideH }: { slideW: number; slideH: number }) {
+  const guides = useGuidesStore((s) => s.guides);
+  if (guides.length === 0) return null;
+  return (
+    <>
+      {guides.map((g, i) =>
+        g.kind === 'v' ? (
+          <Line
+            key={i}
+            points={[g.pos, 0, g.pos, slideH]}
+            stroke="#ff4081"
+            strokeWidth={1}
+            strokeScaleEnabled={false}
+            listening={false}
+          />
+        ) : (
+          <Line
+            key={i}
+            points={[0, g.pos, slideW, g.pos]}
+            stroke="#ff4081"
+            strokeWidth={1}
+            strokeScaleEnabled={false}
+            listening={false}
+          />
+        ),
+      )}
+    </>
+  );
 }
 
 // Утилита: считается ли событие пришедшим из текстового поля,
