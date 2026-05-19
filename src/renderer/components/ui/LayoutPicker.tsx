@@ -7,10 +7,10 @@ interface LayoutPickerProps {
   onClose: () => void;
 }
 
-// Модальный пикер layout-ов. Открывается из меню Слайд → Применить макет
-// (команда `slide:apply-layout`). Клик по карточке применяет layout
-// к активному слайду — placeholder-фигуры из layout-а добавляются
-// (старые НЕ удаляются — пользователь может смешивать).
+// Модальный пикер layout-ов. Открывается из меню Слайд → Новый слайд
+// из макета… (команда `slide:apply-layout`). Клик по карточке создаёт
+// НОВЫЙ слайд с placeholder-фигурами выбранного макета и делает его
+// активным. Текущий слайд не трогается.
 export function LayoutPicker({ open, onClose }: LayoutPickerProps) {
   useEffect(() => {
     if (!open) return;
@@ -31,7 +31,7 @@ export function LayoutPicker({ open, onClose }: LayoutPickerProps) {
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <header className="modal__header">
-          <h2>Выберите макет</h2>
+          <h2>Новый слайд из макета</h2>
           <button className="modal__close" onClick={onClose} aria-label="Закрыть">
             ×
           </button>

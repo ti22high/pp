@@ -190,7 +190,7 @@ const template: MenuItemConstructorOptions[] = [
       { label: 'Удалить слайд', click: () => sendCommand('slide:delete') },
       { label: 'Пропустить слайд', type: 'checkbox', click: () => sendCommand('slide:toggle-hidden') },
       { type: 'separator' },
-      { label: 'Применить макет…', click: () => sendCommand('slide:apply-layout') },
+      { label: 'Новый слайд из макета…', click: () => sendCommand('slide:apply-layout') },
       { label: 'Изменить тему…', click: () => sendCommand('slide:edit-theme') },
       { label: 'Фон…', click: () => sendCommand('slide:background') },
       { label: 'Переход…', click: () => sendCommand('slide:transition') },

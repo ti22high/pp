@@ -80,31 +80,45 @@ export function deleteSlide(): void {
   useSelectionStore.getState().clear();
 }
 
-// Применяет встроенный layout к активному слайду: добавляет placeholder-фигуры
-// (старые сохраняются). Координаты в layout-ах базированы на 1920×1080
-// и пропорционально масштабируются под текущий deck.size.
+// Создаёт новый слайд с placeholder-фигурами выбранного layout-а и делает
+// его активным. Layout-координаты базируются на 1920×1080 — пропорционально
+// масштабируются под текущий deck.size.
+//
+// До этого пункт делал «применить макет к текущему» — но плейсхолдеры
+// просто накладывались поверх существующего контента, что путало.
+// Slides-овский UX: «New slide with layout» — отдельный слайд из шаблона.
 export function applyLayout(key: LayoutKey): void {
-  const activeId = useUiStore.getState().activeSlideId;
-  if (!activeId) return;
   const layout = getLayout(key);
   if (!layout) return;
+  const activeId = useUiStore.getState().activeSlideId;
+  let createdId: string | null = null;
   useDeckStore.setState((state) => {
     if (!state.deck) return;
-    const slide = state.deck.slides[activeId];
-    if (!slide) return;
+    const slide = createEmptySlide();
     const sx = state.deck.size.w / 1920;
     const sy = state.deck.size.h / 1080;
-    const placeholders = layout.build().map((sh) => ({
+    slide.shapes = layout.build().map((sh) => ({
       ...sh,
       x: sh.x * sx,
       y: sh.y * sy,
       w: sh.w * sx,
       h: sh.h * sy,
     }));
-    slide.shapes.push(...placeholders);
     slide.layoutId = key;
+    state.deck.slides[slide.id] = slide;
+    createdId = slide.id;
+    if (activeId) {
+      const idx = state.deck.slideOrder.indexOf(activeId);
+      state.deck.slideOrder.splice(idx + 1, 0, slide.id);
+    } else {
+      state.deck.slideOrder.push(slide.id);
+    }
     state.deck.modifiedAt = new Date().toISOString();
   });
+  if (createdId) {
+    useUiStore.getState().setActiveSlide(createdId);
+    useSelectionStore.getState().clear();
+  }
 }
 
 export function toggleHiddenSlide(): void {
