@@ -11,11 +11,12 @@ interface FilmstripItemProps {
   onReorder: (draggedId: string, dropTargetId: string) => void;
 }
 
-// Один элемент filmstrip-а: номер слайда + упрощённое превью.
-// Подписываемся НА весь slide-объект — immer хранит стабильную ссылку,
-// пока слайд не меняется, поэтому re-render будет только при реальных
-// мутациях. useShallow тут не подходит — внутренний массив shapes
-// деривируется каждый рендер, и сравнение по верхнему уровню зацикливалось.
+// Ширина preview-области в filmstrip-е (CSS, без учёта DPI). Внутрь рендерим
+// фигуры в нативных slide-coords и масштабируем весь блок через CSS-transform.
+// Это даёт пиксель-перфектное пропорциональное превью текста и других фигур,
+// без отдельной растеризации (Konva/OffscreenCanvas — Phase 3+).
+const THUMB_W = 140;
+
 export const FilmstripItem = memo(function FilmstripItemBase({
   slideId,
   index,
@@ -31,6 +32,8 @@ export const FilmstripItem = memo(function FilmstripItemBase({
   if (!slide) return null;
   const bg =
     slide.background?.type === 'color' ? slide.background.color : '#ffffff';
+  const scale = THUMB_W / slideW;
+  const thumbH = slideH * scale;
 
   return (
     <div
@@ -56,48 +59,64 @@ export const FilmstripItem = memo(function FilmstripItemBase({
       }}
     >
       <div className="fs-item__num">{index + 1}</div>
-      <div className="fs-item__preview" style={{ background: bg }}>
-        {slide.shapes.map((sh) => {
-          const fill = solidColor(sh.fill);
-          const stroke = sh.stroke?.color ?? null;
-          const plain =
-            sh.type === 'text'
-              ? extractPlain(sh.tiptapDoc)
-              : extractPlain(sh.text);
-          // Линию рисуем как тонкий 1.5px бар по центру её bbox (а не на всю
-          // высоту bbox-а — иначе в превью выглядит как толстая полоса).
-          if (sh.type === 'line') {
+      <div
+        className="fs-item__preview"
+        style={{ width: THUMB_W, height: thumbH, background: bg }}
+      >
+        {/* Внутренний слой 1920×1080 (или какой реально slide) — здесь
+            фигуры в их «настоящих» координатах. CSS scale уменьшает всё
+            до thumb-размера. Текст рендерится в реальном font-size, поэтому
+            масштаб шрифта 1:1 с канвасом. */}
+        <div
+          className="fs-item__inner"
+          style={{
+            width: slideW,
+            height: slideH,
+            transform: `scale(${scale})`,
+          }}
+        >
+          {slide.shapes.map((sh) => {
+            const fill = solidColor(sh.fill);
+            const stroke = sh.stroke?.color ?? null;
+            const plain =
+              sh.type === 'text'
+                ? extractPlain(sh.tiptapDoc)
+                : extractPlain(sh.text);
+            if (sh.type === 'line') {
+              return (
+                <div
+                  key={sh.id}
+                  className="fs-item__shape fs-item__line"
+                  style={{
+                    left: sh.x,
+                    top: sh.y + sh.h / 2,
+                    width: sh.w,
+                    height: Math.max(1, sh.stroke?.width ?? 1),
+                    background: stroke ?? '#5f6368',
+                  }}
+                />
+              );
+            }
             return (
               <div
                 key={sh.id}
-                className="fs-item__shape fs-item__line"
+                className="fs-item__shape"
                 style={{
-                  left: `${(sh.x / slideW) * 100}%`,
-                  top: `${((sh.y + sh.h / 2) / slideH) * 100}%`,
-                  width: `${(sh.w / slideW) * 100}%`,
-                  background: stroke ?? '#5f6368',
+                  left: sh.x,
+                  top: sh.y,
+                  width: sh.w,
+                  height: sh.h,
+                  background: fill ?? 'transparent',
+                  borderColor: stroke ?? 'transparent',
+                  borderWidth: stroke ? sh.stroke?.width ?? 1 : 0,
+                  borderRadius: sh.type === 'ellipse' ? '50%' : 0,
                 }}
-              />
+              >
+                {plain && <span className="fs-item__text">{plain}</span>}
+              </div>
             );
-          }
-          return (
-            <div
-              key={sh.id}
-              className="fs-item__shape"
-              style={{
-                left: `${(sh.x / slideW) * 100}%`,
-                top: `${(sh.y / slideH) * 100}%`,
-                width: `${(sh.w / slideW) * 100}%`,
-                height: `${(sh.h / slideH) * 100}%`,
-                background: fill ?? 'transparent',
-                borderColor: stroke ?? 'transparent',
-                borderRadius: sh.type === 'ellipse' ? '50%' : 0,
-              }}
-            >
-              {plain && <span className="fs-item__text">{plain}</span>}
-            </div>
-          );
-        })}
+          })}
+        </div>
       </div>
     </div>
   );

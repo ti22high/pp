@@ -380,19 +380,30 @@ body,
   padding-top: 4px;
 }
 .fs-item__preview {
-  flex: 1;
   position: relative;
-  height: 96px;
   border: 1px solid var(--border);
   border-radius: 2px;
   overflow: hidden;
   background: #fff;
+  flex-shrink: 0;
+}
+.fs-item__inner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: top left;
+  pointer-events: none;
 }
 .fs-item__shape {
   position: absolute;
-  border: 1px solid transparent;
+  border-style: solid;
+  border-color: transparent;
   box-sizing: border-box;
   pointer-events: none;
+  font-family: Roboto, Arial, sans-serif;
+  font-size: 20px;
+  line-height: 1.3;
+  color: #202124;
 }
 .fs-item--hidden {
   opacity: 0.45;
@@ -488,22 +499,23 @@ body,
   background: rgba(95, 99, 104, 0.18);
   border-radius: 1px;
 }
+/* Текст внутри shape-bbox. Размер шрифта в slide-coords (20 px) — наследуется
+   от .fs-item__shape; CSS-transform на .fs-item__inner уменьшает всё пропорц.
+   Раньше тут стоял ручной 6px-шрифт и обрезание — давало искажённую картинку
+   относительно того, как реально текст рендерится на канвасе. */
 .fs-item__text {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 6px;
-  line-height: 1.1;
-  color: #202124;
   text-align: center;
   overflow: hidden;
-  padding: 1px 2px;
   white-space: normal;
   word-break: break-word;
+  font: inherit;
+  color: inherit;
 }
 .fs-item__line {
-  height: 1.5px;
   transform: translateY(-50%);
 }
