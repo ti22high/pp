@@ -101,6 +101,36 @@ body,
   position: relative;
 }
 
+/* Линейки (View → Показывать линейку). Лежат поверх Stage, pointer-events
+   отключены — клики проходят к канвасу. Размер полосы — 22 px (синхронно
+   с RULER_SIZE в Rulers.tsx). */
+.ruler-h {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+.ruler-v {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+.ruler-corner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 22px;
+  height: 22px;
+  background: #fafafa;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  pointer-events: none;
+  z-index: 6;
+}
+
 .app-canvas .placeholder {
   position: absolute;
   top: 50%;

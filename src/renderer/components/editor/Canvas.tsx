@@ -11,6 +11,7 @@ import type { ShapeId } from '@shared/types';
 import { Slide } from './Slide';
 import { SelectionTransformer } from './SelectionTransformer';
 import { TextOverlay } from './TextOverlay';
+import { Rulers } from './Rulers';
 
 // Canvas — хост Konva Stage. Размер стейджа адаптируется к контейнеру.
 // Содержимое: один активный слайд, отцентрированный и масштабированный по uiStore.zoom.
@@ -623,6 +624,14 @@ export function Canvas() {
         </Layer>
       </Stage>
       <TextOverlayHost slideId={slide.id} panX={stagePan.x} panY={stagePan.y} zoom={zoom} />
+      <Rulers
+        containerRef={containerRef}
+        stageW={stageSize.width}
+        stageH={stageSize.height}
+        panX={stagePan.x}
+        panY={stagePan.y}
+        zoom={zoom}
+      />
     </div>
   );
 }
