@@ -177,16 +177,48 @@ export function Canvas() {
       // Поднимаемся по дереву от hit-target до первой ноды, чей id есть в slide.shapes.
       let node: Konva.Node | null = e.target;
       while (node && node !== stage) {
-        const nodeId = node.id();
+        const nodeId = node.id() as ShapeId;
         if (nodeId && ids.has(nodeId)) {
           const sel = useSelectionStore.getState();
           if (shift) {
             sel.toggle(nodeId);
-          } else if (!sel.selectedShapeIds.includes(nodeId)) {
-            // Клик по не-выделенной фигуре → заменяем выделение на неё.
-            // Если фигура уже выделена (в т. ч. в составе мульти) — НЕ трогаем
-            // выделение, чтобы последующий drag двигал всю группу.
+            return;
+          }
+          if (!sel.selectedShapeIds.includes(nodeId)) {
+            // Клик по не-выделенной фигуре → заменяем выделение, Konva
+            // native drag (одиночка) запустится с draggable=true.
             sel.select([nodeId]);
+            return;
+          }
+          // Уже в выделении.
+          if (sel.selectedShapeIds.length >= 2) {
+            // Старт custom multi-drag прямо отсюда — у Group draggable=false
+            // (см. ShapeNode.inMultiSelection), значит Konva native drag не
+            // запустится, и mousemove будет идти к Stage.handleStageMouseMove.
+            const pointer = stage.getPointerPosition();
+            if (!pointer) return;
+            const z = zoomRef.current;
+            const sx = (pointer.x - stagePanRef.current.x) / z;
+            const sy = (pointer.y - stagePanRef.current.y) / z;
+            const nodes: Array<{
+              id: ShapeId;
+              node: Konva.Node;
+              startX: number;
+              startY: number;
+            }> = [];
+            const wanted = new Set(sel.selectedShapeIds);
+            stage.find((n: Konva.Node) => {
+              if (wanted.has(n.id())) {
+                nodes.push({
+                  id: n.id() as ShapeId,
+                  node: n,
+                  startX: n.x(),
+                  startY: n.y(),
+                });
+              }
+              return false;
+            });
+            multiDragRef.current = { startX: sx, startY: sy, nodes };
           }
           return;
         }
