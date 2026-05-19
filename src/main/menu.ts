@@ -100,7 +100,11 @@ const template: MenuItemConstructorOptions[] = [
       { label: 'Вставить', role: 'paste' },
       { label: 'Удалить', role: 'delete' },
       { type: 'separator' },
-      { label: 'Выделить всё', role: 'selectAll' },
+      {
+        label: 'Выделить всё',
+        accelerator: 'CmdOrCtrl+A',
+        click: () => sendCommand('edit:select-all'),
+      },
       {
         label: 'Дублировать',
         accelerator: 'CmdOrCtrl+D',

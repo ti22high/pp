@@ -6,6 +6,7 @@ import { alignShapes, distributeShapes, type AlignKind } from '@renderer/lib/ali
 import { reorderZ, type ZOrderKind } from '@renderer/lib/zorder';
 import { canGroup, canUngroup } from '@renderer/lib/group';
 import { undo, redo } from '@renderer/lib/undo';
+import { selectAll as selectAllShapes, duplicate as duplicateShapes } from '@renderer/lib/clipboard';
 
 // Подписка на команды native-меню (Файл / Правка / Вид / …) и роутинг их
 // в соответствующие store-действия. Команды приходят строкой через
@@ -63,6 +64,12 @@ export function useMenuCommands() {
           break;
         case 'edit:redo':
           redo();
+          break;
+        case 'edit:select-all':
+          selectAllShapes();
+          break;
+        case 'edit:duplicate':
+          duplicateShapes();
           break;
         default:
           // Остальные команды обрабатываются в своих компонентах
