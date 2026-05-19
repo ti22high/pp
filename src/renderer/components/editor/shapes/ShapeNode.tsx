@@ -6,6 +6,7 @@ import { useSelectionStore } from '@renderer/stores/selection';
 import { useUiStore } from '@renderer/stores/ui';
 import { useGuidesStore } from '@renderer/stores/guides';
 import { computeSnap, type SnapBox } from '@renderer/lib/snap';
+import { guidesByAxis } from '@renderer/lib/userGuides';
 import type { ShapeId } from '@shared/types';
 
 interface ShapeNodeProps {
@@ -73,7 +74,8 @@ export function ShapeNode({
       }
       const zoom = useUiStore.getState().zoom || 1;
       const snapBox: SnapBox = { x: nx, y: ny, w: node.width(), h: node.height() };
-      const snap = computeSnap(snapBox, others, 6 / zoom);
+      const userGuides = guidesByAxis(deckNow?.guides ?? []);
+      const snap = computeSnap(snapBox, others, 6 / zoom, userGuides);
       if (snap.dx !== 0) {
         nx += snap.dx;
         node.x(nx);

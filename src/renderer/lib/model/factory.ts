@@ -27,6 +27,7 @@ export function createEmptyDeck(title = 'Untitled Presentation'): Deck {
     size: { w: DEFAULT_SLIDE_WIDTH, h: DEFAULT_SLIDE_HEIGHT },
     slideOrder: [firstSlide.id],
     slides: { [firstSlide.id]: firstSlide },
+    guides: [],
     createdAt: now,
     modifiedAt: now,
   };

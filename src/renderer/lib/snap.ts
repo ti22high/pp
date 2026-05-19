@@ -54,6 +54,7 @@ export function computeSnap(
   dragged: SnapBox,
   others: SnapBox[],
   threshold: number,
+  userGuides?: { v: number[]; h: number[] },
 ): SnapResult {
   const da = { ...anchorsX(dragged), ...anchorsY(dragged) };
 
@@ -87,6 +88,34 @@ export function computeSnap(
           bestDyAbs = abs;
           bestDy = diff;
           bestDyLine = oy[ok];
+        }
+      }
+    }
+  }
+
+  // Пользовательские направляющие: каждая вертикальная даёт одну x-anchor-pos,
+  // горизонтальная — одну y-anchor-pos. Сравниваем со всеми тремя anchor-ами
+  // dragged (left/centerH/right или top/centerV/bottom).
+  if (userGuides) {
+    for (const g of userGuides.v) {
+      for (const dk of X_KEYS) {
+        const diff = g - da[dk];
+        const abs = Math.abs(diff);
+        if (abs <= threshold && abs < bestDxAbs) {
+          bestDxAbs = abs;
+          bestDx = diff;
+          bestDxLine = g;
+        }
+      }
+    }
+    for (const g of userGuides.h) {
+      for (const dk of Y_KEYS) {
+        const diff = g - da[dk];
+        const abs = Math.abs(diff);
+        if (abs <= threshold && abs < bestDyAbs) {
+          bestDyAbs = abs;
+          bestDy = diff;
+          bestDyLine = g;
         }
       }
     }

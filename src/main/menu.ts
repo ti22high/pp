@@ -159,6 +159,25 @@ const template: MenuItemConstructorOptions[] = [
         click: () => sendCommand('view:toggle-snap-grid'),
       },
       { type: 'separator' },
+      {
+        label: 'Направляющие',
+        submenu: [
+          {
+            label: 'Добавить горизонтальную',
+            click: () => sendCommand('view:add-guide-h'),
+          },
+          {
+            label: 'Добавить вертикальную',
+            click: () => sendCommand('view:add-guide-v'),
+          },
+          { type: 'separator' },
+          {
+            label: 'Очистить направляющие',
+            click: () => sendCommand('view:clear-guides'),
+          },
+        ],
+      },
+      { type: 'separator' },
       { label: 'Полноэкранный режим', role: 'togglefullscreen' },
       { label: 'Инструменты разработчика', role: 'toggleDevTools' },
     ],

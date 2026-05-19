@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback, type ReactElement } from 'rea
 import { Stage, Layer, Rect, Line } from 'react-konva';
 import { useGuidesStore } from '@renderer/stores/guides';
 import { computeSnap, unionBox, type SnapBox } from '@renderer/lib/snap';
+import { guidesByAxis, moveUserGuide, removeUserGuide } from '@renderer/lib/userGuides';
 import type Konva from 'konva';
 import { useDeckStore } from '@renderer/stores/deck';
 import { useUiStore } from '@renderer/stores/ui';
@@ -189,6 +190,14 @@ export function Canvas() {
       ) {
         return;
       }
+      // Клик/drag по пользовательской направляющей — пусть линия сама
+      // обрабатывает свой native drag, выделение не трогаем.
+      if (
+        typeof (e.target as Konva.Node).hasName === 'function' &&
+        (e.target as Konva.Node).hasName('user-guide')
+      ) {
+        return;
+      }
 
       const shift = (e.evt as MouseEvent).shiftKey === true;
 
@@ -368,7 +377,8 @@ export function Canvas() {
         }));
         const u = unionBox(movedBoxes);
         if (u) {
-          const snap = computeSnap(u, others, 6 / z);
+          const userGuides = guidesByAxis(deckNow?.guides ?? []);
+          const snap = computeSnap(u, others, 6 / z, userGuides);
           dx += snap.dx;
           dy += snap.dy;
           useGuidesStore.getState().setGuides(snap.guides);
@@ -621,6 +631,7 @@ export function Canvas() {
           )}
           <GuideLayer slideW={slideW} slideH={slideH} />
           <GridLayer slideW={slideW} slideH={slideH} />
+          <UserGuidesLayer slideW={slideW} slideH={slideH} />
         </Layer>
       </Stage>
       <TextOverlayHost slideId={slide.id} panX={stagePan.x} panY={stagePan.y} zoom={zoom} />
@@ -693,6 +704,77 @@ function GridLayer({ slideW, slideH }: { slideW: number; slideH: number }) {
     );
   }
   return <>{lines}</>;
+}
+
+// Слой пользовательских направляющих (deck.guides). Каждая — Konva.Line на
+// всю длину слайда, draggable вдоль своей оси. dragEnd → moveUserGuide;
+// double-click → removeUserGuide.
+function UserGuidesLayer({
+  slideW,
+  slideH,
+}: {
+  slideW: number;
+  slideH: number;
+}) {
+  const guides = useDeckStore((s) => s.deck?.guides ?? []);
+  if (guides.length === 0) return null;
+  return (
+    <>
+      {guides.map((g) =>
+        g.kind === 'v' ? (
+          <Line
+            key={g.id}
+            points={[g.pos, 0, g.pos, slideH]}
+            stroke="#00bcd4"
+            strokeWidth={1}
+            strokeScaleEnabled={false}
+            name="user-guide"
+            hitStrokeWidth={10}
+            draggable
+            dragBoundFunc={(p) => ({ x: p.x, y: 0 })}
+            onDragEnd={(e) => {
+              moveUserGuide(g.id, e.target.x() + g.pos);
+              e.target.position({ x: 0, y: 0 });
+            }}
+            onDblClick={() => removeUserGuide(g.id)}
+            onMouseEnter={(e) => {
+              const c = e.target.getStage()?.container();
+              if (c) c.style.cursor = 'ew-resize';
+            }}
+            onMouseLeave={(e) => {
+              const c = e.target.getStage()?.container();
+              if (c) c.style.cursor = '';
+            }}
+          />
+        ) : (
+          <Line
+            key={g.id}
+            points={[0, g.pos, slideW, g.pos]}
+            stroke="#00bcd4"
+            strokeWidth={1}
+            strokeScaleEnabled={false}
+            name="user-guide"
+            hitStrokeWidth={10}
+            draggable
+            dragBoundFunc={(p) => ({ x: 0, y: p.y })}
+            onDragEnd={(e) => {
+              moveUserGuide(g.id, e.target.y() + g.pos);
+              e.target.position({ x: 0, y: 0 });
+            }}
+            onDblClick={() => removeUserGuide(g.id)}
+            onMouseEnter={(e) => {
+              const c = e.target.getStage()?.container();
+              if (c) c.style.cursor = 'ns-resize';
+            }}
+            onMouseLeave={(e) => {
+              const c = e.target.getStage()?.container();
+              if (c) c.style.cursor = '';
+            }}
+          />
+        ),
+      )}
+    </>
+  );
 }
 
 // Слой smart-guides: рисует красные линии-направляющие на всю длину слайда

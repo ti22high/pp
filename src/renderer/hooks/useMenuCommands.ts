@@ -8,6 +8,7 @@ import { canGroup, canUngroup } from '@renderer/lib/group';
 import { undo, redo } from '@renderer/lib/undo';
 import { selectAll as selectAllShapes, duplicate as duplicateShapes } from '@renderer/lib/clipboard';
 import { newSlide, duplicateSlide, deleteSlide, toggleHiddenSlide } from '@renderer/lib/slides';
+import { addUserGuide, clearUserGuides } from '@renderer/lib/userGuides';
 
 // Подписка на команды native-меню (Файл / Правка / Вид / …) и роутинг их
 // в соответствующие store-действия. Команды приходят строкой через
@@ -33,6 +34,15 @@ export function useMenuCommands() {
           break;
         case 'view:toggle-ruler':
           toggleRuler();
+          break;
+        case 'view:add-guide-h':
+          addUserGuide('h');
+          break;
+        case 'view:add-guide-v':
+          addUserGuide('v');
+          break;
+        case 'view:clear-guides':
+          clearUserGuides();
           break;
         case 'arrange:align-left':
         case 'arrange:align-center-h':

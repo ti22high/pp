@@ -63,7 +63,7 @@
 - [x] 2.28. Background editor (color / image / reset).
 - [x] 2.29. Slide size dialog (4:3, 16:9, custom).
 - [x] 2.30. Rulers (top + left).
-- [ ] 2.31. Guides (add / edit / clear, snap to guides).
+- [x] 2.31. Guides (add / edit / clear, snap to guides).
 - [ ] 2.32. Page numbers (insert + on/off в master).
 - [ ] 2.33. Hyperlink dialog (URL / slide / email / bookmark).
 - [ ] 2.34. Special characters picker.

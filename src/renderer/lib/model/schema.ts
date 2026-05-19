@@ -210,6 +210,16 @@ export const themeSchema = z.object({
   }),
 });
 
+// Пользовательская направляющая (горизонтальная или вертикальная).
+// Хранится на уровне деки (как в Slides — guides общие для всей презентации).
+// pos — координата в slide-coords: x для 'v', y для 'h'.
+export const userGuideSchema = z.object({
+  id: z.string(),
+  kind: z.enum(['h', 'v']),
+  pos: z.number(),
+});
+export type UserGuide = z.infer<typeof userGuideSchema>;
+
 // Корневой документ.
 export const deckSchema = z.object({
   id: z.string(),
@@ -220,6 +230,7 @@ export const deckSchema = z.object({
   theme: themeSchema.optional(),
   slideOrder: z.array(slideIdSchema),
   slides: z.record(slideIdSchema, slideSchema),
+  guides: z.array(userGuideSchema).optional(),
   createdAt: z.string(),
   modifiedAt: z.string(),
 });
