@@ -84,8 +84,16 @@ const template: MenuItemConstructorOptions[] = [
   {
     label: 'Правка',
     submenu: [
-      { label: 'Отменить', role: 'undo' },
-      { label: 'Повторить', role: 'redo' },
+      {
+        label: 'Отменить',
+        accelerator: 'CmdOrCtrl+Z',
+        click: () => sendCommand('edit:undo'),
+      },
+      {
+        label: 'Повторить',
+        accelerator: 'CmdOrCtrl+Shift+Z',
+        click: () => sendCommand('edit:redo'),
+      },
       { type: 'separator' },
       { label: 'Вырезать', role: 'cut' },
       { label: 'Копировать', role: 'copy' },

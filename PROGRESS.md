@@ -55,7 +55,7 @@
 - [x] 2.20. Group / Ungroup.
 - [x] 2.21. Copy / Paste / Cut / Duplicate (Ctrl+C/V/X/D).
 - [x] 2.22. Delete (Del).
-- [ ] 2.23. Undo / Redo (`src/renderer/lib/undo.ts`) + Ctrl+Z / Ctrl+Y.
+- [x] 2.23. Undo / Redo (`src/renderer/lib/undo.ts`) + Ctrl+Z / Ctrl+Y.
 - [ ] 2.24. Filmstrip с `react-virtuoso`, drag-reorder слайдов.
 - [ ] 2.25. New slide, Duplicate, Delete, Hide commands.
 - [ ] 2.26. Layouts: 10 встроенных layout-ов из §1.1.

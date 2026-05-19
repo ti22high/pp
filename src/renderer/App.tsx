@@ -8,6 +8,7 @@ import { Toolbar } from './components/toolbar/Toolbar';
 import { Inspector } from './components/inspector/Inspector';
 import { useMenuCommands } from './hooks/useMenuCommands';
 import { useShapeClipboard } from './hooks/useShapeClipboard';
+import { useUndoRedo } from './hooks/useUndoRedo';
 
 // Главный UI редактора. Структура: header / toolbar / (filmstrip + canvas + inspector).
 // При первом маунте создаём пустой deck — остальные компоненты подписываются на него.
@@ -20,6 +21,7 @@ export function App() {
 
   useMenuCommands();
   useShapeClipboard();
+  useUndoRedo();
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.api) {
