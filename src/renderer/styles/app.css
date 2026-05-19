@@ -327,3 +327,50 @@ body,
   font-size: 10px;
   color: var(--text-muted);
 }
+
+/* Filmstrip — список слайдов слева с виртуализацией react-virtuoso. */
+.fs-item {
+  display: flex;
+  gap: 6px;
+  padding: 6px;
+  margin-bottom: 6px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  background: transparent;
+  user-select: none;
+}
+.fs-item:hover {
+  background: #f1f3f4;
+}
+.fs-item--active {
+  border-color: var(--accent);
+  background: rgba(26, 115, 232, 0.06);
+}
+.fs-item--drop {
+  border-color: var(--accent);
+  border-style: dashed;
+}
+.fs-item__num {
+  width: 18px;
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: right;
+  padding-top: 4px;
+}
+.fs-item__preview {
+  flex: 1;
+  position: relative;
+  height: 96px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  background: #fff;
+}
+.fs-item__shape {
+  position: absolute;
+  border: 1px solid transparent;
+  box-sizing: border-box;
+  pointer-events: none;
+}

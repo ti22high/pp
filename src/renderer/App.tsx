@@ -6,6 +6,7 @@ import { createEmptyDeck } from './lib/model/factory';
 import { Canvas } from './components/editor/Canvas';
 import { Toolbar } from './components/toolbar/Toolbar';
 import { Inspector } from './components/inspector/Inspector';
+import { Filmstrip } from './components/filmstrip/Filmstrip';
 import { useMenuCommands } from './hooks/useMenuCommands';
 import { useShapeClipboard } from './hooks/useShapeClipboard';
 import { useUndoRedo } from './hooks/useUndoRedo';
@@ -16,7 +17,6 @@ export function App() {
   const [versions, setVersions] = useState<VersionsInfo | null>(null);
   const deck = useDeckStore((s) => s.deck);
   const setDeck = useDeckStore((s) => s.setDeck);
-  const activeSlideId = useUiStore((s) => s.activeSlideId);
   const setActiveSlide = useUiStore((s) => s.setActiveSlide);
 
   useMenuCommands();
@@ -37,8 +37,6 @@ export function App() {
     }
   }, [deck, setDeck, setActiveSlide]);
 
-  const slideCount = deck?.slideOrder.length ?? 0;
-
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -54,13 +52,7 @@ export function App() {
         <Toolbar />
       </div>
 
-      <aside className="app-filmstrip">
-        <p className="panel-title">Слайды ({slideCount})</p>
-        <p className="meta">
-          {activeSlideId ? `Активный: ${activeSlideId.slice(0, 8)}…` : 'нет активного слайда'}
-        </p>
-        <p className="meta">Превью слайдов — Phase 2.24.</p>
-      </aside>
+      <Filmstrip />
 
       <Canvas />
 

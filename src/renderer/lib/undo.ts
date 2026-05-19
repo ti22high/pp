@@ -45,6 +45,12 @@ export function initHistory(): void {
       return;
     }
     if (newDeck === prevDeck) return;
+    // Игнорируем переходы null↔Deck (создание пустого дека на старте, или
+    // File→Close). Иначе Cmd+Z до упора оставляет приложение без дека.
+    if (prevDeck === null || newDeck === null) {
+      prevDeck = newDeck;
+      return;
+    }
     if (history.pendingPrev === null) {
       history.pendingPrev = prevDeck;
     }
