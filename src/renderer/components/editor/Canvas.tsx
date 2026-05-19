@@ -75,8 +75,16 @@ export function Canvas() {
   }, [zoom]);
 
   // Отслеживаем размер контейнера через ResizeObserver.
-  useEffect(() => {
-    const el = containerRef.current;
+  // ВАЖНО: используем callback ref, а не useEffect на mount, потому что
+  // Canvas сначала рендерит placeholder без containerRef (когда deck=null),
+  // а потом — реальный Stage. useEffect с []-deps срабатывает один раз
+  // когда ref ещё null → Observer не подключается → stageSize остаётся
+  // дефолтным (800×600), Stage отрисовывается крошечным в углу.
+  const roRef = useRef<ResizeObserver | null>(null);
+  const setContainerRef = useCallback((el: HTMLDivElement | null) => {
+    containerRef.current = el;
+    roRef.current?.disconnect();
+    roRef.current = null;
     if (!el) return;
     const ro = new ResizeObserver((entries) => {
       for (const entry of entries) {
@@ -85,7 +93,7 @@ export function Canvas() {
       }
     });
     ro.observe(el);
-    return () => ro.disconnect();
+    roRef.current = ro;
   }, []);
 
   // Авто-центрирование: пока пользователь не сдвинул вьюпорт сам,
@@ -515,8 +523,8 @@ export function Canvas() {
 
   if (!deck || !activeSlideId) {
     return (
-      <div className="app-canvas">
-        <div className="placeholder">No deck loaded</div>
+      <div ref={setContainerRef} className="app-canvas">
+        <div className="placeholder">Дек не загружен</div>
       </div>
     );
   }
@@ -524,15 +532,15 @@ export function Canvas() {
   const slide = deck.slides[activeSlideId];
   if (!slide) {
     return (
-      <div className="app-canvas">
-        <div className="placeholder">Active slide not found</div>
+      <div ref={setContainerRef} className="app-canvas">
+        <div className="placeholder">Активный слайд не найден</div>
       </div>
     );
   }
 
   return (
     <div
-      ref={containerRef}
+      ref={setContainerRef}
       className="app-canvas"
       style={{ cursor: spaceHeld ? (panStartRef.current ? 'grabbing' : 'grab') : 'default' }}
     >
