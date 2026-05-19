@@ -64,11 +64,22 @@ export const FilmstripItem = memo(function FilmstripItemBase({
             sh.type === 'text'
               ? extractPlain(sh.tiptapDoc)
               : extractPlain(sh.text);
-          // Линию рисуем сплошным цветным баром цвета stroke — без border-only
-          // вида, который выглядит как пустая рамка в превью.
-          const isLine = sh.type === 'line';
-          const bgStyle = isLine ? (stroke ?? 'transparent') : (fill ?? 'transparent');
-          const borderStyle = isLine ? 'transparent' : (stroke ?? 'transparent');
+          // Линию рисуем как тонкий 1.5px бар по центру её bbox (а не на всю
+          // высоту bbox-а — иначе в превью выглядит как толстая полоса).
+          if (sh.type === 'line') {
+            return (
+              <div
+                key={sh.id}
+                className="fs-item__shape fs-item__line"
+                style={{
+                  left: `${(sh.x / slideW) * 100}%`,
+                  top: `${((sh.y + sh.h / 2) / slideH) * 100}%`,
+                  width: `${(sh.w / slideW) * 100}%`,
+                  background: stroke ?? '#5f6368',
+                }}
+              />
+            );
+          }
           return (
             <div
               key={sh.id}
@@ -78,8 +89,8 @@ export const FilmstripItem = memo(function FilmstripItemBase({
                 top: `${(sh.y / slideH) * 100}%`,
                 width: `${(sh.w / slideW) * 100}%`,
                 height: `${(sh.h / slideH) * 100}%`,
-                background: bgStyle,
-                borderColor: borderStyle,
+                background: fill ?? 'transparent',
+                borderColor: stroke ?? 'transparent',
                 borderRadius: sh.type === 'ellipse' ? '50%' : 0,
               }}
             >

@@ -503,3 +503,7 @@ body,
   white-space: normal;
   word-break: break-word;
 }
+.fs-item__line {
+  height: 1.5px;
+  transform: translateY(-50%);
+}
