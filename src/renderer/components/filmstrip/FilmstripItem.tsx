@@ -60,12 +60,15 @@ export const FilmstripItem = memo(function FilmstripItemBase({
         {slide.shapes.map((sh) => {
           const fill = solidColor(sh.fill);
           const stroke = sh.stroke?.color ?? null;
-          // Plain-текст из самой фигуры (TextShape) или из её "text"-оверлея
-          // (rect/ellipse/path с текстом внутри).
           const plain =
             sh.type === 'text'
               ? extractPlain(sh.tiptapDoc)
               : extractPlain(sh.text);
+          // Линию рисуем сплошным цветным баром цвета stroke — без border-only
+          // вида, который выглядит как пустая рамка в превью.
+          const isLine = sh.type === 'line';
+          const bgStyle = isLine ? (stroke ?? 'transparent') : (fill ?? 'transparent');
+          const borderStyle = isLine ? 'transparent' : (stroke ?? 'transparent');
           return (
             <div
               key={sh.id}
@@ -75,8 +78,8 @@ export const FilmstripItem = memo(function FilmstripItemBase({
                 top: `${(sh.y / slideH) * 100}%`,
                 width: `${(sh.w / slideW) * 100}%`,
                 height: `${(sh.h / slideH) * 100}%`,
-                background: fill ?? 'transparent',
-                borderColor: stroke ?? 'transparent',
+                background: bgStyle,
+                borderColor: borderStyle,
                 borderRadius: sh.type === 'ellipse' ? '50%' : 0,
               }}
             >
