@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { Text } from 'react-konva';
 import type { TextShape } from '@renderer/lib/model/schema';
 import { useUiStore } from '@renderer/stores/ui';
@@ -33,7 +33,8 @@ function extractPlainText(doc: unknown): string {
   return out.join('').replace(/\n$/, '');
 }
 
-export function TextShapeView({ shape, slideId }: TextShapeViewProps) {
+// memo: см. RectShapeView — мемоизация для group-drag.
+export const TextShapeView = memo(function TextShapeViewBase({ shape, slideId }: TextShapeViewProps) {
   const editingShapeId = useUiStore((s) => s.editingShapeId);
   const setEditingShape = useUiStore((s) => s.setEditingShape);
   const plain = useMemo(() => extractPlainText(shape.tiptapDoc), [shape.tiptapDoc]);
@@ -75,4 +76,4 @@ export function TextShapeView({ shape, slideId }: TextShapeViewProps) {
       />
     </ShapeNode>
   );
-}
+});

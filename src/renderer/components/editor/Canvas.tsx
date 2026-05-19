@@ -56,6 +56,15 @@ export function Canvas() {
     additive: boolean; // shift зажат → добавляем к существующему выделению
     baseIds: ShapeId[]; // снимок выделения на момент начала drag-а (для additive)
   } | null>(null);
+
+  // Custom multi-drag — когда пользователь mousedown-ит на пустое место
+  // ВНУТРИ bbox-объединения выделения и тянет. Двигаем все выделенные ноды
+  // на одну дельту, как при group-drag в ShapeNode, но без Konva native drag.
+  const multiDragRef = useRef<{
+    startX: number; // pointer at start in slide-coords
+    startY: number;
+    nodes: Array<{ id: ShapeId; node: Konva.Node; startX: number; startY: number }>;
+  } | null>(null);
   // Ref на zoom — нужен в обработчиках mousedown/move без перепересоздания
   // callback-ов на каждый zoom-апдейт.
   const zoomRef = useRef(zoom);
@@ -213,7 +222,29 @@ export function Canvas() {
             startY >= minY &&
             startY <= maxY
           ) {
-            // Внутри selection-bbox — ничего не делаем.
+            // Внутри selection-bbox — стартуем custom multi-drag.
+            // Konva native draggable у Group-ов фигур не сработает (mousedown
+            // попал в пустое место Stage, а не в фигуру), поэтому двигаем
+            // ноды сами через mousemove/mouseup.
+            const nodes: Array<{
+              id: ShapeId;
+              node: Konva.Node;
+              startX: number;
+              startY: number;
+            }> = [];
+            const wanted = new Set(selIds);
+            stage.find((n: Konva.Node) => {
+              if (wanted.has(n.id())) {
+                nodes.push({
+                  id: n.id() as ShapeId,
+                  node: n,
+                  startX: n.x(),
+                  startY: n.y(),
+                });
+              }
+              return false;
+            });
+            multiDragRef.current = { startX, startY, nodes };
             return;
           }
         }
@@ -244,6 +275,23 @@ export function Canvas() {
       return;
     }
 
+    // Custom multi-drag из пустого места внутри selection-bbox.
+    const md = multiDragRef.current;
+    if (md) {
+      const z = zoomRef.current;
+      const curX = (pointer.x - stagePanRef.current.x) / z;
+      const curY = (pointer.y - stagePanRef.current.y) / z;
+      const dx = curX - md.startX;
+      const dy = curY - md.startY;
+      for (const o of md.nodes) {
+        o.node.x(o.startX + dx);
+        o.node.y(o.startY + dy);
+      }
+      // batchDraw — иначе Transformer не пересчитает рамку.
+      md.nodes[0]?.node.getLayer()?.batchDraw();
+      return;
+    }
+
     // Rubber band — обновляем прямоугольник в slide-coords.
     const rb = rubberStartRef.current;
     if (rb) {
@@ -261,6 +309,28 @@ export function Canvas() {
 
   const handleStageMouseUp = useCallback(() => {
     panStartRef.current = null;
+
+    // Завершение custom multi-drag — коммитим финальные позиции в модель.
+    const md = multiDragRef.current;
+    if (md) {
+      multiDragRef.current = null;
+      useDeckStore.setState((state) => {
+        if (!state.deck) return;
+        const slide = state.deck.slides[Object.keys(state.deck.slides)[0]];
+        const activeId = useUiStore.getState().activeSlideId;
+        const targetSlide = activeId ? state.deck.slides[activeId] : slide;
+        if (!targetSlide) return;
+        for (const o of md.nodes) {
+          const sh = targetSlide.shapes.find((s) => s.id === o.id);
+          if (sh) {
+            sh.x = o.node.x();
+            sh.y = o.node.y();
+          }
+        }
+        state.deck.modifiedAt = new Date().toISOString();
+      });
+      return;
+    }
 
     const rb = rubberStartRef.current;
     if (rb) {

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { Path } from 'react-konva';
 import Konva from 'konva';
 import type { PathShape } from '@renderer/lib/model/schema';
@@ -15,7 +15,8 @@ interface PathShapeViewProps {
 // - смещаем -bbox.x/-bbox.y и масштабируем (w/bbox.w, h/bbox.h),
 //   чтобы фигура заполняла рамку Transformer-а без зазоров.
 // strokeScaleEnabled=false — толщина штриха не растёт при scale.
-export function PathShapeView({ shape, slideId }: PathShapeViewProps) {
+// memo: см. RectShapeView — мемоизация для group-drag.
+export const PathShapeView = memo(function PathShapeViewBase({ shape, slideId }: PathShapeViewProps) {
   const fill = resolveFill(shape.fill);
   const stroke = resolveStroke(shape.stroke);
   const shadow = resolveShadow(shape.shadow);
@@ -56,4 +57,4 @@ export function PathShapeView({ shape, slideId }: PathShapeViewProps) {
       />
     </ShapeNode>
   );
-}
+});

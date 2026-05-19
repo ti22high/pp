@@ -97,20 +97,12 @@ export function ShapeNode({
     const ny = node.y();
     const group = groupRef.current;
 
-    // Сразу двигаем Konva-ноды остальных в группе (визуально следуют за
-    // dragged без задержки React).
-    if (group) {
-      const dx = nx - group.selfStart.x;
-      const dy = ny - group.selfStart.y;
-      for (const o of group.others) {
-        o.node.x(o.startX + dx);
-        o.node.y(o.startY + dy);
-      }
-    }
-
-    // И тут же синхронизируем модель ВСЕХ нод. Иначе на следующем mousemove
-    // React перерисует Slide со старыми model.x/y у остальных и Konva-ноды
-    // вернутся обратно — отсюда «дрожание».
+    // Для самой dragged-фигуры пишем в стор каждый dragmove (Inspector live).
+    // Для остальных в группе — двигаем только Konva-ноды императивно;
+    // в стор коммитим один раз на dragend. Это работает потому, что
+    // ShapeView-ы мемоизированы (React.memo), поэтому при immer-мутации
+    // одной фигуры остальные не перерисовываются и Konva-ноды сохраняют
+    // импертивно установленные координаты.
     useDeckStore.setState((state) => {
       if (!state.deck) return;
       const slide = state.deck.slides[slideId];
@@ -120,19 +112,18 @@ export function ShapeNode({
         sh.x = nx;
         sh.y = ny;
       }
-      if (group) {
-        const dx = nx - group.selfStart.x;
-        const dy = ny - group.selfStart.y;
-        for (const o of group.others) {
-          const osh = slide.shapes.find((s) => s.id === o.id);
-          if (osh) {
-            osh.x = o.startX + dx;
-            osh.y = o.startY + dy;
-          }
-        }
-      }
       state.deck.modifiedAt = new Date().toISOString();
     });
+
+    if (group) {
+      const dx = nx - group.selfStart.x;
+      const dy = ny - group.selfStart.y;
+      for (const o of group.others) {
+        o.node.x(o.startX + dx);
+        o.node.y(o.startY + dy);
+      }
+      node.getLayer()?.batchDraw();
+    }
   };
 
   const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {

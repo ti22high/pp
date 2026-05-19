@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Line, Arrow } from 'react-konva';
 import type { LineShape } from '@renderer/lib/model/schema';
 import { ShapeNode } from './ShapeNode';
@@ -10,7 +11,8 @@ interface LineShapeViewProps {
 
 // Линия (или стрелка) рисуется в локальных координатах группы.
 // shape.points = [x1, y1, x2, y2] относительно top-left bbox фигуры.
-export function LineShapeView({ shape, slideId }: LineShapeViewProps) {
+// memo: см. RectShapeView — мемоизация для group-drag.
+export const LineShapeView = memo(function LineShapeViewBase({ shape, slideId }: LineShapeViewProps) {
   const stroke = resolveStroke(shape.stroke);
   const shadow = resolveShadow(shape.shadow);
   const isArrow = shape.arrowStart || shape.arrowEnd;
@@ -47,4 +49,4 @@ export function LineShapeView({ shape, slideId }: LineShapeViewProps) {
       )}
     </ShapeNode>
   );
-}
+});
