@@ -167,14 +167,21 @@ body,
   cursor: text;
   pointer-events: auto;
 }
+.text-overlay {
+  /* шрифт-семейство фиксируем здесь; размер задаёт inline-style из JS
+     (зависит от zoom). */
+  font-family: Roboto, Arial, sans-serif;
+  line-height: 1.3;
+  color: #202124;
+}
 .text-overlay__pm {
   outline: none;
   width: 100%;
   height: 100%;
   padding: 4px 6px;
   box-sizing: border-box;
-  font: 20px/1.3 Roboto, Arial, sans-serif;
-  color: #202124;
+  font: inherit;
+  color: inherit;
   overflow: auto;
 }
 .text-overlay__pm p {

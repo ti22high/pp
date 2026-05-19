@@ -96,6 +96,11 @@ export function TextOverlay({ slideId, shape, panX, panY, zoom }: TextOverlayPro
     height: shape.h * zoom,
     transform: shape.rotation ? `rotate(${shape.rotation}deg)` : undefined,
     transformOrigin: 'top left',
+    // Шрифт и padding масштабируем под zoom, чтобы оверлей при редактировании
+    // выглядел один-в-один как Konva.Text после blur-а. Без этого редактирование
+    // показывает 20px, а после blur Konva рендерит 20px * zoom — визуально
+    // «прыгает». Базовый размер 20 px согласован с TextShapeView.
+    fontSize: `${20 * zoom}px`,
   };
 
   return (
