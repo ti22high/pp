@@ -97,12 +97,24 @@ export function ShapeNode({
     const ny = node.y();
     const group = groupRef.current;
 
-    // Для самой dragged-фигуры пишем в стор каждый dragmove (Inspector live).
-    // Для остальных в группе — двигаем только Konva-ноды императивно;
-    // в стор коммитим один раз на dragend. Это работает потому, что
-    // ShapeView-ы мемоизированы (React.memo), поэтому при immer-мутации
-    // одной фигуры остальные не перерисовываются и Konva-ноды сохраняют
-    // импертивно установленные координаты.
+    if (group) {
+      // Multi-drag: НИЧЕГО не пишем в стор на каждый dragmove. Любая запись
+      // создаёт новый snapshot deck-а, Slide перерендеривается, Transformer
+      // через эффект на modifiedAt дёргает forceUpdate — всё вместе даёт
+      // дрожь у multi-выделения, особенно когда фигур много / есть тени.
+      // Двигаем ноды императивно — Konva сама перерисует стейдж в своём
+      // drag-цикле, Transformer тоже подтянется на ближайшем draw-тике.
+      // Финальный коммит координат — в handleDragEnd.
+      const dx = nx - group.selfStart.x;
+      const dy = ny - group.selfStart.y;
+      for (const o of group.others) {
+        o.node.x(o.startX + dx);
+        o.node.y(o.startY + dy);
+      }
+      return;
+    }
+
+    // Single drag: пишем в стор каждый dragmove (Inspector видит координаты live).
     useDeckStore.setState((state) => {
       if (!state.deck) return;
       const slide = state.deck.slides[slideId];
@@ -114,16 +126,6 @@ export function ShapeNode({
       }
       state.deck.modifiedAt = new Date().toISOString();
     });
-
-    if (group) {
-      const dx = nx - group.selfStart.x;
-      const dy = ny - group.selfStart.y;
-      for (const o of group.others) {
-        o.node.x(o.startX + dx);
-        o.node.y(o.startY + dy);
-      }
-      node.getLayer()?.batchDraw();
-    }
   };
 
   const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
