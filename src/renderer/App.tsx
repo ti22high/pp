@@ -6,6 +6,7 @@ import { createEmptyDeck } from './lib/model/factory';
 import { Canvas } from './components/editor/Canvas';
 import { Toolbar } from './components/toolbar/Toolbar';
 import { Inspector } from './components/inspector/Inspector';
+import { useMenuCommands } from './hooks/useMenuCommands';
 
 // Главный UI редактора. Структура: header / toolbar / (filmstrip + canvas + inspector).
 // При первом маунте создаём пустой deck — остальные компоненты подписываются на него.
@@ -15,6 +16,8 @@ export function App() {
   const setDeck = useDeckStore((s) => s.setDeck);
   const activeSlideId = useUiStore((s) => s.activeSlideId);
   const setActiveSlide = useUiStore((s) => s.setActiveSlide);
+
+  useMenuCommands();
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.api) {

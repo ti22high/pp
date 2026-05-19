@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, type ReactElement } from 'react';
 import { Stage, Layer, Rect, Line } from 'react-konva';
 import { useGuidesStore } from '@renderer/stores/guides';
 import { computeSnap, unionBox, type SnapBox } from '@renderer/lib/snap';
@@ -349,6 +349,14 @@ export function Canvas() {
         }
       }
 
+      // Snap-to-grid поверх группы (после smart guides). Если smart guides
+      // сработал — оставляем его, иначе округляем дельту к шагу 10.
+      const snapGrid = useUiStore.getState().snapToGrid;
+      if (snapGrid && useGuidesStore.getState().guides.length === 0) {
+        dx = Math.round(dx / 10) * 10;
+        dy = Math.round(dy / 10) * 10;
+      }
+
       for (const o of md.nodes) {
         o.node.x(o.startX + dx);
         o.node.y(o.startY + dy);
@@ -530,6 +538,7 @@ export function Canvas() {
             />
           )}
           <GuideLayer slideW={slideW} slideH={slideH} />
+          <GridLayer slideW={slideW} slideH={slideH} />
         </Layer>
       </Stage>
       <TextOverlayHost slideId={slide.id} panX={stagePan.x} panY={stagePan.y} zoom={zoom} />
@@ -561,6 +570,40 @@ function TextOverlayHost({
   });
   if (!shape) return null;
   return <TextOverlay slideId={slideId} shape={shape} panX={panX} panY={panY} zoom={zoom} />;
+}
+
+// Сетка 10×10 — отображается, когда View → Show grid включён.
+// Не listening, чтобы не мешать hit-detection.
+const GRID_STEP = 10;
+function GridLayer({ slideW, slideH }: { slideW: number; slideH: number }) {
+  const showGrid = useUiStore((s) => s.showGrid);
+  if (!showGrid) return null;
+  const lines: ReactElement[] = [];
+  for (let x = 0; x <= slideW; x += GRID_STEP) {
+    lines.push(
+      <Line
+        key={`v${x}`}
+        points={[x, 0, x, slideH]}
+        stroke="#e5e7eb"
+        strokeWidth={1}
+        strokeScaleEnabled={false}
+        listening={false}
+      />,
+    );
+  }
+  for (let y = 0; y <= slideH; y += GRID_STEP) {
+    lines.push(
+      <Line
+        key={`h${y}`}
+        points={[0, y, slideW, y]}
+        stroke="#e5e7eb"
+        strokeWidth={1}
+        strokeScaleEnabled={false}
+        listening={false}
+      />,
+    );
+  }
+  return <>{lines}</>;
 }
 
 // Слой smart-guides: рисует красные линии-направляющие на всю длину слайда

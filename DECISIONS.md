@@ -85,3 +85,15 @@
   - **Визуально**: одиночная розовая линия (`#ff4081`) на всю ширину/высоту слайда, рисуется на selection-layer. Линии между min/max парами (как в Slides) — задача полировки, отложил.
   - **Стор**: отдельный `useGuidesStore` — изменения guide-ов не дёргают остальной UI.
 - **Что НЕ в 2.16:** resize-snap (пока snap только на drag), equal-spacing guides («одинаковые расстояния между фигурами»), snap к anchor-ам на анкорах Transformer-а, отключение через клавишу-modifier.
+
+---
+
+### 2026-05-19 | Phase 2, пункт 2.17 | Snap-to-grid + grid rendering
+
+- **Контекст:** §12 п.2.17 = «Snap to grid (toggle в View menu)». В uiStore поля `showGrid` и `snapToGrid` уже были, в menu.ts — пункт «Show grid» (showGrid), но: (а) сетка не рисовалась на канвасе, (б) не было пункта «Snap to grid», (в) IPC меню → renderer не было подписки.
+- **Решение:**
+  - **Grid step = 10 px** (slide-coords). Подкреплено существующей логикой snap-к-10 в `ShapeNode.handleDragEnd` (была там как заглушка с пункта 2.6).
+  - **Визуально**: `GridLayer` рисует light-gray (`#e5e7eb`) линии 1px на всю площадь слайда каждые 10 px, когда `showGrid=true`. `strokeScaleEnabled=false` (1 px независимо от zoom), `listening=false`.
+  - **Snap-to-grid поведение во время drag**: округление dx/dy к 10 px ПОСЛЕ smart-guides. Если smart-guides сработали — сетка их не сбивает (умное выравнивание приоритетнее). Если smart-guides пусто — округляем.
+  - **Меню → renderer**: добавлен пункт `view:toggle-snap-grid` (checkbox). Преimerload-метод `onMenuCommand(cb): () => void` + хук `useMenuCommands` в App, маппит все view:* команды на store-действия. Заодно подключил уже существующие пункты `view:toggle-grid`, `view:toggle-ruler`, `view:zoom-*` — раньше они не доходили до UI вообще.
+- **Что НЕ в 2.17**: пользовательский шаг сетки (только 10 px), показ сетки за пределами слайда (только внутри bbox), мажорные/минорные линии (только один уровень), визуальный feedback при snap-к-сетке (нет розовых линий — иначе перебивает smart guides).

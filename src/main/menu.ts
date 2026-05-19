@@ -130,6 +130,12 @@ const template: MenuItemConstructorOptions[] = [
         checked: false,
         click: () => sendCommand('view:toggle-grid'),
       },
+      {
+        label: 'Snap to grid',
+        type: 'checkbox',
+        checked: false,
+        click: () => sendCommand('view:toggle-snap-grid'),
+      },
       { type: 'separator' },
       { role: 'togglefullscreen' },
       { role: 'toggleDevTools' },

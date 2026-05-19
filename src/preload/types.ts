@@ -12,4 +12,6 @@ export interface VersionsInfo {
 export interface PreloadApi {
   // Возвращает версии runtime — для отладки и About-диалога.
   getVersions(): VersionsInfo;
+  // Подписка на команды native-меню. Возвращает unsubscribe.
+  onMenuCommand(callback: (command: string) => void): () => void;
 }

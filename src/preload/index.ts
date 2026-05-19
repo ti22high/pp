@@ -1,5 +1,7 @@
-import { contextBridge } from 'electron';
+import { contextBridge, ipcRenderer } from 'electron';
+import type { IpcRendererEvent } from 'electron';
 import type { PreloadApi } from './types.js';
+import { IpcChannels } from '../shared/ipc-channels.js';
 
 // Мост между renderer и main: всё, что renderer может вызвать, объявлено здесь.
 // contextIsolation: true в windows.ts => renderer не имеет прямого доступа к Node.js.
@@ -10,6 +12,11 @@ const api: PreloadApi = {
     node: process.versions.node ?? 'unknown',
     app: '0.1.0',
   }),
+  onMenuCommand: (callback) => {
+    const handler = (_e: IpcRendererEvent, command: string) => callback(command);
+    ipcRenderer.on(IpcChannels.MenuCommand, handler);
+    return () => ipcRenderer.off(IpcChannels.MenuCommand, handler);
+  },
 };
 
 contextBridge.exposeInMainWorld('api', api);

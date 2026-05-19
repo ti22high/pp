@@ -81,6 +81,16 @@ export function ShapeNode({
       useGuidesStore.getState().setGuides(snap.guides);
     }
 
+    // Snap-to-grid — округляем к шагу 10 px, если включён. Применяется
+    // ПОСЛЕ smart guides: если фигура уже снеплась к anchor-у другой,
+    // не сбиваем выравнивание сеткой.
+    if (snapToGrid && useGuidesStore.getState().guides.length === 0) {
+      nx = Math.round(nx / 10) * 10;
+      ny = Math.round(ny / 10) * 10;
+      node.x(nx);
+      node.y(ny);
+    }
+
     // Single drag: пишем в стор каждый dragmove (Inspector live).
     useDeckStore.setState((state) => {
       if (!state.deck) return;
