@@ -96,16 +96,25 @@ export function Canvas() {
     roRef.current = ro;
   }, []);
 
-  // Авто-центрирование: пока пользователь не сдвинул вьюпорт сам,
-  // держим слайд по центру при ресайзе окна и смене зума.
+  // Авто-fit: пока пользователь не менял зум/пан сам, подгоняем zoom так,
+  // чтобы слайд целиком влез в канвас с 5% отступом, и центрируем его.
+  // Иначе при дефолтном zoom=1 слайд 1920×1080 шире/выше канваса и кажется,
+  // что вообще не виден (заполняет всё).
   const slideW = deck?.size.w ?? 1920;
   const slideH = deck?.size.h ?? 1080;
   useEffect(() => {
     if (userMoved) return;
-    const centerX = (stageSize.width - slideW * zoom) / 2;
-    const centerY = (stageSize.height - slideH * zoom) / 2;
+    if (stageSize.width < 50 || stageSize.height < 50) return;
+    const fitZoom = Math.min(
+      stageSize.width / slideW,
+      stageSize.height / slideH,
+    ) * 0.95;
+    const clampedZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, fitZoom));
+    setZoom(clampedZoom);
+    const centerX = (stageSize.width - slideW * clampedZoom) / 2;
+    const centerY = (stageSize.height - slideH * clampedZoom) / 2;
     setStagePan({ x: centerX, y: centerY });
-  }, [userMoved, stageSize.width, stageSize.height, slideW, slideH, zoom, setStagePan]);
+  }, [userMoved, stageSize.width, stageSize.height, slideW, slideH, setZoom, setStagePan]);
 
   // Клавиатура: Ctrl+0 — сброс зума и пана; Space — режим пана.
   useEffect(() => {
