@@ -60,7 +60,7 @@
 - [x] 2.25. New slide, Duplicate, Delete, Hide commands.
 - [x] 2.26. Layouts: 10 встроенных layout-ов из §1.1.
 - [x] 2.27. Apply layout command.
-- [ ] 2.28. Background editor (color / image / reset).
+- [x] 2.28. Background editor (color / image / reset).
 - [ ] 2.29. Slide size dialog (4:3, 16:9, custom).
 - [ ] 2.30. Rulers (top + left).
 - [ ] 2.31. Guides (add / edit / clear, snap to guides).

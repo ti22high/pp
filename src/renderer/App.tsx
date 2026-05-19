@@ -8,6 +8,7 @@ import { Toolbar } from './components/toolbar/Toolbar';
 import { Inspector } from './components/inspector/Inspector';
 import { Filmstrip } from './components/filmstrip/Filmstrip';
 import { LayoutPicker } from './components/ui/LayoutPicker';
+import { BackgroundEditor } from './components/ui/BackgroundEditor';
 import { useMenuCommands } from './hooks/useMenuCommands';
 import { useShapeClipboard } from './hooks/useShapeClipboard';
 import { useUndoRedo } from './hooks/useUndoRedo';
@@ -17,6 +18,7 @@ import { useUndoRedo } from './hooks/useUndoRedo';
 export function App() {
   const [versions, setVersions] = useState<VersionsInfo | null>(null);
   const [layoutPickerOpen, setLayoutPickerOpen] = useState(false);
+  const [bgEditorOpen, setBgEditorOpen] = useState(false);
   const deck = useDeckStore((s) => s.deck);
   const setDeck = useDeckStore((s) => s.setDeck);
   const setActiveSlide = useUiStore((s) => s.setActiveSlide);
@@ -32,6 +34,7 @@ export function App() {
     if (typeof window === 'undefined' || !window.api) return;
     return window.api.onMenuCommand((cmd) => {
       if (cmd === 'slide:apply-layout') setLayoutPickerOpen(true);
+      else if (cmd === 'slide:background') setBgEditorOpen(true);
     });
   }, []);
 
@@ -71,6 +74,7 @@ export function App() {
       <Inspector />
 
       <LayoutPicker open={layoutPickerOpen} onClose={() => setLayoutPickerOpen(false)} />
+      <BackgroundEditor open={bgEditorOpen} onClose={() => setBgEditorOpen(false)} />
     </div>
   );
 }

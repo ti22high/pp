@@ -6,6 +6,7 @@ import { useUiStore } from '@renderer/stores/ui';
 import { useSelectionStore } from '@renderer/stores/selection';
 import { createEmptySlide, cloneSlide } from '@renderer/lib/model/factory';
 import { getLayout, type LayoutKey } from '@renderer/lib/model/layouts';
+import type { SlideBackground } from '@renderer/lib/model/schema';
 
 export function newSlide(): void {
   const activeId = useUiStore.getState().activeSlideId;
@@ -119,6 +120,38 @@ export function applyLayout(key: LayoutKey): void {
     useUiStore.getState().setActiveSlide(createdId);
     useSelectionStore.getState().clear();
   }
+}
+
+// Ставит фон конкретного слайда. `bg` = undefined трактуется как «вернуть к
+// дефолту схемы» — у нас это `{ type: 'theme' }` (наследует фон мастера). Это
+// и есть «сброс» в терминах меню «Слайд → Фон…».
+export function setSlideBackground(
+  slideId: string,
+  bg: SlideBackground | undefined,
+): void {
+  useDeckStore.setState((state) => {
+    if (!state.deck) return;
+    const slide = state.deck.slides[slideId];
+    if (!slide) return;
+    slide.background = bg ?? { type: 'theme' };
+    state.deck.modifiedAt = new Date().toISOString();
+  });
+}
+
+// Применяет фон ко всем слайдам деки. Используется кнопкой «Применить ко всем»
+// в BackgroundEditor — типичный UX из Slides / PowerPoint.
+export function setAllSlidesBackground(
+  bg: SlideBackground | undefined,
+): void {
+  useDeckStore.setState((state) => {
+    if (!state.deck) return;
+    const next = bg ?? { type: 'theme' };
+    for (const id of state.deck.slideOrder) {
+      const slide = state.deck.slides[id];
+      if (slide) slide.background = next;
+    }
+    state.deck.modifiedAt = new Date().toISOString();
+  });
 }
 
 export function toggleHiddenSlide(): void {

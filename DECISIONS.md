@@ -191,3 +191,17 @@
 
 - **Контекст:** macOS по умолчанию на удержание буквы показывает picker диакритик (é, è, ê...). Это перехватывает auto-repeat и пользователь не мог «зажать» клавишу для повтора ввода в TipTap.
 - **Решение:** В `src/main/index.ts` до `app.whenReady()`: `systemPreferences.setUserDefault('ApplePressAndHoldEnabled', 'boolean', false)`. Применяется к app-defaults; вступает в силу со следующего запуска. Picker диакритик в нашем приложении отключён, key-repeat работает нативно.
+
+---
+
+### 2026-05-19 | Phase 2.28 | Background editor: data URL для image, scope = слайд/все
+
+- **Контекст:** `SPEC.md` §12.2.28 формулирует пункт коротко: «Background editor (color/image/reset)». §1.6: «Фон слайда: цвет / изображение / сброс к теме». Открытые вопросы: (1) где хранить выбранный image-файл — MediaManager (§6) реализуется только в Phase 3; (2) scope применения — текущий слайд или все.
+- **Решение:**
+  - Image хранится как **data URL прямо в `slide.background.src`**. Схема `slideBackgroundSchema` уже принимает `z.string()`, а Konva.Image грузит data URL без проблем. MediaManager в Phase 3 заменит data URL на ссылки `media/<hash>.<ext>`; в момент миграции достаточно одного прохода по слайдам, схема не меняется.
+  - **Scope** = выбор пользователя: модалка предлагает две кнопки — **«Применить»** (только активный слайд) и **«Применить ко всем»** (вся дека). Это типичный UX Slides / PowerPoint. Третья кнопка — «Отмена». «Сброс» сделан отдельной вкладкой **«По теме»**: применяет `{ type: 'theme' }`.
+  - **Размещение модалки** повторяет `LayoutPicker`: state в `App.tsx`, команда `slide:background` (уже отправляется из меню) триггерит open. Esc + outside-click закрывают без apply. Подписки на стор активного слайда инициализируют форму при открытии.
+- **Side-effects / ограничения:**
+  - На канвасе bg-image рендерится через `react-konva` `Image` с `useBackgroundImage`-хуком (HTMLImageElement onload). В filmstrip — через CSS `background-image: url(data:...)`, чтобы не плодить асинхронных загрузок в превью.
+  - Image-fill **shape-ов** (Inspector → Заливка → Изображение) остаётся Phase 3.19 — этот пункт только про **фон слайда**.
+  - Большие изображения как data URL раздувают `deck.modifiedAt`-сериализацию (история, .gslx). Принимаем — Phase 3 (MediaManager) уберёт.

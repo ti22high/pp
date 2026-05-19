@@ -31,8 +31,10 @@ export const FilmstripItem = memo(function FilmstripItemBase({
   const slideH = useDeckStore((s) => s.deck?.size.h ?? 1080);
 
   if (!slide) return null;
-  const bg =
+  const bgColor =
     slide.background?.type === 'color' ? slide.background.color : '#ffffff';
+  const bgImage =
+    slide.background?.type === 'image' ? slide.background.src : null;
   const scale = THUMB_W / slideW;
   const thumbH = slideH * scale;
 
@@ -62,7 +64,14 @@ export const FilmstripItem = memo(function FilmstripItemBase({
       <div className="fs-item__num">{index + 1}</div>
       <div
         className="fs-item__preview"
-        style={{ width: THUMB_W, height: thumbH, background: bg }}
+        style={{
+          width: THUMB_W,
+          height: thumbH,
+          background: bgColor,
+          backgroundImage: bgImage ? `url(${JSON.stringify(bgImage)})` : undefined,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
       >
         {/* Внутренний слой 1920×1080 (или какой реально slide) — здесь
             фигуры в их «настоящих» координатах. CSS scale уменьшает всё
