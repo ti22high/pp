@@ -1,7 +1,15 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, systemPreferences } from 'electron';
 import { createMainWindow } from './windows.js';
 import { registerAppProtocolSchema, registerAppProtocolHandlers } from './protocol.js';
 import { buildAppMenu } from './menu.js';
+
+// macOS «press and hold» по умолчанию открывает picker диакритик при
+// удержании буквы (é, è, ê...) — он перехватывает повторные keydown
+// и пользователь не может «зажать» клавишу для повтора ввода в TipTap.
+// Отключаем для нашего приложения целиком.
+if (process.platform === 'darwin') {
+  systemPreferences.setUserDefault('ApplePressAndHoldEnabled', 'boolean', false);
+}
 
 // Привилегированные схемы должны быть объявлены до app.whenReady().
 registerAppProtocolSchema();

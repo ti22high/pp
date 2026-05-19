@@ -57,21 +57,28 @@ export const FilmstripItem = memo(function FilmstripItemBase({
     >
       <div className="fs-item__num">{index + 1}</div>
       <div className="fs-item__preview" style={{ background: bg }}>
-        {slide.shapes.map((sh) => (
-          <div
-            key={sh.id}
-            className="fs-item__shape"
-            style={{
-              left: `${(sh.x / slideW) * 100}%`,
-              top: `${(sh.y / slideH) * 100}%`,
-              width: `${(sh.w / slideW) * 100}%`,
-              height: `${(sh.h / slideH) * 100}%`,
-              background: solidColor(sh.fill) ?? 'transparent',
-              borderColor: sh.stroke?.color ?? 'transparent',
-              borderRadius: sh.type === 'ellipse' ? '50%' : 0,
-            }}
-          />
-        ))}
+        {slide.shapes.map((sh) => {
+          const fill = solidColor(sh.fill);
+          const stroke = sh.stroke?.color ?? null;
+          // Текст / прочие фигуры без видимой заливки и обводки — показываем
+          // плашкой светло-серой, чтобы в превью было видно «там что-то есть».
+          const isInvisible = !fill && !stroke;
+          return (
+            <div
+              key={sh.id}
+              className="fs-item__shape"
+              style={{
+                left: `${(sh.x / slideW) * 100}%`,
+                top: `${(sh.y / slideH) * 100}%`,
+                width: `${(sh.w / slideW) * 100}%`,
+                height: `${(sh.h / slideH) * 100}%`,
+                background: fill ?? (isInvisible ? 'rgba(95, 99, 104, 0.18)' : 'transparent'),
+                borderColor: stroke ?? 'transparent',
+                borderRadius: sh.type === 'ellipse' ? '50%' : 0,
+              }}
+            />
+          );
+        })}
       </div>
     </div>
   );
