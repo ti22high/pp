@@ -41,8 +41,6 @@ export function ShapeNode({
   children,
 }: ShapeNodeProps) {
   const snapToGrid = useUiStore((s) => s.snapToGrid);
-  // Space зажат → запрещаем native drag фигур, чтобы клик/drag шёл в Stage.
-  const panMode = useUiStore((s) => s.panMode);
   // В мульти-выделении (2+) Konva native drag отключаем — drag обрабатывает
   // Canvas-овый multiDragRef.
   const inMultiSelection = useSelectionStore(
@@ -139,7 +137,7 @@ export function ShapeNode({
       height={h}
       rotation={rotation ?? 0}
       opacity={opacity ?? 1}
-      draggable={!locked && !panMode && !inMultiSelection}
+      draggable={!locked && !inMultiSelection}
       onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
     >

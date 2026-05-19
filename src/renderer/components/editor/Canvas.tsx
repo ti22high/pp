@@ -55,8 +55,7 @@ export function Canvas() {
   const setZoom = useUiStore((s) => s.setZoom);
   const stagePan = useUiStore((s) => s.stagePan);
   const setStagePan = useUiStore((s) => s.setStagePan);
-  const spaceHeld = useUiStore((s) => s.panMode);
-  const setSpaceHeld = useUiStore((s) => s.setPanMode);
+  const [spaceHeld, setSpaceHeld] = useState(false);
   const getStage = useCallback(() => stageRef.current, []);
 
   // Признак: пользователь уже менял pan/zoom вручную → не пере-центрируем автоматически.
@@ -163,10 +162,8 @@ export function Canvas() {
       const stage = stageRef.current;
       if (!stage) return;
 
-      // Pan mode имеет приоритет. Читаем panMode свежим из стора —
-      // защита от stale-closure при чередовании Space-keydown и mousedown
-      // в одном тике React-а.
-      if (useUiStore.getState().panMode) {
+      // Pan mode имеет приоритет.
+      if (spaceHeld) {
         const pointer = stage.getPointerPosition();
         if (!pointer) return;
         panStartRef.current = {
@@ -317,7 +314,7 @@ export function Canvas() {
       setRubberBand({ x: startX, y: startY, w: 0, h: 0 });
       if (!shift) useSelectionStore.getState().clear();
     },
-    [],
+    [spaceHeld],
   );
 
   const handleStageMouseMove = useCallback(() => {
