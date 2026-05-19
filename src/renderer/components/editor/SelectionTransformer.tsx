@@ -47,8 +47,10 @@ export function SelectionTransformer({ slideId, getStage }: SelectionTransformer
     [selectedHasLine],
   );
 
-  // Привязка к актуальному набору выделенных нод + пере-вычисление bbox при
-  // любом изменении модели (modifiedAt).
+  // Эффект A: привязка Transformer-а к выделенным нодам.
+  // Триггерится ТОЛЬКО на изменение selectedIds/slideId — реcaмо-привязка
+  // нод во время drag/resize (когда тикает modifiedAt) портит внутреннее
+  // состояние Konva.Transformer и приводит к дрожанию фигур.
   useEffect(() => {
     const tr = transformerRef.current;
     const stage = getStage();
@@ -69,10 +71,19 @@ export function SelectionTransformer({ slideId, getStage }: SelectionTransformer
       return false;
     });
     tr.nodes(nodes);
-    // forceUpdate обновляет bbox по текущим размерам нод — нужен после resize.
     tr.forceUpdate();
     tr.getLayer()?.batchDraw();
-  }, [selectedIds, slideId, getStage, modifiedAt]);
+  }, [selectedIds, slideId, getStage]);
+
+  // Эффект B: пересчёт bbox при изменении модели (drag/resize/Inspector-edit).
+  // Не трогаем nodes — только forceUpdate. Этого достаточно, чтобы рамка
+  // следовала за изменёнными координатами нод.
+  useEffect(() => {
+    const tr = transformerRef.current;
+    if (!tr || selectedIds.length === 0) return;
+    tr.forceUpdate();
+    tr.getLayer()?.batchDraw();
+  }, [modifiedAt, selectedIds.length]);
 
   // Запекание scale в w/h + запись в модель. Вызывается и на каждый
   // transform (live-апдейт Inspector-а), и на transformend (финальный коммит).
