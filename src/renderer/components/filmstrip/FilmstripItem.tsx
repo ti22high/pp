@@ -1,7 +1,7 @@
 import { memo, useState } from 'react';
-import { useShallow } from 'zustand/shallow';
 import { useDeckStore } from '@renderer/stores/deck';
 import type { SlideId } from '@shared/types';
+import type { Fill } from '@renderer/lib/model/schema';
 
 interface FilmstripItemProps {
   slideId: SlideId;
@@ -12,10 +12,10 @@ interface FilmstripItemProps {
 }
 
 // Один элемент filmstrip-а: номер слайда + упрощённое превью.
-// Превью — это absolute-позиционированные DIV-ы, рендерящие
-// прямоугольный bbox каждой фигуры с цветом fill / stroke. Это даёт
-// «карту» расположения объектов, без честной растеризации содержимого.
-// Honest thumbnail-PNG через OffscreenCanvas+Worker — §6.9, Phase 3+.
+// Подписываемся НА весь slide-объект — immer хранит стабильную ссылку,
+// пока слайд не меняется, поэтому re-render будет только при реальных
+// мутациях. useShallow тут не подходит — внутренний массив shapes
+// деривируется каждый рендер, и сравнение по верхнему уровню зацикливалось.
 export const FilmstripItem = memo(function FilmstripItemBase({
   slideId,
   index,
@@ -24,29 +24,13 @@ export const FilmstripItem = memo(function FilmstripItemBase({
   onReorder,
 }: FilmstripItemProps) {
   const [dropTarget, setDropTarget] = useState(false);
-  const slide = useDeckStore(
-    useShallow((s) => {
-      const sl = s.deck?.slides[slideId];
-      if (!sl) return null;
-      return {
-        bg: sl.background?.type === 'color' ? sl.background.color : '#ffffff',
-        shapes: sl.shapes.map((sh) => ({
-          id: sh.id,
-          x: sh.x,
-          y: sh.y,
-          w: sh.w,
-          h: sh.h,
-          type: sh.type,
-          fillColor: sh.fill?.kind === 'solid' ? sh.fill.color : null,
-          strokeColor: sh.stroke?.color ?? null,
-        })),
-      };
-    }),
-  );
+  const slide = useDeckStore((s) => s.deck?.slides[slideId] ?? null);
   const slideW = useDeckStore((s) => s.deck?.size.w ?? 1920);
   const slideH = useDeckStore((s) => s.deck?.size.h ?? 1080);
 
   if (!slide) return null;
+  const bg =
+    slide.background?.type === 'color' ? slide.background.color : '#ffffff';
 
   return (
     <div
@@ -58,8 +42,7 @@ export const FilmstripItem = memo(function FilmstripItemBase({
         e.dataTransfer.effectAllowed = 'move';
       }}
       onDragOver={(e) => {
-        const draggedId = e.dataTransfer.types.includes('text/x-slide-id');
-        if (!draggedId) return;
+        if (!e.dataTransfer.types.includes('text/x-slide-id')) return;
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
         if (!dropTarget) setDropTarget(true);
@@ -73,7 +56,7 @@ export const FilmstripItem = memo(function FilmstripItemBase({
       }}
     >
       <div className="fs-item__num">{index + 1}</div>
-      <div className="fs-item__preview" style={{ background: slide.bg }}>
+      <div className="fs-item__preview" style={{ background: bg }}>
         {slide.shapes.map((sh) => (
           <div
             key={sh.id}
@@ -83,8 +66,8 @@ export const FilmstripItem = memo(function FilmstripItemBase({
               top: `${(sh.y / slideH) * 100}%`,
               width: `${(sh.w / slideW) * 100}%`,
               height: `${(sh.h / slideH) * 100}%`,
-              background: sh.fillColor ?? 'transparent',
-              borderColor: sh.strokeColor ?? 'transparent',
+              background: solidColor(sh.fill) ?? 'transparent',
+              borderColor: sh.stroke?.color ?? 'transparent',
               borderRadius: sh.type === 'ellipse' ? '50%' : 0,
             }}
           />
@@ -93,3 +76,9 @@ export const FilmstripItem = memo(function FilmstripItemBase({
     </div>
   );
 });
+
+function solidColor(fill: Fill | undefined): string | null {
+  if (!fill) return null;
+  if (fill.kind === 'solid') return fill.color;
+  return null;
+}
