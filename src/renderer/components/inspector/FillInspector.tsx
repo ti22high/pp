@@ -61,23 +61,23 @@ export function FillInspector({ slideId, shapeId, fill }: FillInspectorProps) {
 
   return (
     <section className="inspector-section">
-      <p className="panel-title">Fill</p>
+      <p className="panel-title">Заливка</p>
       <label className="inspector-row">
-        <span className="inspector-label">Mode</span>
+        <span className="inspector-label">Режим</span>
         <select
           className="inspector-select"
           value={mode}
           onChange={(e) => setMode(e.target.value as 'none' | 'solid' | 'gradient')}
         >
-          <option value="none">None</option>
-          <option value="solid">Solid</option>
-          <option value="gradient">Gradient</option>
+          <option value="none">Без заливки</option>
+          <option value="solid">Сплошная</option>
+          <option value="gradient">Градиент</option>
         </select>
       </label>
 
       {fill?.kind === 'solid' && (
         <ColorField
-          label="Color"
+          label="Цвет"
           value={fill.color}
           onCommit={(v) => write({ kind: 'solid', color: v })}
         />
@@ -86,7 +86,7 @@ export function FillInspector({ slideId, shapeId, fill }: FillInspectorProps) {
       {fill?.kind === 'gradient' && (
         <>
           <label className="inspector-row">
-            <span className="inspector-label">Type</span>
+            <span className="inspector-label">Тип</span>
             <select
               className="inspector-select"
               value={fill.type}
@@ -94,20 +94,20 @@ export function FillInspector({ slideId, shapeId, fill }: FillInspectorProps) {
                 write({ ...fill, type: e.target.value as 'linear' | 'radial' })
               }
             >
-              <option value="linear">Linear</option>
-              <option value="radial">Radial</option>
+              <option value="linear">Линейный</option>
+              <option value="radial">Радиальный</option>
             </select>
           </label>
           {fill.type === 'linear' && (
             <NumberField
-              label="Angle"
+              label="Угол"
               value={fill.angle ?? 0}
               suffix="°"
               onCommit={(v) => write({ ...fill, angle: v })}
             />
           )}
           <ColorField
-            label="From"
+            label="От"
             value={fill.stops[0]?.color}
             onCommit={(v) =>
               write({
@@ -120,7 +120,7 @@ export function FillInspector({ slideId, shapeId, fill }: FillInspectorProps) {
             }
           />
           <ColorField
-            label="To"
+            label="До"
             value={fill.stops[1]?.color}
             onCommit={(v) =>
               write({

@@ -36,7 +36,7 @@ export function ShadowInspector({ slideId, shapeId, shadow }: ShadowInspectorPro
 
   return (
     <section className="inspector-section">
-      <p className="panel-title">Shadow</p>
+      <p className="panel-title">Тень</p>
       <label className="inspector-row">
         <span className="inspector-label" />
         <span className="inspector-input-wrap inspector-input-wrap--checkbox">
@@ -46,14 +46,14 @@ export function ShadowInspector({ slideId, shapeId, shadow }: ShadowInspectorPro
             checked={enabled}
             onChange={(e) => write(e.target.checked ? DEFAULT_SHADOW : undefined)}
           />
-          <span className="inspector-checkbox-label">Enabled</span>
+          <span className="inspector-checkbox-label">Включена</span>
         </span>
       </label>
 
       {shadow && (
         <>
           <ColorField
-            label="Color"
+            label="Цвет"
             value={value.color}
             onCommit={(v) => write({ ...value, color: v })}
           />
@@ -68,13 +68,13 @@ export function ShadowInspector({ slideId, shapeId, shadow }: ShadowInspectorPro
             onCommit={(v) => write({ ...value, offsetY: v })}
           />
           <NumberField
-            label="Blur"
+            label="Размытие"
             value={value.blur}
             min={0}
             onCommit={(v) => write({ ...value, blur: v })}
           />
           <label className="inspector-row">
-            <span className="inspector-label">Alpha</span>
+            <span className="inspector-label">Альфа</span>
             <span className="inspector-input-wrap">
               <input
                 type="range"

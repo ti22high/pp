@@ -40,7 +40,7 @@ export function ColorField({ label, value, onCommit }: ColorFieldProps) {
           className="inspector-swatch"
           style={{ background: buffer }}
           onClick={() => ref.current?.click()}
-          aria-label={`${label} цвет`}
+          aria-label={`Выбрать ${label.toLowerCase()}`}
         />
         <input
           ref={ref}

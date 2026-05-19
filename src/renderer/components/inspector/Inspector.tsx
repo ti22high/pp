@@ -18,7 +18,7 @@ export function Inspector() {
 
   return (
     <aside className="app-inspector">
-      <p className="panel-title">Inspector</p>
+      <p className="panel-title">Свойства</p>
       {!activeSlideId && <p className="meta">Нет активного слайда.</p>}
       {activeSlideId && selected.length === 0 && (
         <p className="meta">Выделите фигуру для редактирования свойств.</p>
@@ -29,6 +29,7 @@ export function Inspector() {
       {activeSlideId && selected.length > 1 && (
         <p className="meta">Выделено: {selected.length} фигур. Групповое редактирование — Phase 2.15.</p>
       )}
+      {/* Изменения групп фигур и стейт live-обновляются — без явного «применить». */}
     </aside>
   );
 }

@@ -37,7 +37,7 @@ export function ReflectionInspector({ slideId, shapeId, reflection }: Reflection
 
   return (
     <section className="inspector-section">
-      <p className="panel-title">Reflection</p>
+      <p className="panel-title">Отражение</p>
       <label className="inspector-row">
         <span className="inspector-label" />
         <span className="inspector-input-wrap inspector-input-wrap--checkbox">
@@ -48,7 +48,7 @@ export function ReflectionInspector({ slideId, shapeId, reflection }: Reflection
             onChange={(e) => write(e.target.checked ? DEFAULT_REFLECTION : undefined)}
           />
           <span className="inspector-checkbox-label">
-            Enabled <span className="inspector-meta">(рендер — Phase 3)</span>
+            Включено <span className="inspector-meta">(рендер — Phase 3)</span>
           </span>
         </span>
       </label>
@@ -56,7 +56,7 @@ export function ReflectionInspector({ slideId, shapeId, reflection }: Reflection
       {reflection && (
         <>
           <label className="inspector-row">
-            <span className="inspector-label">Alpha</span>
+            <span className="inspector-label">Альфа</span>
             <span className="inspector-input-wrap">
               <input
                 type="range"
@@ -75,13 +75,13 @@ export function ReflectionInspector({ slideId, shapeId, reflection }: Reflection
             </span>
           </label>
           <NumberField
-            label="Dist"
+            label="Отступ"
             value={value.distance}
             min={0}
             onCommit={(v) => write({ ...value, distance: v })}
           />
           <label className="inspector-row">
-            <span className="inspector-label">Size</span>
+            <span className="inspector-label">Размер</span>
             <span className="inspector-input-wrap">
               <input
                 type="range"

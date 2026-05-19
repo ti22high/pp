@@ -30,7 +30,7 @@ export function OpacityInspector({ slideId, shapeId, opacity }: OpacityInspector
 
   return (
     <section className="inspector-section">
-      <p className="panel-title">Opacity</p>
+      <p className="panel-title">Прозрачность</p>
       <label className="inspector-row">
         <span className="inspector-label">%</span>
         <span className="inspector-input-wrap">

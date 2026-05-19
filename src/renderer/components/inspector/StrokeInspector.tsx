@@ -43,7 +43,7 @@ export function StrokeInspector({ slideId, shapeId, stroke }: StrokeInspectorPro
 
   return (
     <section className="inspector-section">
-      <p className="panel-title">Stroke</p>
+      <p className="panel-title">Обводка</p>
       <label className="inspector-row">
         <span className="inspector-label" />
         <span className="inspector-input-wrap inspector-input-wrap--checkbox">
@@ -55,34 +55,34 @@ export function StrokeInspector({ slideId, shapeId, stroke }: StrokeInspectorPro
               write(e.target.checked ? { color: '#202124', width: 1 } : undefined)
             }
           />
-          <span className="inspector-checkbox-label">Enabled</span>
+          <span className="inspector-checkbox-label">Включена</span>
         </span>
       </label>
 
       {stroke && (
         <>
           <ColorField
-            label="Color"
+            label="Цвет"
             value={stroke.color}
             onCommit={(v) => write({ ...stroke, color: v })}
           />
           <NumberField
-            label="Width"
+            label="Толщина"
             value={stroke.width}
             min={0}
             step={0.5}
             onCommit={(v) => write({ ...stroke, width: Math.min(24, v) })}
           />
           <label className="inspector-row">
-            <span className="inspector-label">Dash</span>
+            <span className="inspector-label">Стиль</span>
             <select
               className="inspector-select"
               value={dashKey === 'custom' ? 'solid' : dashKey}
               onChange={(e) => write({ ...stroke, dash: DASH_PRESETS[e.target.value] })}
             >
-              <option value="solid">Solid</option>
-              <option value="dashed">Dashed</option>
-              <option value="dotted">Dotted</option>
+              <option value="solid">Сплошная</option>
+              <option value="dashed">Штрих</option>
+              <option value="dotted">Пунктир</option>
             </select>
           </label>
         </>

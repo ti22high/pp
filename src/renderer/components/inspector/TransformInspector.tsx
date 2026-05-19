@@ -38,15 +38,15 @@ export function TransformInspector({ slideId, shapeId }: TransformInspectorProps
 
   return (
     <section className="inspector-section">
-      <p className="panel-title">Transform</p>
+      <p className="panel-title">Положение</p>
       <div className="inspector-grid-2">
         <NumberField compact label="X" value={shape.x} onCommit={(v) => update({ x: v })} />
         <NumberField compact label="Y" value={shape.y} onCommit={(v) => update({ y: v })} />
-        <NumberField compact label="W" value={shape.w} min={2} onCommit={(v) => update({ w: v })} />
-        <NumberField compact label="H" value={shape.h} min={2} onCommit={(v) => update({ h: v })} />
+        <NumberField compact label="Ш" value={shape.w} min={2} onCommit={(v) => update({ w: v })} />
+        <NumberField compact label="В" value={shape.h} min={2} onCommit={(v) => update({ h: v })} />
       </div>
       <NumberField
-        label="Rotation"
+        label="Поворот"
         value={shape.rotation ?? 0}
         suffix="°"
         onCommit={(v) => update({ rotation: v })}
