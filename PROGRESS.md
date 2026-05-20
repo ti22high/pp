@@ -99,7 +99,9 @@
 - [ ] 3.14a. Расширенные типы графиков (Excel-уровень): doughnut, radar, stacked bar/column/area, combo (столбцы+линия), bubble, scatter-line. Рендер через Chart.js (MIT). (См. DECISIONS.md 2026-05-19.)
 - [ ] 3.14b. Продвинутая настройка графиков: вторичная ось Y, линии тренда, метки данных (data labels), формат чисел осей, gridlines on/off, заголовок диаграммы, позиция легенды.
 - [ ] 3.14c. Импорт графика из .xlsx/.pptx: перенести данные + тип → построить наш график (без живой связи с источником — данные копируются внутрь .gslx).
+- [ ] 3.14d. Paste графика из Excel как изображения: если в буфере график-картинка (Excel при copy кладёт PNG/EMF) — вставляем как Image. Самый быстрый путь «график из Excel в слайд». (См. DECISIONS.md 2026-05-19.)
 - [ ] 3.15. Connector shape: straight / elbow / curved с auto-snap к connection points.
+- [ ] 3.15a. Визуальные точки привязки (connection/glue points): при наведении/перетаскивании по периметру фигуры подсвечиваются точки (4 угла + 4 середины сторон + центр); магнитное прилипание к ним коннекторов И обычных фигур при сближении. Как в draw.io/Visio/PowerPoint. (См. DECISIONS.md 2026-05-19.)
 - [ ] 3.16. Freeform pen (scribble) — Konva.Line с tension.
 - [ ] 3.17. Polyline, arc.
 - [ ] 3.18. Gradient fill editor (multi-stop).
