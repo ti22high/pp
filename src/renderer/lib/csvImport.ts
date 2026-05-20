@@ -161,12 +161,15 @@ export function parseHtmlTableRich(html: string): ParsedTable {
 // пробует HTML-таблицу (точнее, с фоном/выравниванием), потом TSV из
 // text/plain. Возвращает null, если в буфере не таблица.
 export function tableRowsFromClipboard(cd: DataTransfer): ParsedTable | null {
-  const html = cd.getData('text/html');
+  return tableRowsFromHtmlText(cd.getData('text/html'), cd.getData('text/plain'));
+}
+
+// То же, но из строк (для чтения через Electron clipboard, а не DataTransfer).
+export function tableRowsFromHtmlText(html: string, text: string): ParsedTable | null {
   if (html && /<table[\s>]/i.test(html)) {
     const parsed = parseHtmlTableRich(html);
     if (parsed.text.length > 0) return parsed;
   }
-  const text = cd.getData('text/plain');
   if (text && text.includes('\t')) {
     const rows = parseCsv(text);
     if (rows.length > 0) return { text: rows };

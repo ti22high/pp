@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron';
+import { contextBridge, ipcRenderer, clipboard } from 'electron';
 import type { IpcRendererEvent } from 'electron';
 import type { PreloadApi } from './types.js';
 import { IpcChannels } from '../shared/ipc-channels.js';
@@ -16,6 +16,14 @@ const api: PreloadApi = {
     const handler = (_e: IpcRendererEvent, command: string) => callback(command);
     ipcRenderer.on(IpcChannels.MenuCommand, handler);
     return () => ipcRenderer.off(IpcChannels.MenuCommand, handler);
+  },
+  clipboard: {
+    readImage: () => {
+      const img = clipboard.readImage();
+      return img.isEmpty() ? '' : img.toDataURL();
+    },
+    readHTML: () => clipboard.readHTML(),
+    readText: () => clipboard.readText(),
   },
 };
 

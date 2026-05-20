@@ -14,4 +14,11 @@ export interface PreloadApi {
   getVersions(): VersionsInfo;
   // Подписка на команды native-меню. Возвращает unsubscribe.
   onMenuCommand(callback: (command: string) => void): () => void;
+  // Чтение системного буфера обмена (для вставки картинок/таблиц из Excel/
+  // Sheets/скриншотов независимо от DOM paste-события).
+  clipboard: {
+    readImage(): string; // data URL или '' если картинки нет
+    readHTML(): string;
+    readText(): string;
+  };
 }

@@ -99,7 +99,9 @@ const template: MenuItemConstructorOptions[] = [
       { type: 'separator' },
       { label: 'Вырезать', role: 'cut' },
       { label: 'Копировать', role: 'copy' },
-      { label: 'Вставить', role: 'paste' },
+      // registerAccelerator:false — не перехватываем Cmd+V на уровне меню,
+      // чтобы вставку картинок/таблиц/фигур обрабатывал renderer (Cmd+V keydown).
+      { label: 'Вставить', role: 'paste', registerAccelerator: false },
       { label: 'Удалить', role: 'delete' },
       { type: 'separator' },
       {
