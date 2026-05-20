@@ -823,10 +823,20 @@ body,
   background: transparent;
 }
 
-/* Special characters picker (Вставка → Специальные символы…). */
+/* Special characters picker (Вставка → Специальные символы…).
+   Немодальная плавающая панель у правого края — слайд остаётся виден,
+   чтобы вставляемые символы было видно в реальном времени. */
+.special-chars-panel {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 80;
+}
 .modal--special-chars {
-  min-width: 520px;
-  max-width: 560px;
+  min-width: 460px;
+  max-width: 460px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--border);
 }
 .special-chars__body {
   padding: 16px 18px;

@@ -48,12 +48,10 @@ export function SpecialCharsDialog({ open, onClose }: SpecialCharsDialogProps) {
     : (CHAR_CATEGORIES.find((c) => c.key === catKey)?.chars ?? []);
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div
-        className="modal modal--special-chars"
-        data-keep-editing
-        onClick={(e) => e.stopPropagation()}
-      >
+    // Немодальная плавающая панель: без затемнения и без click-outside-закрытия,
+    // чтобы во время вставки был виден слайд с текстом. Закрытие — крестик/Esc.
+    <div className="special-chars-panel" data-keep-editing>
+      <div className="modal modal--special-chars">
         <header className="modal__header">
           <h2>Специальные символы</h2>
           <button
