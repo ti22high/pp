@@ -33,6 +33,10 @@ export function ImageInspector({ slideId, shapeId }: ImageInspectorProps) {
     const sh = s.deck?.slides[slideId]?.shapes.find((x) => x.id === shapeId);
     return sh?.type === 'image' ? sh.contrast ?? 0 : 0;
   });
+  const altText = useDeckStore((s) => {
+    const sh = s.deck?.slides[slideId]?.shapes.find((x) => x.id === shapeId);
+    return sh?.altText;
+  });
 
   return (
     <section className="inspector-section">
@@ -148,9 +152,14 @@ export function ImageInspector({ slideId, shapeId }: ImageInspectorProps) {
             className="inspector-btn"
             onClick={() => setAltTextShape(shapeId)}
           >
-            Alt-текст…
+            Alt-текст{altText ? ' ✓' : '…'}
           </button>
         </div>
+      )}
+      {!cropping && altText && (
+        <p className="inspector-alt-note" title={altText}>
+          Alt: {altText}
+        </p>
       )}
     </section>
   );

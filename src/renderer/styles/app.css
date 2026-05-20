@@ -417,6 +417,16 @@ body,
   box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.18);
 }
 
+/* Пометка с текущим Alt-текстом под кнопкой в инспекторе (Phase 3.7). */
+.inspector-alt-note {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Поле ввода Alt-текста (Phase 3.7). */
 .alt-text__area {
   width: 100%;
