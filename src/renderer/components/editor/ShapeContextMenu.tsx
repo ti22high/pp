@@ -13,6 +13,7 @@ import { applyZOrder, applyGroup, applyUngroup } from '@renderer/lib/arrange';
 import { canGroup, canUngroup } from '@renderer/lib/group';
 import { useClipboardStore } from '@renderer/stores/clipboard';
 import { tableOps } from '@renderer/lib/table';
+import { insertChartFromTable } from '@renderer/lib/chart';
 
 interface ShapeContextMenuProps {
   // Экранные координаты (clientX/clientY) точки вызова.
@@ -234,6 +235,17 @@ export function ShapeContextMenu({ x, y, onClose }: ShapeContextMenuProps) {
             onClick={() => run(() => setTableFormatOpen(true))}
           >
             Формат ячеек…
+          </button>
+          <button
+            className="ctx-menu__item"
+            onClick={() =>
+              run(() => {
+                const t = shapes.find((s) => s.id === singleTableId);
+                if (t && t.type === 'table') insertChartFromTable(activeSlideId, t);
+              })
+            }
+          >
+            Создать диаграмму из таблицы
           </button>
         </>
       )}

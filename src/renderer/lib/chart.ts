@@ -1,6 +1,7 @@
 import { useDeckStore } from '@renderer/stores/deck';
-import { CHART_PALETTE } from '@renderer/lib/model/factory';
-import type { ChartShape, ChartType } from '@renderer/lib/model/schema';
+import { useSelectionStore } from '@renderer/stores/selection';
+import { appendShape, createChart, CHART_PALETTE } from '@renderer/lib/model/factory';
+import type { ChartShape, ChartType, TableShape } from '@renderer/lib/model/schema';
 
 // Операции над данными/настройками диаграммы (Phase 3.12–3.14). Мутируют draft
 // внутри immer setState.
@@ -115,4 +116,49 @@ export function formatChartNumber(v: number, fmt: string | undefined): string {
     default:
       return String(Math.round(v * 100) / 100);
   }
+}
+
+// Строит данные диаграммы из текстовой матрицы таблицы. Соглашение: первая
+// строка — заголовки серий, первый столбец — категории (если они нечисловые).
+export function chartDataFromRows(rows: string[][]): {
+  categories: string[];
+  series: { name: string; data: number[] }[];
+} {
+  if (rows.length === 0) return { categories: [], series: [] };
+  const isNum = (s: string) => (s ?? '').trim() !== '' && !Number.isNaN(Number((s ?? '').replace(',', '.')));
+  const num = (s: string) => Number((s ?? '').replace(',', '.')) || 0;
+  const cols = Math.max(...rows.map((r) => r.length));
+  const hasHeaderRow = rows[0].slice(1).some((c) => !isNum(c));
+  const hasHeaderCol = rows.slice(hasHeaderRow ? 1 : 0).some((r) => r[0] !== undefined && !isNum(r[0]));
+  const dataRows = hasHeaderRow ? rows.slice(1) : rows;
+  const c0 = hasHeaderCol ? 1 : 0;
+  const categories = dataRows.map((r, i) => (hasHeaderCol ? r[0] || `Кат. ${i + 1}` : `Кат. ${i + 1}`));
+  const series: { name: string; data: number[] }[] = [];
+  for (let c = c0; c < cols; c++) {
+    const name = hasHeaderRow ? rows[0][c] || `Серия ${c}` : `Серия ${c - c0 + 1}`;
+    series.push({ name: String(name), data: dataRows.map((r) => num(r[c])) });
+  }
+  return { categories, series };
+}
+
+// Создаёт редактируемую диаграмму из таблицы и вставляет рядом.
+export function insertChartFromTable(slideId: string, table: TableShape): void {
+  const deck = useDeckStore.getState().deck;
+  if (!deck) return;
+  const rows = table.cells.map((r) => r.map((c) => c.text));
+  const { categories, series } = chartDataFromRows(rows);
+  if (series.length === 0) return;
+  const w = Math.min(640, deck.size.w * 0.5);
+  const h = Math.min(400, deck.size.h * 0.5);
+  const x = Math.round(Math.min(table.x, deck.size.w - w));
+  const y = Math.round(Math.min(table.y + table.h + 20, deck.size.h - h));
+  const chart = createChart(x, y, w, h, 'column');
+  chart.categories = categories;
+  chart.series = series.map((s, i) => ({
+    name: s.name,
+    color: CHART_PALETTE[i % CHART_PALETTE.length],
+    data: s.data,
+  }));
+  useDeckStore.getState().setDeck(appendShape(deck, slideId, chart));
+  useSelectionStore.getState().select([chart.id]);
 }
