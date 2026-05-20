@@ -3,7 +3,12 @@ import {
   insertImageFromFile,
   insertImageFromDataUrl,
 } from '@renderer/lib/insertImage';
-import { isCsvFile, openCsvImport } from '@renderer/lib/csvImport';
+import {
+  isCsvFile,
+  openCsvImport,
+  insertTableFromRows,
+  tableRowsFromClipboard,
+} from '@renderer/lib/csvImport';
 
 // Глобальные обработчики вставки изображений (Phase 3.1):
 // - drag-n-drop файла-картинки в окно → вставка на активный слайд;
@@ -45,9 +50,9 @@ export function useImageDropPaste(): void {
     const onPaste = (e: ClipboardEvent) => {
       // В текстовом поле / редакторе текста — нативный paste.
       if (isInTextField(e.target)) return;
-      const items = e.clipboardData?.items;
-      if (!items) return;
-      for (const item of items) {
+      const cd = e.clipboardData;
+      if (!cd) return;
+      for (const item of cd.items) {
         if (item.type.startsWith('image/')) {
           const file = item.getAsFile();
           if (file) {
@@ -62,6 +67,13 @@ export function useImageDropPaste(): void {
           }
           return;
         }
+      }
+      // Табличные данные из Excel/Sheets (HTML-таблица или TSV) → вставляем
+      // таблицу сразу, без диалога (привычный «скопировал-вставил»).
+      const rows = tableRowsFromClipboard(cd);
+      if (rows && (rows.length > 1 || (rows[0]?.length ?? 0) > 1)) {
+        e.preventDefault();
+        insertTableFromRows(rows);
       }
     };
 

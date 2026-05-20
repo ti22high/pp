@@ -37,6 +37,41 @@ export function openCsvImport(file: File): void {
   reader.readAsText(file);
 }
 
+// Парсит HTML-таблицу (из буфера Excel/Sheets, формат text/html) в матрицу
+// строк. Spans (rowspan/colspan) игнорируем — берём текст ячеек как есть.
+export function parseHtmlTable(html: string): string[][] {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const table = doc.querySelector('table');
+  if (!table) return [];
+  const rows: string[][] = [];
+  table.querySelectorAll('tr').forEach((tr) => {
+    const cells: string[] = [];
+    tr.querySelectorAll('th, td').forEach((td) => {
+      cells.push((td.textContent ?? '').replace(/\s+/g, ' ').trim());
+    });
+    if (cells.length > 0) rows.push(cells);
+  });
+  const cols = rows.reduce((m, r) => Math.max(m, r.length), 0);
+  return rows.map((r) => Array.from({ length: cols }, (_, c) => r[c] ?? ''));
+}
+
+// Достаёт табличные данные из ClipboardData (Excel/Sheets/paste). Сначала
+// пробует HTML-таблицу (точнее), потом TSV из text/plain (есть табы).
+// Возвращает null, если в буфере не таблица.
+export function tableRowsFromClipboard(cd: DataTransfer): string[][] | null {
+  const html = cd.getData('text/html');
+  if (html && /<table[\s>]/i.test(html)) {
+    const rows = parseHtmlTable(html);
+    if (rows.length > 0) return rows;
+  }
+  const text = cd.getData('text/plain');
+  if (text && text.includes('\t')) {
+    const rows = parseCsv(text);
+    if (rows.length > 0) return rows;
+  }
+  return null;
+}
+
 // Является ли файл CSV (по типу или расширению).
 export function isCsvFile(file: File): boolean {
   return file.type === 'text/csv' || /\.csv$/i.test(file.name);
