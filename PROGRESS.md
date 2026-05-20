@@ -88,7 +88,7 @@
 - [x] 3.7. Alt text dialog.
 - [x] 3.8. Table shape (Konva Group рендерит ячейки как Konva.Rect + Text).
 - [x] 3.9. Add / Delete row / col; merge / split cells; distribute evenly.
-- [ ] 3.10. Cell formatting (bg, border, padding, align).
+- [x] 3.10. Cell formatting (bg, border, padding, align).
 - [ ] 3.11. CSV drag-n-drop → Insert as table dialog (через SheetJS).
 - [ ] 3.11a. Paste таблицы из Excel/Sheets: парсинг буфера (text/html + text/plain TSV) → таблица. Ctrl+V когда в буфере табличные данные. (См. DECISIONS.md 2026-05-19.)
 - [ ] 3.11b. Импорт .xlsx (drag-n-drop файла) → выбор листа + диапазона → таблица (SheetJS).

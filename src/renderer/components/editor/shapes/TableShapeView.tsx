@@ -97,7 +97,12 @@ export const TableShapeView = memo(function TableShapeViewBase({ shape, slideId 
             r.row <= selRange.rMax &&
             r.col >= selRange.cMin &&
             r.col <= selRange.cMax;
-          const text = shape.cells[r.row]?.[r.col]?.text ?? '';
+          const cell = shape.cells[r.row]?.[r.col];
+          const text = cell?.text ?? '';
+          const pad = cell?.padding ?? CELL_PADDING;
+          const borderW = cell?.borderWidth ?? 1;
+          // Заливка ячейки: выбор подсвечиваем поверх собственного фона.
+          const cellFill = inSel ? 'rgba(26, 115, 232, 0.18)' : cell?.fill;
           return (
             <Group key={`${r.row}-${r.col}`}>
               <Rect
@@ -105,22 +110,23 @@ export const TableShapeView = memo(function TableShapeViewBase({ shape, slideId 
                 y={r.y}
                 width={r.w}
                 height={r.h}
-                fill={inSel ? 'rgba(26, 115, 232, 0.18)' : undefined}
-                stroke={BORDER_COLOR}
-                strokeWidth={1}
+                fill={cellFill}
+                stroke={borderW > 0 ? cell?.borderColor ?? BORDER_COLOR : undefined}
+                strokeWidth={borderW}
                 strokeScaleEnabled={false}
               />
               {!isEditing && text !== '' && (
                 <Text
-                  x={r.x + CELL_PADDING}
-                  y={r.y + CELL_PADDING}
-                  width={Math.max(1, r.w - CELL_PADDING * 2)}
-                  height={Math.max(1, r.h - CELL_PADDING * 2)}
+                  x={r.x + pad}
+                  y={r.y + pad}
+                  width={Math.max(1, r.w - pad * 2)}
+                  height={Math.max(1, r.h - pad * 2)}
                   text={text}
                   fontSize={FONT_SIZE}
                   fontFamily="Arial, sans-serif"
                   fill="#202124"
-                  verticalAlign="middle"
+                  align={cell?.align ?? 'left'}
+                  verticalAlign={cell?.valign ?? 'middle'}
                   wrap="word"
                   listening={false}
                 />

@@ -9,6 +9,7 @@ import {
   splitCell,
   distributeRows,
   distributeCols,
+  setCellFormat,
   cellRects,
 } from '../../src/renderer/lib/table';
 import { tableShapeSchema } from '../../src/renderer/lib/model/schema';
@@ -99,6 +100,20 @@ describe('table operations', () => {
     insertRow(t, 1); // вставка внутрь объединения
     expect(t.cells[0][0].rowSpan).toBeUndefined(); // расщеплено
     expect(t.rows).toBe(4);
+  });
+
+  it('setCellFormat applies to the whole range', () => {
+    const t = make(2, 2);
+    setCellFormat(t, 0, 0, 1, 1, { fill: '#ff0000', align: 'center' });
+    for (let r = 0; r < 2; r++)
+      for (let c = 0; c < 2; c++) {
+        expect(t.cells[r][c].fill).toBe('#ff0000');
+        expect(t.cells[r][c].align).toBe('center');
+      }
+    // undefined очищает поле.
+    setCellFormat(t, 0, 0, 0, 0, { fill: undefined });
+    expect(t.cells[0][0].fill).toBeUndefined();
+    expect(t.cells[0][1].fill).toBe('#ff0000');
   });
 
   it('distribute resets fractions to equal', () => {

@@ -75,6 +75,7 @@ export function ShapeContextMenu({ x, y, onClose }: ShapeContextMenuProps) {
     s.tableSelection && s.tableSelection.shapeId === singleTableId ? s.tableSelection : null,
   );
   const setTableSelection = useUiStore((s) => s.setTableSelection);
+  const setTableFormatOpen = useUiStore((s) => s.setTableFormatOpen);
   const tRMin = tableSel ? Math.min(tableSel.r0, tableSel.r1) : 0;
   const tRMax = tableSel ? Math.max(tableSel.r0, tableSel.r1) : 0;
   const tCMin = tableSel ? Math.min(tableSel.c0, tableSel.c1) : 0;
@@ -222,6 +223,14 @@ export function ShapeContextMenu({ x, y, onClose }: ShapeContextMenuProps) {
             onClick={() => run(() => tableOps.distributeCols(activeSlideId, singleTableId))}
           >
             Выровнять столбцы
+          </button>
+          <div className="ctx-menu__sep" />
+          <button
+            className="ctx-menu__item"
+            disabled={!tableSel}
+            onClick={() => run(() => setTableFormatOpen(true))}
+          >
+            Формат ячеек…
           </button>
         </>
       )}

@@ -25,6 +25,8 @@ interface UiState {
   // Выбранный прямоугольный диапазон ячеек таблицы (Phase 3.9) — для операций
   // строк/столбцов и объединения. null = ничего не выбрано.
   tableSelection: { shapeId: ShapeId; r0: number; c0: number; r1: number; c1: number } | null;
+  // Открыт ли диалог форматирования ячеек таблицы (Phase 3.10).
+  tableFormatOpen: boolean;
   // Глобально показывать alt-текст при наведении на фигуру (Phase 3.7).
   showAltOnHover: boolean;
   // id фигуры под курсором, у которой есть alt-текст (для оверлея-подсказки).
@@ -41,6 +43,7 @@ interface UiState {
   setTableSelection: (
     sel: { shapeId: ShapeId; r0: number; c0: number; r1: number; c1: number } | null,
   ) => void;
+  setTableFormatOpen: (open: boolean) => void;
   toggleAltOnHover: () => void;
   setHoveredAltShape: (id: ShapeId | null) => void;
   setSpaceHeld: (held: boolean) => void;
@@ -68,6 +71,7 @@ export const useUiStore = create<UiState>()(
     altTextShapeId: null,
     editingTableCell: null,
     tableSelection: null,
+    tableFormatOpen: false,
     showAltOnHover: false,
     hoveredAltShapeId: null,
     spaceHeld: false,
@@ -94,6 +98,10 @@ export const useUiStore = create<UiState>()(
     setTableSelection: (sel) =>
       set((s) => {
         s.tableSelection = sel;
+      }),
+    setTableFormatOpen: (open) =>
+      set((s) => {
+        s.tableFormatOpen = open;
       }),
     toggleAltOnHover: () =>
       set((s) => {

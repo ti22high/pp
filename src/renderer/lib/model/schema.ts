@@ -207,11 +207,18 @@ export const imageShapeSchema = z.object({
 // Ячейка таблицы (Phase 3.8). text — содержимое. colSpan/rowSpan (Phase 3.9) —
 // объединение ячеек (по умолчанию 1). merged=true помечает ячейку, накрытую
 // объединением соседней (не рендерится, но хранится для сохранения сетки).
+// Форматирование (Phase 3.10): фон, граница, padding, выравнивание.
 export const tableCellSchema = z.object({
   text: z.string(),
   colSpan: z.number().int().min(1).optional(),
   rowSpan: z.number().int().min(1).optional(),
   merged: z.boolean().optional(),
+  fill: colorSchema.optional(),
+  borderColor: colorSchema.optional(),
+  borderWidth: z.number().min(0).optional(),
+  padding: z.number().min(0).optional(),
+  align: z.enum(['left', 'center', 'right']).optional(),
+  valign: z.enum(['top', 'middle', 'bottom']).optional(),
 });
 // Таблица (Phase 3.8): сетка rows×cols. Ширины колонок и высоты строк хранятся
 // как доли ширины/высоты фигуры (сумма ≈ 1) — так resize фигуры тянет сетку

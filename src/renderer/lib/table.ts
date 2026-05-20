@@ -201,6 +201,44 @@ export function splitCell(t: TableShape, r: number, c: number): void {
   unmergeAnchor(t, r, c);
 }
 
+// Формат ячейки (Phase 3.10) — частичный набор полей. undefined-значение
+// очищает поле (возврат к умолчанию).
+export interface CellFormat {
+  fill?: string;
+  borderColor?: string;
+  borderWidth?: number;
+  padding?: number;
+  align?: 'left' | 'center' | 'right';
+  valign?: 'top' | 'middle' | 'bottom';
+}
+
+// Применяет формат ко всем ячейкам в прямоугольном диапазоне.
+export function setCellFormat(
+  t: TableShape,
+  r0: number,
+  c0: number,
+  r1: number,
+  c1: number,
+  fmt: CellFormat,
+): void {
+  const rMin = Math.min(r0, r1);
+  const rMax = Math.max(r0, r1);
+  const cMin = Math.min(c0, c1);
+  const cMax = Math.max(c0, c1);
+  for (let r = rMin; r <= rMax; r++) {
+    for (let c = cMin; c <= cMax; c++) {
+      const cell = t.cells[r]?.[c];
+      if (!cell) continue;
+      if ('fill' in fmt) cell.fill = fmt.fill;
+      if ('borderColor' in fmt) cell.borderColor = fmt.borderColor;
+      if ('borderWidth' in fmt) cell.borderWidth = fmt.borderWidth;
+      if ('padding' in fmt) cell.padding = fmt.padding;
+      if ('align' in fmt) cell.align = fmt.align;
+      if ('valign' in fmt) cell.valign = fmt.valign;
+    }
+  }
+}
+
 export function distributeRows(t: TableShape): void {
   t.rowFractions = t.rowFractions.map(() => 1 / t.rows);
 }
@@ -253,6 +291,15 @@ export const tableOps = {
     withTable(slideId, shapeId, distributeRows),
   distributeCols: (slideId: string, shapeId: string) =>
     withTable(slideId, shapeId, distributeCols),
+  setCellFormat: (
+    slideId: string,
+    shapeId: string,
+    r0: number,
+    c0: number,
+    r1: number,
+    c1: number,
+    fmt: CellFormat,
+  ) => withTable(slideId, shapeId, (t) => setCellFormat(t, r0, c0, r1, c1, fmt)),
   setColFractions: (slideId: string, shapeId: string, fractions: number[]) =>
     withTable(slideId, shapeId, (t) => {
       t.colFractions = normalize(fractions);

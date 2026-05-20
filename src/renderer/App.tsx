@@ -15,6 +15,7 @@ import { HyperlinkDialog } from './components/ui/HyperlinkDialog';
 import { SpecialCharsDialog } from './components/ui/SpecialCharsDialog';
 import { ShortcutsDialog } from './components/ui/ShortcutsDialog';
 import { AltTextDialog } from './components/ui/AltTextDialog';
+import { TableCellFormatDialog } from './components/ui/TableCellFormatDialog';
 import { useMenuCommands } from './hooks/useMenuCommands';
 import { useShapeClipboard } from './hooks/useShapeClipboard';
 import { useUndoRedo } from './hooks/useUndoRedo';
@@ -116,6 +117,7 @@ export function App() {
         onClose={() => setShortcutsOpen(false)}
       />
       <AltTextDialog />
+      <TableCellFormatDialog />
     </div>
   );
 }
