@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseCsv, parseHtmlTable } from '../../src/renderer/lib/csvImport';
+import { parseCsv, parseHtmlTable, parseHtmlTableRich } from '../../src/renderer/lib/csvImport';
 
 describe('parseCsv', () => {
   it('parses simple csv into a matrix', () => {
@@ -52,5 +52,16 @@ describe('parseHtmlTable (Excel/Sheets paste)', () => {
       ['a', 'b'],
       ['c', ''],
     ]);
+  });
+
+  it('extracts cell background and alignment', () => {
+    const html =
+      '<table><tr>' +
+      '<td style="background-color: rgb(255, 0, 0); text-align: center">X</td>' +
+      '<td bgcolor="#00ff00" align="right" valign="top">Y</td>' +
+      '</tr></table>';
+    const { fmt } = parseHtmlTableRich(html);
+    expect(fmt?.[0][0]).toMatchObject({ fill: '#ff0000', align: 'center' });
+    expect(fmt?.[0][1]).toMatchObject({ fill: '#00ff00', align: 'right', valign: 'top' });
   });
 });

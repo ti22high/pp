@@ -3,6 +3,49 @@ import { useDeckStore } from '@renderer/stores/deck';
 import { useUiStore } from '@renderer/stores/ui';
 import { useSelectionStore } from '@renderer/stores/selection';
 import { appendShape, createTable } from '@renderer/lib/model/factory';
+import type { CellFormat } from '@renderer/lib/table';
+
+// Распарсенная таблица: текст ячеек + (опц.) формат каждой ячейки.
+export interface ParsedTable {
+  text: string[][];
+  fmt?: (CellFormat | undefined)[][];
+}
+
+// CSS-цвет → hex (#rrggbb), т.к. colorSchema принимает только hex/имена.
+// rgb()/rgba() конвертируем; именованные и hex пропускаем; прозрачный → undefined.
+function cssColorToHex(c: string | null | undefined): string | undefined {
+  if (!c) return undefined;
+  const v = c.trim().toLowerCase();
+  if (v === '' || v === 'transparent') return undefined;
+  // rgba с нулевой альфой — прозрачно (4 компонента, последний 0).
+  if (/^rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*0\s*\)$/.test(v)) return undefined;
+  if (/^#[0-9a-f]{6}$/.test(v)) return v;
+  if (/^#[0-9a-f]{3}$/.test(v)) return '#' + v.slice(1).split('').map((h) => h + h).join('');
+  const m = v.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+  if (m) return '#' + [1, 2, 3].map((i) => Number(m[i]).toString(16).padStart(2, '0')).join('');
+  if (/^[a-z]+$/.test(v)) return v; // именованный цвет
+  return undefined;
+}
+
+function mapAlign(v: string | undefined): CellFormat['align'] | undefined {
+  if (v === 'left' || v === 'center' || v === 'right' || v === 'justify') return v;
+  return undefined;
+}
+function mapValign(v: string | undefined): CellFormat['valign'] | undefined {
+  if (v === 'top' || v === 'bottom') return v;
+  if (v === 'middle' || v === 'center') return 'middle';
+  return undefined;
+}
+
+// Извлекает формат из ячейки HTML (inline-style + атрибуты bgcolor/align/valign).
+function cellFormatFromTd(td: HTMLTableCellElement): CellFormat | undefined {
+  const fill =
+    cssColorToHex(td.style.backgroundColor) ?? cssColorToHex(td.getAttribute('bgcolor'));
+  const align = mapAlign(td.style.textAlign || td.getAttribute('align') || undefined);
+  const valign = mapValign(td.style.verticalAlign || td.getAttribute('valign') || undefined);
+  if (fill === undefined && align === undefined && valign === undefined) return undefined;
+  return { ...(fill ? { fill } : {}), ...(align ? { align } : {}), ...(valign ? { valign } : {}) };
+}
 
 // Импорт CSV как таблицы (Phase 3.11). Парсинг — через SheetJS (умеет кавычки,
 // разделители, переносы строк). Drag-n-drop .csv → диалог «Вставить как
@@ -40,34 +83,50 @@ export function openCsvImport(file: File): void {
 // Парсит HTML-таблицу (из буфера Excel/Sheets, формат text/html) в матрицу
 // строк. Spans (rowspan/colspan) игнорируем — берём текст ячеек как есть.
 export function parseHtmlTable(html: string): string[][] {
+  return parseHtmlTableRich(html).text;
+}
+
+// Разбирает HTML-таблицу в текст + формат (фон/выравнивание) каждой ячейки.
+// Цвет/шрифт/жирность текста НЕ переносятся — в модели ячейки пока только
+// фон, граница, padding, выравнивание (текст — простая строка).
+export function parseHtmlTableRich(html: string): ParsedTable {
   const doc = new DOMParser().parseFromString(html, 'text/html');
   const table = doc.querySelector('table');
-  if (!table) return [];
-  const rows: string[][] = [];
+  if (!table) return { text: [] };
+  const text: string[][] = [];
+  const fmt: (CellFormat | undefined)[][] = [];
   table.querySelectorAll('tr').forEach((tr) => {
     const cells: string[] = [];
+    const fmts: (CellFormat | undefined)[] = [];
     tr.querySelectorAll('th, td').forEach((td) => {
       cells.push((td.textContent ?? '').replace(/\s+/g, ' ').trim());
+      fmts.push(cellFormatFromTd(td as HTMLTableCellElement));
     });
-    if (cells.length > 0) rows.push(cells);
+    if (cells.length > 0) {
+      text.push(cells);
+      fmt.push(fmts);
+    }
   });
-  const cols = rows.reduce((m, r) => Math.max(m, r.length), 0);
-  return rows.map((r) => Array.from({ length: cols }, (_, c) => r[c] ?? ''));
+  const cols = text.reduce((m, r) => Math.max(m, r.length), 0);
+  return {
+    text: text.map((r) => Array.from({ length: cols }, (_, c) => r[c] ?? '')),
+    fmt: fmt.map((r) => Array.from({ length: cols }, (_, c) => r[c])),
+  };
 }
 
 // Достаёт табличные данные из ClipboardData (Excel/Sheets/paste). Сначала
-// пробует HTML-таблицу (точнее), потом TSV из text/plain (есть табы).
-// Возвращает null, если в буфере не таблица.
-export function tableRowsFromClipboard(cd: DataTransfer): string[][] | null {
+// пробует HTML-таблицу (точнее, с фоном/выравниванием), потом TSV из
+// text/plain. Возвращает null, если в буфере не таблица.
+export function tableRowsFromClipboard(cd: DataTransfer): ParsedTable | null {
   const html = cd.getData('text/html');
   if (html && /<table[\s>]/i.test(html)) {
-    const rows = parseHtmlTable(html);
-    if (rows.length > 0) return rows;
+    const parsed = parseHtmlTableRich(html);
+    if (parsed.text.length > 0) return parsed;
   }
   const text = cd.getData('text/plain');
   if (text && text.includes('\t')) {
     const rows = parseCsv(text);
-    if (rows.length > 0) return rows;
+    if (rows.length > 0) return { text: rows };
   }
   return null;
 }
@@ -77,8 +136,12 @@ export function isCsvFile(file: File): boolean {
   return file.type === 'text/csv' || /\.csv$/i.test(file.name);
 }
 
-// Вставляет таблицу из матрицы строк на активный слайд по центру.
-export function insertTableFromRows(rows: string[][]): void {
+// Вставляет таблицу из матрицы строк на активный слайд по центру. fmt —
+// опциональный формат ячеек (фон/выравнивание из HTML-буфера Excel/Sheets).
+export function insertTableFromRows(
+  rows: string[][],
+  fmt?: (CellFormat | undefined)[][],
+): void {
   const deck = useDeckStore.getState().deck;
   const slideId = useUiStore.getState().activeSlideId;
   if (!deck || !slideId || rows.length === 0) return;
@@ -93,7 +156,14 @@ export function insertTableFromRows(rows: string[][]): void {
   const table = createTable(x, y, w, h, nRows, nCols);
   for (let r = 0; r < nRows; r++) {
     for (let c = 0; c < nCols; c++) {
-      table.cells[r][c].text = rows[r][c] ?? '';
+      const cell = table.cells[r][c];
+      cell.text = rows[r][c] ?? '';
+      const f = fmt?.[r]?.[c];
+      if (f) {
+        if (f.fill) cell.fill = f.fill;
+        if (f.align) cell.align = f.align;
+        if (f.valign) cell.valign = f.valign;
+      }
     }
   }
   useDeckStore.getState().setDeck(appendShape(deck, slideId, table));

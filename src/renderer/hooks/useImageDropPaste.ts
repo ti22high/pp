@@ -70,10 +70,10 @@ export function useImageDropPaste(): void {
       }
       // Табличные данные из Excel/Sheets (HTML-таблица или TSV) → вставляем
       // таблицу сразу, без диалога (привычный «скопировал-вставил»).
-      const rows = tableRowsFromClipboard(cd);
-      if (rows && (rows.length > 1 || (rows[0]?.length ?? 0) > 1)) {
+      const tbl = tableRowsFromClipboard(cd);
+      if (tbl && (tbl.text.length > 1 || (tbl.text[0]?.length ?? 0) > 1)) {
         e.preventDefault();
-        insertTableFromRows(rows);
+        insertTableFromRows(tbl.text, tbl.fmt);
       }
     };
 
