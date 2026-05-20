@@ -163,6 +163,25 @@ export const textShapeSchema = z.object({
   verticalAlign: z.enum(['top', 'middle', 'bottom']).optional(),
   autoFit: z.enum(['none', 'shrink', 'resize']).optional(),
 });
+// Изображение. `src` — data URL (Phase 3.1) либо путь внутри media/ после
+// внедрения MediaManager (миграция меняет только значение src, не схему).
+// naturalW/naturalH — исходные пиксельные размеры (для сохранения пропорций
+// и crop). crop — нормализованный прямоугольник видимой области [0..1].
+export const imageShapeSchema = z.object({
+  ...baseShape,
+  type: z.literal('image'),
+  src: z.string(),
+  naturalW: z.number().positive().optional(),
+  naturalH: z.number().positive().optional(),
+  crop: z
+    .object({
+      x: z.number().min(0).max(1),
+      y: z.number().min(0).max(1),
+      w: z.number().min(0).max(1),
+      h: z.number().min(0).max(1),
+    })
+    .optional(),
+});
 
 export const shapeSchema = z.discriminatedUnion('type', [
   rectShapeSchema,
@@ -170,6 +189,7 @@ export const shapeSchema = z.discriminatedUnion('type', [
   lineShapeSchema,
   pathShapeSchema,
   textShapeSchema,
+  imageShapeSchema,
 ]);
 
 // Фон слайда.
@@ -261,6 +281,7 @@ export type EllipseShape = z.infer<typeof ellipseShapeSchema>;
 export type LineShape = z.infer<typeof lineShapeSchema>;
 export type PathShape = z.infer<typeof pathShapeSchema>;
 export type TextShape = z.infer<typeof textShapeSchema>;
+export type ImageShape = z.infer<typeof imageShapeSchema>;
 export type Fill = z.infer<typeof fillSchema>;
 export type Stroke = z.infer<typeof strokeSchema>;
 export type Shadow = z.infer<typeof shadowSchema>;

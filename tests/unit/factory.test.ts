@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { createEmptyDeck, createRect, createText, cloneSlide } from '../../src/renderer/lib/model/factory';
-import { deckSchema } from '../../src/renderer/lib/model/schema';
+import { createEmptyDeck, createRect, createText, cloneSlide, createImage } from '../../src/renderer/lib/model/factory';
+import { deckSchema, imageShapeSchema } from '../../src/renderer/lib/model/schema';
 
 describe('model factory', () => {
   it('creates an empty deck that validates against zod schema', () => {
@@ -22,6 +22,13 @@ describe('model factory', () => {
     expect(t.type).toBe('text');
     // tiptapDoc — корневой узел prosemirror, тип doc.
     expect((t.tiptapDoc as { type: string }).type).toBe('doc');
+  });
+
+  it('image factory produces a valid image shape', () => {
+    const img = createImage(10, 20, 300, 200, 'data:image/png;base64,AAAA', 600, 400);
+    expect(img.type).toBe('image');
+    expect(imageShapeSchema.safeParse(img).success).toBe(true);
+    expect(img.naturalW).toBe(600);
   });
 
   it('cloneSlide makes fresh ids', () => {

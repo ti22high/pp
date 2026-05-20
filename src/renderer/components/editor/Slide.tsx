@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { Group, Rect, Text, Image as KonvaImage } from 'react-konva';
 import type { Slide as SlideModel } from '@renderer/lib/model/schema';
 import { useDeckStore } from '@renderer/stores/deck';
@@ -7,6 +6,8 @@ import { EllipseShapeView } from './shapes/EllipseShapeView';
 import { LineShapeView } from './shapes/LineShapeView';
 import { PathShapeView } from './shapes/PathShapeView';
 import { TextShapeView } from './shapes/TextShapeView';
+import { ImageShapeView } from './shapes/ImageShapeView';
+import { useImageElement } from './shapes/useImageElement';
 
 // Рендер одного слайда внутри Stage: фон + все фигуры в z-order.
 // Каждый ShapeView сам подписан на свой кусок deckStore через id.
@@ -24,7 +25,7 @@ export function Slide({ slide, width, height }: SlideProps) {
       : '#ffffff';
   const bgImageSrc =
     slide.background?.type === 'image' ? slide.background.src : null;
-  const bgImage = useBackgroundImage(bgImageSrc);
+  const bgImage = useImageElement(bgImageSrc);
 
   // Номер слайда (§1.13). Показываем в правом нижнем углу. Skip-first
   // — стандартный UX «не нумеровать титульный слайд».
@@ -72,8 +73,10 @@ export function Slide({ slide, width, height }: SlideProps) {
             return <PathShapeView key={shape.id} shape={shape} slideId={slide.id} />;
           case 'text':
             return <TextShapeView key={shape.id} shape={shape} slideId={slide.id} />;
+          case 'image':
+            return <ImageShapeView key={shape.id} shape={shape} slideId={slide.id} />;
           default:
-            // image/table/chart/equation/video — Phase 3.
+            // table/chart/equation/video — Phase 3+.
             return null;
         }
       })}
@@ -93,31 +96,4 @@ export function Slide({ slide, width, height }: SlideProps) {
       )}
     </Group>
   );
-}
-
-// Подгружает HTMLImageElement для фон-картинки (data URL или app:// путь).
-// Возвращает null пока картинка не загружена, чтобы Konva не падал на
-// undefined. Используется только в Slide-рендере; для thumbnail-ов в
-// filmstrip-е достаточно CSS background-image.
-function useBackgroundImage(src: string | null): HTMLImageElement | null {
-  const [img, setImg] = useState<HTMLImageElement | null>(null);
-  useEffect(() => {
-    if (!src) {
-      setImg(null);
-      return;
-    }
-    const next = new window.Image();
-    let cancelled = false;
-    next.onload = () => {
-      if (!cancelled) setImg(next);
-    };
-    next.onerror = () => {
-      if (!cancelled) setImg(null);
-    };
-    next.src = src;
-    return () => {
-      cancelled = true;
-    };
-  }, [src]);
-  return img;
 }

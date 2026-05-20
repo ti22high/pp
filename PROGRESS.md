@@ -79,7 +79,7 @@
 
 **Цель (§11):** Images (crop, mask, recolor), tables, charts (6 типов), connectors с auto-snap, freeform path, polyline, scribble, fill (gradient/image), shadow, reflection, alt text, гиперссылки, закладки.
 
-- [ ] 3.1. Image insert (drag-n-drop + file dialog + paste from clipboard).
+- [x] 3.1. Image insert (drag-n-drop + file dialog + paste from clipboard).
 - [ ] 3.2. Image crop tool (handles внутри bbox).
 - [ ] 3.3. Crop-to-shape (mask picker из shape gallery).
 - [ ] 3.4. Image recolor (sepia / grayscale / tints).

@@ -13,6 +13,7 @@ import type {
   LineShape,
   PathShape,
   TextShape,
+  ImageShape,
 } from './schema';
 
 // Пустой Deck с одним пустым слайдом 1920×1080 (16:9).
@@ -161,6 +162,28 @@ export function createText(
 }
 
 // Универсальный «добавить фигуру в слайд» — обновляет дату модификации deck.
+export function createImage(
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  src: string,
+  naturalW?: number,
+  naturalH?: number,
+): ImageShape {
+  return {
+    id: uuid(),
+    type: 'image',
+    x,
+    y,
+    w,
+    h,
+    src,
+    naturalW,
+    naturalH,
+  };
+}
+
 export function appendShape(deck: Deck, slideId: string, shape: Shape): Deck {
   const slide = deck.slides[slideId];
   if (!slide) return deck;

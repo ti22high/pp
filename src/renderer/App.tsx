@@ -18,6 +18,8 @@ import { useMenuCommands } from './hooks/useMenuCommands';
 import { useShapeClipboard } from './hooks/useShapeClipboard';
 import { useUndoRedo } from './hooks/useUndoRedo';
 import { useArrowNudge } from './hooks/useArrowNudge';
+import { useImageDropPaste } from './hooks/useImageDropPaste';
+import { openImageFileDialog } from './lib/insertImage';
 
 // Главный UI редактора. Структура: header / toolbar / (filmstrip + canvas + inspector).
 // При первом маунте создаём пустой deck — остальные компоненты подписываются на него.
@@ -38,6 +40,7 @@ export function App() {
   useShapeClipboard();
   useUndoRedo();
   useArrowNudge();
+  useImageDropPaste();
 
   // Команда «Слайд → Применить макет…» открывает пикер. Это window-level
   // событие из menu.ts; useMenuCommands игнорирует slide:apply-layout, мы
@@ -52,6 +55,7 @@ export function App() {
       else if (cmd === 'insert:hyperlink') setHyperlinkOpen(true);
       else if (cmd === 'insert:special-chars') setSpecialCharsOpen(true);
       else if (cmd === 'help:shortcuts') setShortcutsOpen(true);
+      else if (cmd === 'insert:image') openImageFileDialog();
     });
   }, []);
 

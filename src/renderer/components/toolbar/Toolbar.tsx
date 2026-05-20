@@ -10,6 +10,7 @@ import {
   createText,
 } from '@renderer/lib/model/factory';
 import type { Shape } from '@renderer/lib/model/schema';
+import { openImageFileDialog } from '@renderer/lib/insertImage';
 
 // Главный тулбар над канвасом. На Phase 2.9 — только кнопки вставки фигур;
 // иконки шрифта/выравнивания добавятся, когда дойдём до TextShape (2.10/2.11),
@@ -81,6 +82,8 @@ export function Toolbar() {
           insert(createText(c.x, c.y, 480, 80, 'Введите текст'));
         }}
       />
+      <span className="toolbar-sep" />
+      <ToolbarButton label="Изображение" onClick={openImageFileDialog} />
     </div>
   );
 }

@@ -116,6 +116,24 @@ export const FilmstripItem = memo(function FilmstripItemBase({
                 />
               );
             }
+            if (sh.type === 'image') {
+              return (
+                <img
+                  key={sh.id}
+                  className="fs-item__shape"
+                  src={sh.src}
+                  alt=""
+                  draggable={false}
+                  style={{
+                    left: sh.x,
+                    top: sh.y,
+                    width: sh.w,
+                    height: sh.h,
+                    objectFit: 'fill',
+                  }}
+                />
+              );
+            }
             if (sh.type === 'path') {
               const natural = pathNaturalBox(sh.pathData);
               return (
