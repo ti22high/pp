@@ -219,6 +219,30 @@ export function applyImageCrop(
   });
 }
 
+// Устанавливает кроп АБСОЛЮТНО (доли всего исходника, не относительно
+// текущего кропа). Используется в fill-режиме обрезки для изображений с
+// маской: форма фиксирована, двигается/масштабируется само изображение.
+export function setImageCropAbsolute(
+  slideId: string,
+  shapeId: string,
+  cropFrac: { x: number; y: number; w: number; h: number },
+): void {
+  useDeckStore.setState((state) => {
+    if (!state.deck) return;
+    const slide = state.deck.slides[slideId];
+    if (!slide) return;
+    const sh = slide.shapes.find((x) => x.id === shapeId);
+    if (!sh || sh.type !== 'image') return;
+    sh.crop = {
+      x: Math.max(0, Math.min(1, cropFrac.x)),
+      y: Math.max(0, Math.min(1, cropFrac.y)),
+      w: Math.max(0.01, Math.min(1, cropFrac.w)),
+      h: Math.max(0.01, Math.min(1, cropFrac.h)),
+    };
+    state.deck.modifiedAt = new Date().toISOString();
+  });
+}
+
 // Сбрасывает обрезку изображения, восстанавливая полный кадр. Сохраняет
 // верхний-левый угол, размер пересчитывается по исходным пропорциям.
 export function resetImageCrop(slideId: string, shapeId: string): void {
