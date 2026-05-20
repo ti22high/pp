@@ -10,16 +10,45 @@ import { ShadowInspector } from './ShadowInspector';
 import { ReflectionInspector } from './ReflectionInspector';
 import { OpacityInspector } from './OpacityInspector';
 import { ImageInspector } from './ImageInspector';
+import { AltTextInspector } from './AltTextInspector';
 
 // Корень правой панели свойств.
 // 0 фигур → плейсхолдер; 1 → набор секций; 2+ → счётчик (multi-edit — Phase 2.15).
 export function Inspector() {
   const selected = useSelectionStore((s) => s.selectedShapeIds);
   const activeSlideId = useUiStore((s) => s.activeSlideId);
+  const showInspector = useUiStore((s) => s.showInspector);
+  const toggleInspector = useUiStore((s) => s.toggleInspector);
+
+  // Свёрнутое состояние — узкая полоса с кнопкой раскрытия.
+  if (!showInspector) {
+    return (
+      <aside className="app-inspector app-inspector--collapsed">
+        <button
+          type="button"
+          className="inspector-collapse-btn"
+          title="Развернуть панель свойств"
+          onClick={toggleInspector}
+        >
+          ‹
+        </button>
+      </aside>
+    );
+  }
 
   return (
     <aside className="app-inspector">
-      <p className="panel-title">Свойства</p>
+      <div className="inspector-head">
+        <p className="panel-title">Свойства</p>
+        <button
+          type="button"
+          className="inspector-collapse-btn"
+          title="Свернуть панель свойств"
+          onClick={toggleInspector}
+        >
+          ›
+        </button>
+      </div>
       {!activeSlideId && <p className="meta">Нет активного слайда.</p>}
       {activeSlideId && selected.length === 0 && (
         <p className="meta">Выделите фигуру для редактирования свойств.</p>
@@ -83,6 +112,7 @@ function SingleShapeInspector({ slideId, shapeId }: { slideId: SlideId; shapeId:
         reflection={shapeFacets.reflection}
       />
       <OpacityInspector slideId={slideId} shapeId={shapeId} opacity={shapeFacets.opacity} />
+      <AltTextInspector slideId={slideId} shapeId={shapeId} />
     </>
   );
 }

@@ -36,6 +36,7 @@ export function App() {
   const deck = useDeckStore((s) => s.deck);
   const setDeck = useDeckStore((s) => s.setDeck);
   const setActiveSlide = useUiStore((s) => s.setActiveSlide);
+  const showInspector = useUiStore((s) => s.showInspector);
 
   useMenuCommands();
   useShapeClipboard();
@@ -75,7 +76,7 @@ export function App() {
   }, [deck, setDeck, setActiveSlide]);
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell${showInspector ? '' : ' app-shell--inspector-collapsed'}`}>
       <header className="app-header">
         <h1>SlidesClone</h1>
         {versions && (
