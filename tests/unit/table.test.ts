@@ -74,6 +74,15 @@ describe('table operations', () => {
     expect(cellRects(t)).toHaveLength(4);
   });
 
+  it('inserting a row below a vertical merge keeps it intact', () => {
+    const t = make(3, 2);
+    mergeRange(t, 0, 0, 1, 0); // объединены строки 0-1 в колонке 0
+    expect(t.cells[0][0].rowSpan).toBe(2);
+    insertRow(t, 2); // вставка ПОД объединением (rEnd+1)
+    expect(t.cells[0][0].rowSpan).toBe(2); // объединение сохранилось
+    expect(t.rows).toBe(4);
+  });
+
   it('inserting a row through a vertical merge splits it', () => {
     const t = make(3, 2);
     mergeRange(t, 0, 0, 2, 0); // вертикальное объединение всей колонки 0

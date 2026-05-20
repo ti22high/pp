@@ -49,11 +49,16 @@ export const TableShapeView = memo(function TableShapeViewBase({ shape, slideId 
     if (!p) return;
     const hit = cellAtPoint(shape, p.x, p.y);
     if (!hit) return;
+    // Учитываем объединение: выбор покрывает весь span анкор-ячейки, иначе
+    // «вставить строку ниже» попадёт ВНУТРЬ объединения и расщепит его.
+    const cell = shape.cells[hit.row]?.[hit.col];
+    const rEnd = hit.row + (cell?.rowSpan ?? 1) - 1;
+    const cEnd = hit.col + (cell?.colSpan ?? 1) - 1;
     if (e.evt.shiftKey && selection) {
       e.cancelBubble = true;
-      setTableSelection({ shapeId: shape.id, r0: selection.r0, c0: selection.c0, r1: hit.row, c1: hit.col });
+      setTableSelection({ shapeId: shape.id, r0: selection.r0, c0: selection.c0, r1: rEnd, c1: cEnd });
     } else {
-      setTableSelection({ shapeId: shape.id, r0: hit.row, c0: hit.col, r1: hit.row, c1: hit.col });
+      setTableSelection({ shapeId: shape.id, r0: hit.row, c0: hit.col, r1: rEnd, c1: cEnd });
     }
   };
 
