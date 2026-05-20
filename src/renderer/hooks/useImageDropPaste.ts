@@ -3,6 +3,7 @@ import {
   insertImageFromFile,
   insertImageFromDataUrl,
 } from '@renderer/lib/insertImage';
+import { isCsvFile, openCsvImport } from '@renderer/lib/csvImport';
 
 // Глобальные обработчики вставки изображений (Phase 3.1):
 // - drag-n-drop файла-картинки в окно → вставка на активный слайд;
@@ -27,10 +28,19 @@ export function useImageDropPaste(): void {
     const onDrop = (e: DragEvent) => {
       const files = e.dataTransfer?.files;
       if (!files || files.length === 0) return;
-      const image = Array.from(files).find((f) => f.type.startsWith('image/'));
-      if (!image) return;
-      e.preventDefault();
-      void insertImageFromFile(image);
+      const list = Array.from(files);
+      const image = list.find((f) => f.type.startsWith('image/'));
+      if (image) {
+        e.preventDefault();
+        void insertImageFromFile(image);
+        return;
+      }
+      // CSV → диалог «Вставить как таблицу» (Phase 3.11).
+      const csv = list.find(isCsvFile);
+      if (csv) {
+        e.preventDefault();
+        openCsvImport(csv);
+      }
     };
     const onPaste = (e: ClipboardEvent) => {
       // В текстовом поле / редакторе текста — нативный paste.

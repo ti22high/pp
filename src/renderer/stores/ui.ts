@@ -27,6 +27,9 @@ interface UiState {
   tableSelection: { shapeId: ShapeId; r0: number; c0: number; r1: number; c1: number } | null;
   // Открыт ли диалог форматирования ячеек таблицы (Phase 3.10).
   tableFormatOpen: boolean;
+  // Распарсенные строки CSV для диалога «Вставить как таблицу» (Phase 3.11).
+  // null = диалог закрыт.
+  csvImportRows: string[][] | null;
   // Глобально показывать alt-текст при наведении на фигуру (Phase 3.7).
   showAltOnHover: boolean;
   // id фигуры под курсором, у которой есть alt-текст (для оверлея-подсказки).
@@ -44,6 +47,7 @@ interface UiState {
     sel: { shapeId: ShapeId; r0: number; c0: number; r1: number; c1: number } | null,
   ) => void;
   setTableFormatOpen: (open: boolean) => void;
+  setCsvImportRows: (rows: string[][] | null) => void;
   toggleAltOnHover: () => void;
   setHoveredAltShape: (id: ShapeId | null) => void;
   setSpaceHeld: (held: boolean) => void;
@@ -72,6 +76,7 @@ export const useUiStore = create<UiState>()(
     editingTableCell: null,
     tableSelection: null,
     tableFormatOpen: false,
+    csvImportRows: null,
     showAltOnHover: false,
     hoveredAltShapeId: null,
     spaceHeld: false,
@@ -102,6 +107,10 @@ export const useUiStore = create<UiState>()(
     setTableFormatOpen: (open) =>
       set((s) => {
         s.tableFormatOpen = open;
+      }),
+    setCsvImportRows: (rows) =>
+      set((s) => {
+        s.csvImportRows = rows;
       }),
     toggleAltOnHover: () =>
       set((s) => {

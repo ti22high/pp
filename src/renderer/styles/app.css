@@ -480,6 +480,27 @@ body,
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
 }
 
+/* Превью CSV в диалоге импорта (Phase 3.11). */
+.csv-preview {
+  margin-top: 8px;
+  max-height: 240px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.csv-preview table {
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.csv-preview td {
+  border: 1px solid var(--border);
+  padding: 4px 8px;
+  white-space: nowrap;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Плавающая панель (Phase 3.10) — немодальная, не перекрывает слайд, чтобы
    видеть таблицу во время правки формата ячеек. */
 .float-panel {
