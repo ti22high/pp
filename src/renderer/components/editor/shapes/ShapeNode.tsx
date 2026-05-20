@@ -163,11 +163,11 @@ export function ShapeNode({
       onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
       onDblClick={() => {
-        if (shapeType === 'line') return; // линия — без текста внутри
+        if (shapeType === 'line' || shapeType === 'table') return; // у них своё поведение
         setEditingShape(id);
       }}
       onDblTap={() => {
-        if (shapeType === 'line') return;
+        if (shapeType === 'line' || shapeType === 'table') return;
         setEditingShape(id);
       }}
       onMouseEnter={handleMouseEnter}

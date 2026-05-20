@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useDeckStore } from '@renderer/stores/deck';
 import { useUiStore } from '@renderer/stores/ui';
 import { useSelectionStore } from '@renderer/stores/selection';
@@ -8,9 +9,11 @@ import {
   createLine,
   createPath,
   createText,
+  createTable,
 } from '@renderer/lib/model/factory';
 import type { Shape } from '@renderer/lib/model/schema';
 import { openImageFileDialog } from '@renderer/lib/insertImage';
+import { TablePicker } from './TablePicker';
 
 // Главный тулбар над канвасом. На Phase 2.9 — только кнопки вставки фигур;
 // иконки шрифта/выравнивания добавятся, когда дойдём до TextShape (2.10/2.11),
@@ -24,6 +27,7 @@ export function Toolbar() {
   const setDeck = useDeckStore((s) => s.setDeck);
   const activeSlideId = useUiStore((s) => s.activeSlideId);
   const select = useSelectionStore((s) => s.select);
+  const [tablePickerOpen, setTablePickerOpen] = useState(false);
 
   const insert = (shape: Shape) => {
     if (!deck || !activeSlideId) return;
@@ -84,6 +88,24 @@ export function Toolbar() {
       />
       <span className="toolbar-sep" />
       <ToolbarButton label="Изображение" onClick={openImageFileDialog} />
+      <span className="toolbar-table">
+        <ToolbarButton label="Таблица" onClick={() => setTablePickerOpen((v) => !v)} />
+        {tablePickerOpen && (
+          <TablePicker
+            onClose={() => setTablePickerOpen(false)}
+            onPick={(rows, cols) => {
+              setTablePickerOpen(false);
+              const slideW = deck?.size.w ?? 1920;
+              const slideH = deck?.size.h ?? 1080;
+              // Желаемый размер ячейки, с зажимом всей таблицы в 0.85 слайда.
+              const w = Math.min(cols * 220, slideW * 0.85);
+              const h = Math.min(rows * 72, slideH * 0.85);
+              const c = center(w, h);
+              insert(createTable(c.x, c.y, w, h, rows, cols));
+            }}
+          />
+        )}
+      </span>
     </div>
   );
 }

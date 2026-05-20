@@ -204,6 +204,24 @@ export const imageShapeSchema = z.object({
   contrast: z.number().min(-100).max(100).optional(),
 });
 
+// Ячейка таблицы (Phase 3.8). Пока только текст; форматирование (фон, рамки,
+// выравнивание, padding) добавится в 3.10 опциональными полями.
+export const tableCellSchema = z.object({
+  text: z.string(),
+});
+// Таблица (Phase 3.8): сетка rows×cols. Ширины колонок и высоты строк хранятся
+// как доли ширины/высоты фигуры (сумма ≈ 1) — так resize фигуры тянет сетку
+// пропорционально. Ячейки построчно: cells[row][col].
+export const tableShapeSchema = z.object({
+  ...baseShape,
+  type: z.literal('table'),
+  rows: z.number().int().min(1).max(50),
+  cols: z.number().int().min(1).max(50),
+  colFractions: z.array(z.number().positive()),
+  rowFractions: z.array(z.number().positive()),
+  cells: z.array(z.array(tableCellSchema)),
+});
+
 export const shapeSchema = z.discriminatedUnion('type', [
   rectShapeSchema,
   ellipseShapeSchema,
@@ -211,6 +229,7 @@ export const shapeSchema = z.discriminatedUnion('type', [
   pathShapeSchema,
   textShapeSchema,
   imageShapeSchema,
+  tableShapeSchema,
 ]);
 
 // Фон слайда.
@@ -303,6 +322,8 @@ export type LineShape = z.infer<typeof lineShapeSchema>;
 export type PathShape = z.infer<typeof pathShapeSchema>;
 export type TextShape = z.infer<typeof textShapeSchema>;
 export type ImageShape = z.infer<typeof imageShapeSchema>;
+export type TableShape = z.infer<typeof tableShapeSchema>;
+export type TableCell = z.infer<typeof tableCellSchema>;
 export type Fill = z.infer<typeof fillSchema>;
 export type Stroke = z.infer<typeof strokeSchema>;
 export type Shadow = z.infer<typeof shadowSchema>;

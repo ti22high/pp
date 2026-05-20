@@ -14,6 +14,7 @@ import type {
   PathShape,
   TextShape,
   ImageShape,
+  TableShape,
 } from './schema';
 
 // Пустой Deck с одним пустым слайдом 1920×1080 (16:9).
@@ -182,6 +183,24 @@ export function createImage(
     naturalW,
     naturalH,
   };
+}
+
+// Таблица rows×cols (Phase 3.8). Колонки и строки распределены равномерно;
+// все ячейки пустые. Размер фигуры задаётся вызывающим (см. вставку в тулбаре).
+export function createTable(
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  rows: number,
+  cols: number,
+): TableShape {
+  const colFractions = Array.from({ length: cols }, () => 1 / cols);
+  const rowFractions = Array.from({ length: rows }, () => 1 / rows);
+  const cells = Array.from({ length: rows }, () =>
+    Array.from({ length: cols }, () => ({ text: '' })),
+  );
+  return { id: uuid(), type: 'table', x, y, w, h, rows, cols, colFractions, rowFractions, cells };
 }
 
 export function appendShape(deck: Deck, slideId: string, shape: Shape): Deck {
