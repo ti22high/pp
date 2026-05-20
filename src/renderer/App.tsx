@@ -18,6 +18,7 @@ import { AltTextDialog } from './components/ui/AltTextDialog';
 import { TableCellFormatDialog } from './components/ui/TableCellFormatDialog';
 import { CsvImportDialog } from './components/ui/CsvImportDialog';
 import { XlsxImportDialog } from './components/ui/XlsxImportDialog';
+import { ChartDataPanel } from './components/ui/ChartDataPanel';
 import { useMenuCommands } from './hooks/useMenuCommands';
 import { useShapeClipboard } from './hooks/useShapeClipboard';
 import { useUndoRedo } from './hooks/useUndoRedo';
@@ -122,6 +123,7 @@ export function App() {
       <TableCellFormatDialog />
       <CsvImportDialog />
       <XlsxImportDialog />
+      <ChartDataPanel />
     </div>
   );
 }

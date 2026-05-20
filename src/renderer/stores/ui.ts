@@ -27,6 +27,8 @@ interface UiState {
   tableSelection: { shapeId: ShapeId; r0: number; c0: number; r1: number; c1: number } | null;
   // Открыт ли диалог форматирования ячеек таблицы (Phase 3.10).
   tableFormatOpen: boolean;
+  // id диаграммы с открытым редактором данных (Phase 3.12). null = закрыт.
+  chartEditorId: ShapeId | null;
   // Распарсенные строки CSV для диалога «Вставить как таблицу» (Phase 3.11).
   // null = диалог закрыт.
   csvImportRows: string[][] | null;
@@ -49,6 +51,7 @@ interface UiState {
     sel: { shapeId: ShapeId; r0: number; c0: number; r1: number; c1: number } | null,
   ) => void;
   setTableFormatOpen: (open: boolean) => void;
+  setChartEditor: (id: ShapeId | null) => void;
   setCsvImportRows: (rows: string[][] | null) => void;
   setXlsxImport: (
     data: { fileName: string; sheets: { name: string; rows: string[][] }[] } | null,
@@ -81,6 +84,7 @@ export const useUiStore = create<UiState>()(
     editingTableCell: null,
     tableSelection: null,
     tableFormatOpen: false,
+    chartEditorId: null,
     csvImportRows: null,
     xlsxImport: null,
     showAltOnHover: false,
@@ -113,6 +117,10 @@ export const useUiStore = create<UiState>()(
     setTableFormatOpen: (open) =>
       set((s) => {
         s.tableFormatOpen = open;
+      }),
+    setChartEditor: (id) =>
+      set((s) => {
+        s.chartEditorId = id;
       }),
     setCsvImportRows: (rows) =>
       set((s) => {

@@ -10,6 +10,7 @@ import {
   createPath,
   createText,
   createTable,
+  createChart,
 } from '@renderer/lib/model/factory';
 import type { Shape } from '@renderer/lib/model/schema';
 import { openImageFileDialog } from '@renderer/lib/insertImage';
@@ -106,6 +107,13 @@ export function Toolbar() {
           />
         )}
       </span>
+      <ToolbarButton
+        label="Диаграмма"
+        onClick={() => {
+          const c = center(640, 400);
+          insert(createChart(c.x, c.y, 640, 400));
+        }}
+      />
     </div>
   );
 }

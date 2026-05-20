@@ -8,6 +8,7 @@ import { PathShapeView } from './shapes/PathShapeView';
 import { TextShapeView } from './shapes/TextShapeView';
 import { ImageShapeView } from './shapes/ImageShapeView';
 import { TableShapeView } from './shapes/TableShapeView';
+import { ChartShapeView } from './shapes/ChartShapeView';
 import { useImageElement } from './shapes/useImageElement';
 
 // Рендер одного слайда внутри Stage: фон + все фигуры в z-order.
@@ -78,8 +79,10 @@ export function Slide({ slide, width, height }: SlideProps) {
             return <ImageShapeView key={shape.id} shape={shape} slideId={slide.id} />;
           case 'table':
             return <TableShapeView key={shape.id} shape={shape} slideId={slide.id} />;
+          case 'chart':
+            return <ChartShapeView key={shape.id} shape={shape} slideId={slide.id} />;
           default:
-            // chart/equation/video — Phase 3+.
+            // equation/video — Phase 3+.
             return null;
         }
       })}

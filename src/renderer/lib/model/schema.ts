@@ -239,6 +239,25 @@ export const tableShapeSchema = z.object({
   cells: z.array(z.array(tableCellSchema)),
 });
 
+// Диаграмма (Phase 3.12–3.14). Данные хранятся как JSON: категории (ось X /
+// подписи) + серии (имя, цвет, числа). Тип графика — один из 6.
+export const chartSeriesSchema = z.object({
+  name: z.string(),
+  color: colorSchema.optional(),
+  data: z.array(z.number()),
+});
+export const chartShapeSchema = z.object({
+  ...baseShape,
+  type: z.literal('chart'),
+  chartType: z.enum(['column', 'bar', 'line', 'area', 'pie', 'scatter']),
+  categories: z.array(z.string()),
+  series: z.array(chartSeriesSchema),
+  showLegend: z.boolean().optional(),
+  showGridlines: z.boolean().optional(),
+  axisXTitle: z.string().optional(),
+  axisYTitle: z.string().optional(),
+});
+
 export const shapeSchema = z.discriminatedUnion('type', [
   rectShapeSchema,
   ellipseShapeSchema,
@@ -247,6 +266,7 @@ export const shapeSchema = z.discriminatedUnion('type', [
   textShapeSchema,
   imageShapeSchema,
   tableShapeSchema,
+  chartShapeSchema,
 ]);
 
 // Фон слайда.
@@ -341,6 +361,9 @@ export type TextShape = z.infer<typeof textShapeSchema>;
 export type ImageShape = z.infer<typeof imageShapeSchema>;
 export type TableShape = z.infer<typeof tableShapeSchema>;
 export type TableCell = z.infer<typeof tableCellSchema>;
+export type ChartShape = z.infer<typeof chartShapeSchema>;
+export type ChartSeries = z.infer<typeof chartSeriesSchema>;
+export type ChartType = ChartShape['chartType'];
 export type Fill = z.infer<typeof fillSchema>;
 export type Stroke = z.infer<typeof strokeSchema>;
 export type Shadow = z.infer<typeof shadowSchema>;

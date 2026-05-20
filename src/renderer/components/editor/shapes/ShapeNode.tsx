@@ -50,7 +50,19 @@ export function ShapeNode({
     (s) => s.selectedShapeIds.length >= 2 && s.selectedShapeIds.includes(id),
   );
   const setEditingShape = useUiStore((s) => s.setEditingShape);
+  const setChartEditor = useUiStore((s) => s.setChartEditor);
   const setHoveredAltShape = useUiStore((s) => s.setHoveredAltShape);
+
+  // Двойной клик: текст-оверлей для большинства фигур; для диаграммы — редактор
+  // данных; линия/таблица — своё поведение.
+  const handleDblActivate = () => {
+    if (shapeType === 'chart') {
+      setChartEditor(id);
+      return;
+    }
+    if (shapeType === 'line' || shapeType === 'table') return;
+    setEditingShape(id);
+  };
 
   // Наведение: если глобально включён показ alt-текста и у фигуры он задан —
   // отмечаем её как hovered (Canvas покажет подсказку-оверлей).
@@ -162,14 +174,8 @@ export function ShapeNode({
       draggable={!locked && !inMultiSelection && !spaceHeld}
       onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
-      onDblClick={() => {
-        if (shapeType === 'line' || shapeType === 'table') return; // у них своё поведение
-        setEditingShape(id);
-      }}
-      onDblTap={() => {
-        if (shapeType === 'line' || shapeType === 'table') return;
-        setEditingShape(id);
-      }}
+      onDblClick={handleDblActivate}
+      onDblTap={handleDblActivate}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >

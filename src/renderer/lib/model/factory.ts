@@ -15,7 +15,12 @@ import type {
   TextShape,
   ImageShape,
   TableShape,
+  ChartShape,
+  ChartType,
 } from './schema';
+
+// Палитра по умолчанию для серий диаграмм (Google-подобная).
+export const CHART_PALETTE = ['#4285f4', '#ea4335', '#fbbc04', '#34a853', '#ff6d01', '#46bdc6'];
 
 // Пустой Deck с одним пустым слайдом 1920×1080 (16:9).
 export function createEmptyDeck(title = 'Untitled Presentation'): Deck {
@@ -201,6 +206,32 @@ export function createTable(
     Array.from({ length: cols }, () => ({ text: '' })),
   );
   return { id: uuid(), type: 'table', x, y, w, h, rows, cols, colFractions, rowFractions, cells };
+}
+
+// Диаграмма с демо-данными (Phase 3.12). 2 серии × 4 категории.
+export function createChart(
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  chartType: ChartType = 'column',
+): ChartShape {
+  return {
+    id: uuid(),
+    type: 'chart',
+    x,
+    y,
+    w,
+    h,
+    chartType,
+    categories: ['Кат. 1', 'Кат. 2', 'Кат. 3', 'Кат. 4'],
+    series: [
+      { name: 'Серия 1', color: CHART_PALETTE[0], data: [10, 24, 16, 30] },
+      { name: 'Серия 2', color: CHART_PALETTE[1], data: [18, 12, 28, 14] },
+    ],
+    showLegend: true,
+    showGridlines: true,
+  };
 }
 
 export function appendShape(deck: Deck, slideId: string, shape: Shape): Deck {

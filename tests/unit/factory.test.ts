@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { createEmptyDeck, createRect, createText, cloneSlide, createImage } from '../../src/renderer/lib/model/factory';
-import { deckSchema, imageShapeSchema } from '../../src/renderer/lib/model/schema';
+import { createEmptyDeck, createRect, createText, cloneSlide, createImage, createChart } from '../../src/renderer/lib/model/factory';
+import { deckSchema, imageShapeSchema, chartShapeSchema } from '../../src/renderer/lib/model/schema';
 
 describe('model factory', () => {
   it('creates an empty deck that validates against zod schema', () => {
@@ -29,6 +29,14 @@ describe('model factory', () => {
     expect(img.type).toBe('image');
     expect(imageShapeSchema.safeParse(img).success).toBe(true);
     expect(img.naturalW).toBe(600);
+  });
+
+  it('chart factory produces a valid chart shape', () => {
+    const ch = createChart(0, 0, 640, 400);
+    expect(ch.type).toBe('chart');
+    expect(chartShapeSchema.safeParse(ch).success).toBe(true);
+    expect(ch.series.length).toBeGreaterThan(0);
+    expect(ch.series[0].data.length).toBe(ch.categories.length);
   });
 
   it('cloneSlide makes fresh ids', () => {
