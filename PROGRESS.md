@@ -90,9 +90,15 @@
 - [ ] 3.9. Add / Delete row / col; merge / split cells; distribute evenly.
 - [ ] 3.10. Cell formatting (bg, border, padding, align).
 - [ ] 3.11. CSV drag-n-drop → Insert as table dialog (через SheetJS).
+- [ ] 3.11a. Paste таблицы из Excel/Sheets: парсинг буфера (text/html + text/plain TSV) → таблица. Ctrl+V когда в буфере табличные данные. (См. DECISIONS.md 2026-05-19.)
+- [ ] 3.11b. Импорт .xlsx (drag-n-drop файла) → выбор листа + диапазона → таблица (SheetJS).
+- [ ] 3.11c. Формулы в таблицах: мини-движок вычислений — ссылки A1/диапазоны A1:B5, арифметика + функции (SUM/AVERAGE/MIN/MAX/COUNT/IF/ROUND/…). Library research: MIT-движок (fast-formula-parser / formulajs), НЕ GPL HyperFormula. Excel-уровень формул как цель, реалистичный объём — подмножество. (См. DECISIONS.md 2026-05-19.)
 - [ ] 3.12. Chart shape: editor с встроенной мини-таблицей данных.
 - [ ] 3.13. 6 chart types: bar, column, line, area, pie, scatter.
 - [ ] 3.14. Custom colors, legend, axis titles.
+- [ ] 3.14a. Расширенные типы графиков (Excel-уровень): doughnut, radar, stacked bar/column/area, combo (столбцы+линия), bubble, scatter-line. Рендер через Chart.js (MIT). (См. DECISIONS.md 2026-05-19.)
+- [ ] 3.14b. Продвинутая настройка графиков: вторичная ось Y, линии тренда, метки данных (data labels), формат чисел осей, gridlines on/off, заголовок диаграммы, позиция легенды.
+- [ ] 3.14c. Импорт графика из .xlsx/.pptx: перенести данные + тип → построить наш график (без живой связи с источником — данные копируются внутрь .gslx).
 - [ ] 3.15. Connector shape: straight / elbow / curved с auto-snap к connection points.
 - [ ] 3.16. Freeform pen (scribble) — Konva.Line с tension.
 - [ ] 3.17. Polyline, arc.
