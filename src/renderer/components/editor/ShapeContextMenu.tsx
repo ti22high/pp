@@ -87,11 +87,14 @@ export function ShapeContextMenu({ x, y, onClose }: ShapeContextMenuProps) {
     onClose();
   };
 
-  // Меню рисуем чуть смещённым, чтобы курсор не стоял на первом пункте.
-  // Если у правого/нижнего края — CSS transform не делаем, простой clamp.
+  // Позиционирование: прижимаем к курсору, но не даём вылезти за окно.
+  // Высоту ограничиваем остатком до низа окна — длинное меню скроллится.
+  const margin = 8;
+  const top = Math.max(margin, Math.min(y, window.innerHeight - margin - 40));
   const style: CSSProperties = {
-    left: Math.min(x, window.innerWidth - 220),
-    top: Math.min(y, window.innerHeight - 360),
+    left: Math.max(margin, Math.min(x, window.innerWidth - 220)),
+    top,
+    maxHeight: window.innerHeight - top - margin,
   };
 
   return (

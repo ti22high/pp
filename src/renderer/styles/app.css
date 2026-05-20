@@ -1163,18 +1163,22 @@ body,
   padding: 4px;
   display: flex;
   flex-direction: column;
+  /* Не вылезать за границы окна — высоту ограничиваем (инлайн max-height
+     задаётся в компоненте по позиции), длинное меню скроллим. */
+  overflow-y: auto;
 }
 .ctx-menu__item {
   display: block;
   width: 100%;
   text-align: left;
-  padding: 7px 12px;
+  padding: 6px 12px;
   border: 0;
   border-radius: 4px;
   background: transparent;
   font-size: 13px;
   color: var(--text);
   cursor: pointer;
+  flex-shrink: 0;
 }
 .ctx-menu__item:hover:not(:disabled) {
   background: rgba(26, 115, 232, 0.1);
