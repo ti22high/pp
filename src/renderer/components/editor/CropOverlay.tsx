@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Group, Image as KonvaImage, Rect, Transformer } from 'react-konva';
+import { Group, Image as KonvaImage, Rect, Shape, Transformer } from 'react-konva';
 import type Konva from 'konva';
 import { useDeckStore } from '@renderer/stores/deck';
 import { useUiStore } from '@renderer/stores/ui';
@@ -150,7 +150,24 @@ export function CropOverlay({ slideId }: CropOverlayProps) {
           listening={false}
         />
       </Group>
-      {/* Рамка-кроп: перетаскивание + ручки. */}
+      {/* Если есть маска — рисуем контур формы как рамку обрезки (видно, что
+          обрезаем именно фигуру). bbox-ручки остаются прямоугольными. */}
+      {shape.maskShape && (
+        <Shape
+          x={0}
+          y={0}
+          listening={false}
+          stroke="#1a73e8"
+          strokeWidth={2}
+          strokeScaleEnabled={false}
+          sceneFunc={(ctx, s) => {
+            maskClipFunc(shape.maskShape!, frame.x, frame.y, frame.w, frame.h)(ctx);
+            ctx.strokeShape(s);
+          }}
+        />
+      )}
+      {/* Рамка-кроп: перетаскивание + ручки. При маске сам прямоугольник
+          делаем пунктирным/полупрозрачным — основной контур рисует Shape выше. */}
       <Rect
         ref={frameRef}
         x={frame.x}
@@ -158,7 +175,9 @@ export function CropOverlay({ slideId }: CropOverlayProps) {
         width={frame.w}
         height={frame.h}
         stroke="#1a73e8"
-        strokeWidth={2}
+        strokeWidth={1}
+        opacity={shape.maskShape ? 0.4 : 1}
+        dash={shape.maskShape ? [4, 3] : undefined}
         strokeScaleEnabled={false}
         draggable
         onDragMove={(e) => {
