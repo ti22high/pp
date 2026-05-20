@@ -103,18 +103,27 @@ export const TableShapeView = memo(function TableShapeViewBase({ shape, slideId 
           const borderW = cell?.borderWidth ?? 1;
           // Заливка ячейки: выбор подсвечиваем поверх собственного фона.
           const cellFill = inSel ? 'rgba(26, 115, 232, 0.18)' : cell?.fill;
+          // Границу рисуем ВНУТРЬ ячейки (внешний край на границе ячейки),
+          // чтобы толстая рамка не «вылезала» в соседнюю ячейку. Поэтому
+          // прямоугольник границы сдвинут на borderW/2 внутрь, а заливка —
+          // отдельным прямоугольником на всю ячейку.
+          const inset = borderW / 2;
           return (
             <Group key={`${r.row}-${r.col}`}>
-              <Rect
-                x={r.x}
-                y={r.y}
-                width={r.w}
-                height={r.h}
-                fill={cellFill}
-                stroke={borderW > 0 ? cell?.borderColor ?? BORDER_COLOR : undefined}
-                strokeWidth={borderW}
-                strokeScaleEnabled={false}
-              />
+              {cellFill && (
+                <Rect x={r.x} y={r.y} width={r.w} height={r.h} fill={cellFill} />
+              )}
+              {borderW > 0 && (
+                <Rect
+                  x={r.x + inset}
+                  y={r.y + inset}
+                  width={Math.max(0, r.w - borderW)}
+                  height={Math.max(0, r.h - borderW)}
+                  stroke={cell?.borderColor ?? BORDER_COLOR}
+                  strokeWidth={borderW}
+                  listening={false}
+                />
+              )}
               {!isEditing && text !== '' && (
                 <Text
                   x={r.x + pad}

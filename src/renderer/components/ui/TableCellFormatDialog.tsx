@@ -53,16 +53,15 @@ export function TableCellFormatDialog() {
   const valign = cell?.valign ?? 'middle';
 
   return (
-    <div className="modal-backdrop" onClick={() => setOpen(false)}>
-      <div className="modal modal--hyperlink" onClick={(e) => e.stopPropagation()}>
-        <header className="modal__header">
-          <h2>Формат ячеек</h2>
-          <button className="modal__close" onClick={() => setOpen(false)} aria-label="Закрыть">
-            ×
-          </button>
-        </header>
+    <div className="float-panel float-panel--right">
+      <header className="modal__header">
+        <h2>Формат ячеек</h2>
+        <button className="modal__close" onClick={() => setOpen(false)} aria-label="Закрыть">
+          ×
+        </button>
+      </header>
 
-        <div className="slide-size__body">
+      <div className="slide-size__body">
           <label className="slide-size__field">
             <span>Фон</span>
             <span className="inspector-input-wrap">
@@ -131,16 +130,15 @@ export function TableCellFormatDialog() {
           </label>
         </div>
 
-        <footer className="slide-size__footer">
-          <button
-            type="button"
-            className="slide-size__btn slide-size__btn--primary"
-            onClick={() => setOpen(false)}
-          >
-            Готово
-          </button>
-        </footer>
-      </div>
+      <footer className="slide-size__footer">
+        <button
+          type="button"
+          className="slide-size__btn slide-size__btn--primary"
+          onClick={() => setOpen(false)}
+        >
+          Готово
+        </button>
+      </footer>
     </div>
   );
 }
