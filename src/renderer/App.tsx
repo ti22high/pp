@@ -14,6 +14,7 @@ import { PageNumbersDialog } from './components/ui/PageNumbersDialog';
 import { HyperlinkDialog } from './components/ui/HyperlinkDialog';
 import { SpecialCharsDialog } from './components/ui/SpecialCharsDialog';
 import { ShortcutsDialog } from './components/ui/ShortcutsDialog';
+import { AltTextDialog } from './components/ui/AltTextDialog';
 import { useMenuCommands } from './hooks/useMenuCommands';
 import { useShapeClipboard } from './hooks/useShapeClipboard';
 import { useUndoRedo } from './hooks/useUndoRedo';
@@ -113,6 +114,7 @@ export function App() {
         open={shortcutsOpen}
         onClose={() => setShortcutsOpen(false)}
       />
+      <AltTextDialog />
     </div>
   );
 }

@@ -85,7 +85,7 @@
 - [x] 3.4. Image recolor (sepia / grayscale / tints).
 - [x] 3.5. Brightness / Contrast / Transparency sliders.
 - [x] 3.6. Replace image, Reset image.
-- [ ] 3.7. Alt text dialog.
+- [x] 3.7. Alt text dialog.
 - [ ] 3.8. Table shape (Konva Group рендерит ячейки как Konva.Rect + Text).
 - [ ] 3.9. Add / Delete row / col; merge / split cells; distribute evenly.
 - [ ] 3.10. Cell formatting (bg, border, padding, align).

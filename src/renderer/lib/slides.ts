@@ -244,6 +244,21 @@ export function resetImageAdjust(slideId: string, shapeId: string): void {
   });
 }
 
+// Ставит / убирает Alt-текст (описание для доступности, Phase 3.7).
+// Пустая строка → undefined (не засоряем JSON).
+export function setShapeAltText(slideId: string, shapeId: string, text: string): void {
+  useDeckStore.setState((state) => {
+    if (!state.deck) return;
+    const slide = state.deck.slides[slideId];
+    if (!slide) return;
+    const sh = slide.shapes.find((x) => x.id === shapeId);
+    if (!sh) return;
+    const trimmed = text.trim();
+    sh.altText = trimmed === '' ? undefined : trimmed;
+    state.deck.modifiedAt = new Date().toISOString();
+  });
+}
+
 // Ставит / убирает гиперссылку на указанной фигуре. `hl=undefined` снимает
 // ссылку. Используется HyperlinkDialog.
 export function setShapeHyperlink(

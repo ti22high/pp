@@ -19,6 +19,7 @@ interface ImageInspectorProps {
 // см. lib/imageBake.ts), поэтому форма — это действие, а не переключатель.
 export function ImageInspector({ slideId, shapeId }: ImageInspectorProps) {
   const setCroppingShape = useUiStore((s) => s.setCroppingShape);
+  const setAltTextShape = useUiStore((s) => s.setAltTextShape);
   const cropping = useUiStore((s) => s.croppingShapeId === shapeId);
   const recolor = useDeckStore((s) => {
     const sh = s.deck?.slides[slideId]?.shapes.find((x) => x.id === shapeId);
@@ -141,6 +142,13 @@ export function ImageInspector({ slideId, shapeId }: ImageInspectorProps) {
             onClick={() => resetImageAdjust(slideId, shapeId)}
           >
             Сбросить
+          </button>
+          <button
+            type="button"
+            className="inspector-btn"
+            onClick={() => setAltTextShape(shapeId)}
+          >
+            Alt-текст…
           </button>
         </div>
       )}

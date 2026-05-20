@@ -417,6 +417,24 @@ body,
   box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.18);
 }
 
+/* Поле ввода Alt-текста (Phase 3.7). */
+.alt-text__area {
+  width: 100%;
+  resize: vertical;
+  padding: 6px 8px;
+  font: 13px/1.4 system-ui, sans-serif;
+  color: var(--text);
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  outline: none;
+  box-sizing: border-box;
+}
+.alt-text__area:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.18);
+}
+
 /* Маленькая инлайн-подсказка внутри лейблов Inspector-а (например,
    "Enabled (рендер — Phase 3)"). */
 .inspector-meta {

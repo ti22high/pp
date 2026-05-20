@@ -18,6 +18,8 @@ interface UiState {
   editingShapeId: ShapeId | null;
   // id изображения в режиме обрезки (crop). null = не обрезаем.
   croppingShapeId: ShapeId | null;
+  // id фигуры, для которой открыт диалог Alt-текста (Phase 3.7). null = закрыт.
+  altTextShapeId: ShapeId | null;
   // Зажат пробел → режим панорамирования холста. Фигуры в это время не
   // перетаскиваются (Konva native drag отключается), чтобы Space+drag по
   // фигуре панорамировал, а не двигал её.
@@ -25,6 +27,7 @@ interface UiState {
   setActiveSlide: (id: SlideId | null) => void;
   setEditingShape: (id: ShapeId | null) => void;
   setCroppingShape: (id: ShapeId | null) => void;
+  setAltTextShape: (id: ShapeId | null) => void;
   setSpaceHeld: (held: boolean) => void;
   setZoom: (zoom: number) => void;
   setStagePan: (pan: { x: number; y: number }) => void;
@@ -47,6 +50,7 @@ export const useUiStore = create<UiState>()(
     showInspector: true,
     editingShapeId: null,
     croppingShapeId: null,
+    altTextShapeId: null,
     spaceHeld: false,
     setActiveSlide: (id) =>
       set((s) => {
@@ -59,6 +63,10 @@ export const useUiStore = create<UiState>()(
     setCroppingShape: (id) =>
       set((s) => {
         s.croppingShapeId = id;
+      }),
+    setAltTextShape: (id) =>
+      set((s) => {
+        s.altTextShapeId = id;
       }),
     setSpaceHeld: (held) =>
       set((s) => {
