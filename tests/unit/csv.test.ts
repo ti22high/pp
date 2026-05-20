@@ -15,6 +15,19 @@ describe('parseCsv', () => {
     expect(rows[1]).toEqual(['Doe, John', 'hello, world']);
   });
 
+  it('strips a leading BOM from the first cell', () => {
+    const rows = parseCsv('﻿a,b\n1,2');
+    expect(rows[0]).toEqual(['a', 'b']);
+  });
+
+  it('auto-detects semicolon delimiter', () => {
+    const rows = parseCsv('a;b;c\n1;2;3');
+    expect(rows).toEqual([
+      ['a', 'b', 'c'],
+      ['1', '2', '3'],
+    ]);
+  });
+
   it('pads short rows to the widest column count', () => {
     const rows = parseCsv('a,b,c\n1');
     expect(rows[0]).toHaveLength(3);

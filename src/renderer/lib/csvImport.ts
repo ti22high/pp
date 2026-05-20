@@ -10,7 +10,9 @@ import { appendShape, createTable } from '@renderer/lib/model/factory';
 
 // Парсит CSV-текст в матрицу строк (с выравниванием по самой длинной строке).
 export function parseCsv(text: string): string[][] {
-  const wb = XLSX.read(text, { type: 'string' });
+  // Срезаем BOM (UTF-8/UTF-16), иначе он прилипает к первой ячейке.
+  const clean = text.replace(/^\uFEFF/, '');
+  const wb = XLSX.read(clean, { type: 'string' });
   const wsName = wb.SheetNames[0];
   const ws = wsName ? wb.Sheets[wsName] : undefined;
   if (!ws) return [];
