@@ -13,6 +13,7 @@ import { Slide } from './Slide';
 import { SelectionTransformer } from './SelectionTransformer';
 import { TextOverlay } from './TextOverlay';
 import { Rulers } from './Rulers';
+import { ShapeContextMenu } from './ShapeContextMenu';
 
 // Canvas — хост Konva Stage. Размер стейджа адаптируется к контейнеру.
 // Содержимое: один активный слайд, отцентрированный и масштабированный по uiStore.zoom.
@@ -44,6 +45,9 @@ export function Canvas() {
   useEffect(() => {
     stagePanRef.current = stagePan;
   }, [stagePan]);
+
+  // Контекстное меню (правый клик). Экранные координаты вызова или null.
+  const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null);
 
   // Rubber band — прямоугольник выделения, который пользователь рисует drag-ом
   // на пустом месте слайда. Координаты в slide-coords (т.е. с поправкой
@@ -509,6 +513,46 @@ export function Canvas() {
     }
   }, []);
 
+  // Правый клик — контекстное меню. Если клик попал на фигуру, не входящую
+  // в выделение, сначала выделяем её (как в Slides/PowerPoint), затем
+  // открываем меню в точке курсора.
+  const handleContextMenu = useCallback(
+    (e: Konva.KonvaEventObject<PointerEvent>) => {
+      e.evt.preventDefault();
+      const stage = stageRef.current;
+      if (!stage) return;
+      const deckNow = useDeckStore.getState().deck;
+      const activeId = useUiStore.getState().activeSlideId;
+      if (!deckNow || !activeId) return;
+      const slide = deckNow.slides[activeId];
+      if (!slide) return;
+      const ids = new Set(slide.shapes.map((s) => s.id));
+
+      // Поднимаемся от hit-target до фигуры слайда.
+      let node: Konva.Node | null = e.target;
+      let hitId: ShapeId | null = null;
+      while (node && node !== stage) {
+        const nid = node.id() as ShapeId;
+        if (nid && ids.has(nid)) {
+          hitId = nid;
+          break;
+        }
+        node = node.getParent();
+      }
+
+      const sel = useSelectionStore.getState();
+      if (hitId) {
+        if (!sel.selectedShapeIds.includes(hitId)) {
+          sel.select(expandToGroups([hitId], slide.shapes));
+        }
+      }
+      // Открываем меню и для фигуры, и для пустого места (там активны
+      // «Вставить» / z-order для текущего выделения).
+      setCtxMenu({ x: e.evt.clientX, y: e.evt.clientY });
+    },
+    [],
+  );
+
   // Зум колесом — относительно позиции указателя.
   const handleWheel = useCallback(
     (e: Konva.KonvaEventObject<WheelEvent>) => {
@@ -609,6 +653,7 @@ export function Canvas() {
         onMouseMove={handleStageMouseMove}
         onMouseUp={handleStageMouseUp}
         onMouseLeave={handleStageMouseUp}
+        onContextMenu={handleContextMenu}
       >
         <Layer>
           <Slide slide={slide} width={slideW} height={slideH} />
@@ -643,6 +688,13 @@ export function Canvas() {
         panY={stagePan.y}
         zoom={zoom}
       />
+      {ctxMenu && (
+        <ShapeContextMenu
+          x={ctxMenu.x}
+          y={ctxMenu.y}
+          onClose={() => setCtxMenu(null)}
+        />
+      )}
     </div>
   );
 }

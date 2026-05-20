@@ -958,6 +958,49 @@ body,
   color: var(--text);
   text-align: right;
 }
+
+/* Контекстное меню по правому клику (ShapeContextMenu). */
+.ctx-menu {
+  position: fixed;
+  z-index: 90;
+  min-width: 200px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+}
+.ctx-menu__item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 7px 12px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+}
+.ctx-menu__item:hover:not(:disabled) {
+  background: rgba(26, 115, 232, 0.1);
+  color: var(--accent);
+}
+.ctx-menu__item:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.ctx-menu__item--danger:hover:not(:disabled) {
+  background: rgba(165, 14, 14, 0.1);
+  color: #a50e0e;
+}
+.ctx-menu__sep {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
 /* Текст внутри shape-bbox. Размер шрифта в slide-coords (20 px) — наследуется
    от .fs-item__shape; CSS-transform на .fs-item__inner уменьшает всё пропорц.
    Раньше тут стоял ручной 6px-шрифт и обрезание — давало искажённую картинку

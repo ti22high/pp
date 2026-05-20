@@ -3,8 +3,8 @@ import { useUiStore } from '@renderer/stores/ui';
 import { useDeckStore } from '@renderer/stores/deck';
 import { useSelectionStore } from '@renderer/stores/selection';
 import { alignShapes, distributeShapes, type AlignKind } from '@renderer/lib/align';
-import { reorderZ, type ZOrderKind } from '@renderer/lib/zorder';
-import { canGroup, canUngroup } from '@renderer/lib/group';
+import { type ZOrderKind } from '@renderer/lib/zorder';
+import { applyZOrder, applyGroup, applyUngroup } from '@renderer/lib/arrange';
 import { undo, redo } from '@renderer/lib/undo';
 import { selectAll as selectAllShapes, duplicate as duplicateShapes } from '@renderer/lib/clipboard';
 import { newSlide, duplicateSlide, deleteSlide, toggleHiddenSlide } from '@renderer/lib/slides';
@@ -125,70 +125,6 @@ function applyAlign(kind: AlignKind) {
         sh.y = m.y;
       }
     }
-    state.deck.modifiedAt = new Date().toISOString();
-  });
-}
-
-function applyGroup() {
-  const sel = useSelectionStore.getState().selectedShapeIds;
-  const slideId = useUiStore.getState().activeSlideId;
-  if (!slideId || sel.length < 2) return;
-  useDeckStore.setState((state) => {
-    if (!state.deck) return;
-    const slide = state.deck.slides[slideId];
-    if (!slide) return;
-    if (!canGroup(sel, slide.shapes)) return;
-    // Новый groupId на всех выбранных. Если кто-то уже был в другой группе —
-    // он «переезжает» в новую (старая группа теряет одного члена; если в ней
-    // остаётся 1 фигура, она де-факто перестаёт быть группой).
-    const newGroupId = `g_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
-    const idSet = new Set(sel);
-    for (const sh of slide.shapes) {
-      if (idSet.has(sh.id)) sh.groupId = newGroupId;
-    }
-    state.deck.modifiedAt = new Date().toISOString();
-  });
-}
-
-function applyUngroup() {
-  const sel = useSelectionStore.getState().selectedShapeIds;
-  const slideId = useUiStore.getState().activeSlideId;
-  if (!slideId || sel.length === 0) return;
-  useDeckStore.setState((state) => {
-    if (!state.deck) return;
-    const slide = state.deck.slides[slideId];
-    if (!slide) return;
-    if (!canUngroup(sel, slide.shapes)) return;
-    // Собираем groupId-ы, которые «зацеплены» выделением, и стираем groupId
-    // у всех фигур этих групп (даже если те не были в выделении).
-    const idSet = new Set(sel);
-    const groupsToBreak = new Set<string>();
-    for (const sh of slide.shapes) {
-      if (idSet.has(sh.id) && sh.groupId) groupsToBreak.add(sh.groupId);
-    }
-    for (const sh of slide.shapes) {
-      if (sh.groupId && groupsToBreak.has(sh.groupId)) {
-        sh.groupId = undefined;
-      }
-    }
-    state.deck.modifiedAt = new Date().toISOString();
-  });
-}
-
-function applyZOrder(kind: ZOrderKind) {
-  const sel = useSelectionStore.getState().selectedShapeIds;
-  if (sel.length === 0) return;
-  const slideId = useUiStore.getState().activeSlideId;
-  if (!slideId) return;
-  useDeckStore.setState((state) => {
-    if (!state.deck) return;
-    const slide = state.deck.slides[slideId];
-    if (!slide) return;
-    const currentOrder = slide.shapes.map((s) => s.id);
-    const newOrder = reorderZ(currentOrder, sel, kind);
-    // Перестраиваем массив shape-объектов в новом порядке.
-    const byId = new Map(slide.shapes.map((s) => [s.id, s] as const));
-    slide.shapes = newOrder.map((id) => byId.get(id)!).filter(Boolean);
     state.deck.modifiedAt = new Date().toISOString();
   });
 }
