@@ -15,6 +15,7 @@ import { TextOverlay } from './TextOverlay';
 import { Rulers } from './Rulers';
 import { ShapeContextMenu } from './ShapeContextMenu';
 import { CropOverlay } from './CropOverlay';
+import { AltHoverOverlay } from './AltHoverOverlay';
 
 // Canvas — хост Konva Stage. Размер стейджа адаптируется к контейнеру.
 // Содержимое: один активный слайд, отцентрированный и масштабированный по uiStore.zoom.
@@ -686,6 +687,7 @@ export function Canvas() {
         </Layer>
       </Stage>
       <TextOverlayHost slideId={slide.id} panX={stagePan.x} panY={stagePan.y} zoom={zoom} />
+      <AltHoverOverlay slideId={slide.id} panX={stagePan.x} panY={stagePan.y} zoom={zoom} />
       <Rulers
         containerRef={containerRef}
         stageW={stageSize.width}

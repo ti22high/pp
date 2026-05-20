@@ -50,6 +50,18 @@ export function ShapeNode({
     (s) => s.selectedShapeIds.length >= 2 && s.selectedShapeIds.includes(id),
   );
   const setEditingShape = useUiStore((s) => s.setEditingShape);
+  const setHoveredAltShape = useUiStore((s) => s.setHoveredAltShape);
+
+  // Наведение: если глобально включён показ alt-текста и у фигуры он задан —
+  // отмечаем её как hovered (Canvas покажет подсказку-оверлей).
+  const handleMouseEnter = () => {
+    if (!useUiStore.getState().showAltOnHover) return;
+    const sh = useDeckStore.getState().deck?.slides[slideId]?.shapes.find((s) => s.id === id);
+    if (sh?.altText) setHoveredAltShape(id);
+  };
+  const handleMouseLeave = () => {
+    if (useUiStore.getState().hoveredAltShapeId === id) setHoveredAltShape(null);
+  };
   // Тип фигуры из стора — нужен, чтобы решить, можно ли поверх двойным
   // кликом открыть text-оверлей (линия — нельзя).
   const shapeType = useDeckStore(
@@ -158,6 +170,8 @@ export function ShapeNode({
         if (shapeType === 'line') return;
         setEditingShape(id);
       }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <Rect x={0} y={0} width={w} height={h} fill="#000" opacity={0.001} />
       {children}

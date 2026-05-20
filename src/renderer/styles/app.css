@@ -417,14 +417,33 @@ body,
   box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.18);
 }
 
-/* Пометка с текущим Alt-текстом под кнопкой в инспекторе (Phase 3.7). */
-.inspector-alt-note {
-  margin: 2px 0 0;
-  font-size: 11px;
-  color: var(--text-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+/* Оверлей-подсказка alt-текста при наведении (Phase 3.7). Абсолютно
+   позиционируется поверх Stage; pointer-events отключены, чтобы не мешать
+   наведению/кликам по самой фигуре. */
+.alt-hover {
+  position: absolute;
+  pointer-events: none;
+  border: 1.5px solid var(--accent);
+  border-radius: 3px;
+  background: rgba(26, 115, 232, 0.06);
+  box-sizing: border-box;
+  z-index: 5;
+}
+.alt-hover__label {
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  margin-bottom: 4px;
+  max-width: 320px;
+  padding: 3px 8px;
+  font-size: 12px;
+  line-height: 1.3;
+  color: #fff;
+  background: var(--accent);
+  border-radius: 4px;
+  white-space: normal;
+  overflow-wrap: break-word;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
 }
 
 /* Поле ввода Alt-текста (Phase 3.7). */

@@ -20,6 +20,8 @@ interface ImageInspectorProps {
 export function ImageInspector({ slideId, shapeId }: ImageInspectorProps) {
   const setCroppingShape = useUiStore((s) => s.setCroppingShape);
   const setAltTextShape = useUiStore((s) => s.setAltTextShape);
+  const showAltOnHover = useUiStore((s) => s.showAltOnHover);
+  const toggleAltOnHover = useUiStore((s) => s.toggleAltOnHover);
   const cropping = useUiStore((s) => s.croppingShapeId === shapeId);
   const recolor = useDeckStore((s) => {
     const sh = s.deck?.slides[slideId]?.shapes.find((x) => x.id === shapeId);
@@ -157,9 +159,15 @@ export function ImageInspector({ slideId, shapeId }: ImageInspectorProps) {
         </div>
       )}
       {!cropping && altText && (
-        <p className="inspector-alt-note" title={altText}>
-          Alt: {altText}
-        </p>
+        <label className="inspector-row inspector-row--checkbox">
+          <input
+            type="checkbox"
+            className="inspector-checkbox"
+            checked={showAltOnHover}
+            onChange={toggleAltOnHover}
+          />
+          <span className="inspector-checkbox-label">Показывать при наведении</span>
+        </label>
       )}
     </section>
   );

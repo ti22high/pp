@@ -20,6 +20,10 @@ interface UiState {
   croppingShapeId: ShapeId | null;
   // id фигуры, для которой открыт диалог Alt-текста (Phase 3.7). null = закрыт.
   altTextShapeId: ShapeId | null;
+  // Глобально показывать alt-текст при наведении на фигуру (Phase 3.7).
+  showAltOnHover: boolean;
+  // id фигуры под курсором, у которой есть alt-текст (для оверлея-подсказки).
+  hoveredAltShapeId: ShapeId | null;
   // Зажат пробел → режим панорамирования холста. Фигуры в это время не
   // перетаскиваются (Konva native drag отключается), чтобы Space+drag по
   // фигуре панорамировал, а не двигал её.
@@ -28,6 +32,8 @@ interface UiState {
   setEditingShape: (id: ShapeId | null) => void;
   setCroppingShape: (id: ShapeId | null) => void;
   setAltTextShape: (id: ShapeId | null) => void;
+  toggleAltOnHover: () => void;
+  setHoveredAltShape: (id: ShapeId | null) => void;
   setSpaceHeld: (held: boolean) => void;
   setZoom: (zoom: number) => void;
   setStagePan: (pan: { x: number; y: number }) => void;
@@ -51,6 +57,8 @@ export const useUiStore = create<UiState>()(
     editingShapeId: null,
     croppingShapeId: null,
     altTextShapeId: null,
+    showAltOnHover: false,
+    hoveredAltShapeId: null,
     spaceHeld: false,
     setActiveSlide: (id) =>
       set((s) => {
@@ -67,6 +75,15 @@ export const useUiStore = create<UiState>()(
     setAltTextShape: (id) =>
       set((s) => {
         s.altTextShapeId = id;
+      }),
+    toggleAltOnHover: () =>
+      set((s) => {
+        s.showAltOnHover = !s.showAltOnHover;
+        if (!s.showAltOnHover) s.hoveredAltShapeId = null;
+      }),
+    setHoveredAltShape: (id) =>
+      set((s) => {
+        s.hoveredAltShapeId = id;
       }),
     setSpaceHeld: (held) =>
       set((s) => {
