@@ -72,13 +72,58 @@ export async function insertImageFromFile(file: File): Promise<void> {
 
 // Открывает системный файловый диалог (через скрытый input) и вставляет выбор.
 export function openImageFileDialog(): void {
+  pickImageFile((file) => void insertImageFromFile(file));
+}
+
+// Заменяет источник существующей картинки (Phase 3.6). Сохраняет позицию
+// (левый-верхний угол) и ширину, высоту пересчитывает по новым пропорциям —
+// чтобы не было искажений. Сбрасывает crop/maskShape (они относились к старым
+// пикселям). Перекраску/яркость/контраст оставляем как настройки кадра.
+export async function replaceImageFromFile(
+  slideId: string,
+  shapeId: string,
+  file: File,
+): Promise<void> {
+  if (!file.type.startsWith('image/')) return;
+  const dataUrl = await fileToDataUrl(file);
+  let nat: { w: number; h: number };
+  try {
+    nat = await probeSize(dataUrl);
+  } catch {
+    return;
+  }
+  if (nat.w <= 0 || nat.h <= 0) return;
+
+  useDeckStore.setState((state) => {
+    if (!state.deck) return;
+    const slide = state.deck.slides[slideId];
+    if (!slide) return;
+    const sh = slide.shapes.find((x) => x.id === shapeId);
+    if (!sh || sh.type !== 'image') return;
+    sh.src = dataUrl;
+    sh.naturalW = nat.w;
+    sh.naturalH = nat.h;
+    sh.h = Math.round(sh.w * (nat.h / nat.w));
+    sh.crop = undefined;
+    sh.maskShape = undefined;
+    state.deck.modifiedAt = new Date().toISOString();
+  });
+}
+
+// Открывает файловый диалог для замены источника указанной картинки.
+export function openReplaceImageDialog(slideId: string, shapeId: string): void {
+  pickImageFile((file) => void replaceImageFromFile(slideId, shapeId, file));
+}
+
+// Общий помощник: скрытый <input type=file> с фильтром на изображения.
+function pickImageFile(onPick: (file: File) => void): void {
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = 'image/png,image/jpeg,image/webp,image/gif,image/svg+xml';
   input.style.display = 'none';
   input.addEventListener('change', () => {
     const file = input.files?.[0];
-    if (file) void insertImageFromFile(file);
+    if (file) onPick(file);
     input.remove();
   });
   document.body.appendChild(input);

@@ -1,7 +1,8 @@
 import { useUiStore } from '@renderer/stores/ui';
 import { useDeckStore } from '@renderer/stores/deck';
 import { useCropBridge } from '@renderer/stores/cropBridge';
-import { setImageRecolor, setImageAdjust } from '@renderer/lib/slides';
+import { setImageRecolor, setImageAdjust, resetImageAdjust } from '@renderer/lib/slides';
+import { openReplaceImageDialog } from '@renderer/lib/insertImage';
 import { maskImageBaked } from '@renderer/lib/imageBake';
 import { MASK_OPTIONS, type MaskKey } from '@renderer/lib/imageMasks';
 import { RECOLOR_OPTIONS, type RecolorKey } from '@renderer/lib/imageFilters';
@@ -124,6 +125,24 @@ export function ImageInspector({ slideId, shapeId }: ImageInspectorProps) {
           format={Math.round}
           onChange={(v) => setImageAdjust(slideId, shapeId, { contrast: v })}
         />
+      )}
+      {!cropping && (
+        <div className="inspector-row inspector-row--buttons">
+          <button
+            type="button"
+            className="inspector-btn"
+            onClick={() => openReplaceImageDialog(slideId, shapeId)}
+          >
+            Заменить
+          </button>
+          <button
+            type="button"
+            className="inspector-btn"
+            onClick={() => resetImageAdjust(slideId, shapeId)}
+          >
+            Сбросить
+          </button>
+        </div>
       )}
     </section>
   );

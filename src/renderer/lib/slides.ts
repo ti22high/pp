@@ -226,6 +226,24 @@ export function setImageAdjust(
   });
 }
 
+// Сбрасывает недеструктивные правки картинки (Phase 3.6): перекраска, яркость,
+// контраст, прозрачность. Crop и форма (maskShape) запечены в пиксели — их
+// сбросить нельзя (только Cmd+Z), поэтому здесь не трогаем.
+export function resetImageAdjust(slideId: string, shapeId: string): void {
+  useDeckStore.setState((state) => {
+    if (!state.deck) return;
+    const slide = state.deck.slides[slideId];
+    if (!slide) return;
+    const sh = slide.shapes.find((x) => x.id === shapeId);
+    if (!sh || sh.type !== 'image') return;
+    sh.recolor = undefined;
+    sh.brightness = undefined;
+    sh.contrast = undefined;
+    sh.opacity = undefined;
+    state.deck.modifiedAt = new Date().toISOString();
+  });
+}
+
 // Ставит / убирает гиперссылку на указанной фигуре. `hl=undefined` снимает
 // ссылку. Используется HyperlinkDialog.
 export function setShapeHyperlink(
