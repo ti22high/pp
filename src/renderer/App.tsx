@@ -13,9 +13,11 @@ import { SlideSizeDialog } from './components/ui/SlideSizeDialog';
 import { PageNumbersDialog } from './components/ui/PageNumbersDialog';
 import { HyperlinkDialog } from './components/ui/HyperlinkDialog';
 import { SpecialCharsDialog } from './components/ui/SpecialCharsDialog';
+import { ShortcutsDialog } from './components/ui/ShortcutsDialog';
 import { useMenuCommands } from './hooks/useMenuCommands';
 import { useShapeClipboard } from './hooks/useShapeClipboard';
 import { useUndoRedo } from './hooks/useUndoRedo';
+import { useArrowNudge } from './hooks/useArrowNudge';
 
 // Главный UI редактора. Структура: header / toolbar / (filmstrip + canvas + inspector).
 // При первом маунте создаём пустой deck — остальные компоненты подписываются на него.
@@ -27,6 +29,7 @@ export function App() {
   const [pageNumbersOpen, setPageNumbersOpen] = useState(false);
   const [hyperlinkOpen, setHyperlinkOpen] = useState(false);
   const [specialCharsOpen, setSpecialCharsOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const deck = useDeckStore((s) => s.deck);
   const setDeck = useDeckStore((s) => s.setDeck);
   const setActiveSlide = useUiStore((s) => s.setActiveSlide);
@@ -34,6 +37,7 @@ export function App() {
   useMenuCommands();
   useShapeClipboard();
   useUndoRedo();
+  useArrowNudge();
 
   // Команда «Слайд → Применить макет…» открывает пикер. Это window-level
   // событие из menu.ts; useMenuCommands игнорирует slide:apply-layout, мы
@@ -47,6 +51,7 @@ export function App() {
       else if (cmd === 'insert:page-number') setPageNumbersOpen(true);
       else if (cmd === 'insert:hyperlink') setHyperlinkOpen(true);
       else if (cmd === 'insert:special-chars') setSpecialCharsOpen(true);
+      else if (cmd === 'help:shortcuts') setShortcutsOpen(true);
     });
   }, []);
 
@@ -99,6 +104,10 @@ export function App() {
       <SpecialCharsDialog
         open={specialCharsOpen}
         onClose={() => setSpecialCharsOpen(false)}
+      />
+      <ShortcutsDialog
+        open={shortcutsOpen}
+        onClose={() => setShortcutsOpen(false)}
       />
     </div>
   );

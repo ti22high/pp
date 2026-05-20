@@ -913,6 +913,51 @@ body,
   font-size: 13px;
   padding: 12px 0;
 }
+
+/* Справка по сочетаниям клавиш (Cmd+/). Двухколоночная сетка групп. */
+.modal--shortcuts {
+  min-width: 640px;
+  max-width: 720px;
+}
+.shortcuts__body {
+  padding: 16px 18px;
+  overflow-y: auto;
+  columns: 2;
+  column-gap: 28px;
+}
+.shortcuts__group {
+  break-inside: avoid;
+  margin-bottom: 16px;
+}
+.shortcuts__group-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin: 0 0 6px;
+}
+.shortcuts__list {
+  margin: 0;
+}
+.shortcuts__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 3px 0;
+  font-size: 13px;
+}
+.shortcuts__keys {
+  font-family: 'Roboto Mono', monospace;
+  color: var(--accent);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.shortcuts__desc {
+  margin: 0;
+  color: var(--text);
+  text-align: right;
+}
 /* Текст внутри shape-bbox. Размер шрифта в slide-coords (20 px) — наследуется
    от .fs-item__shape; CSS-transform на .fs-item__inner уменьшает всё пропорц.
    Раньше тут стоял ручной 6px-шрифт и обрезание — давало искажённую картинку
