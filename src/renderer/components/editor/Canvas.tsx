@@ -15,6 +15,7 @@ import { TextOverlay } from './TextOverlay';
 import { Rulers } from './Rulers';
 import { ShapeContextMenu } from './ShapeContextMenu';
 import { CropOverlay } from './CropOverlay';
+import { TableResizeOverlay } from './TableResizeOverlay';
 import { AltHoverOverlay } from './AltHoverOverlay';
 import { TableCellEditor } from './TableCellEditor';
 
@@ -668,6 +669,7 @@ export function Canvas() {
             <SelectionTransformer slideId={slide.id} getStage={getStage} />
           )}
           <CropOverlay slideId={slide.id} />
+          {!croppingShapeId && <TableResizeOverlay slideId={slide.id} />}
           {rubberBand && (
             <Rect
               x={rubberBand.x}
