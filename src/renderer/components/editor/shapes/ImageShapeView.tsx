@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { Image as KonvaImage, Rect } from 'react-konva';
 import type { ImageShape } from '@renderer/lib/model/schema';
 import { ShapeNode } from './ShapeNode';
+import { ShapeTextLabel } from './ShapeTextLabel';
 import { resolveStroke, resolveShadow } from './paint';
 import { useImageElement } from './useImageElement';
 
@@ -65,6 +66,9 @@ export const ImageShapeView = memo(function ImageShapeViewBase({
           stroke="#dadce0"
           strokeWidth={1}
         />
+      )}
+      {shape.text != null && (
+        <ShapeTextLabel shapeId={shape.id} tiptapDoc={shape.text} w={shape.w} h={shape.h} />
       )}
     </ShapeNode>
   );

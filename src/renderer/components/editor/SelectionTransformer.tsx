@@ -170,8 +170,9 @@ export function SelectionTransformer({ slideId, getStage }: SelectionTransformer
     const oldBottom = oldTop + oldBox.height / zoom;
 
     const th = 6 / zoom;
-    const vTargets = [0, deck.size.w];
-    const hTargets = [0, deck.size.h];
+    // Цели по X: левый край, центр, правый край слайда; по Y — аналогично.
+    const vTargets = [0, deck.size.w / 2, deck.size.w];
+    const hTargets = [0, deck.size.h / 2, deck.size.h];
     const sel = new Set(selectedIds);
     for (const sh of slide.shapes) {
       if (sel.has(sh.id)) continue;
