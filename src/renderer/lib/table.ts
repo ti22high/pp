@@ -208,7 +208,7 @@ export interface CellFormat {
   borderColor?: string;
   borderWidth?: number;
   padding?: number;
-  align?: 'left' | 'center' | 'right';
+  align?: 'left' | 'center' | 'right' | 'justify';
   valign?: 'top' | 'middle' | 'bottom';
 }
 

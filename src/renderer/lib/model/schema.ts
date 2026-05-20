@@ -217,7 +217,7 @@ export const tableCellSchema = z.object({
   borderColor: colorSchema.optional(),
   borderWidth: z.number().min(0).optional(),
   padding: z.number().min(0).optional(),
-  align: z.enum(['left', 'center', 'right']).optional(),
+  align: z.enum(['left', 'center', 'right', 'justify']).optional(),
   valign: z.enum(['top', 'middle', 'bottom']).optional(),
 });
 // Таблица (Phase 3.8): сетка rows×cols. Ширины колонок и высоты строк хранятся

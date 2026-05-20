@@ -111,23 +111,48 @@ export function TableCellFormatDialog() {
             />
           </label>
 
-          <label className="slide-size__field">
+          <div className="slide-size__field">
             <span>По горизонтали</span>
-            <select value={align} onChange={(e) => apply({ align: e.target.value as CellFormat['align'] })}>
-              <option value="left">Слева</option>
-              <option value="center">По центру</option>
-              <option value="right">Справа</option>
-            </select>
-          </label>
+            <div className="seg-group" role="group">
+              {([
+                ['left', '⬅', 'Слева'],
+                ['center', '⬌', 'По центру'],
+                ['right', '➡', 'Справа'],
+                ['justify', '☰', 'По ширине'],
+              ] as const).map(([val, icon, title]) => (
+                <button
+                  key={val}
+                  type="button"
+                  title={title}
+                  className={`seg-btn${align === val ? ' seg-btn--active' : ''}`}
+                  onClick={() => apply({ align: val })}
+                >
+                  {icon}
+                </button>
+              ))}
+            </div>
+          </div>
 
-          <label className="slide-size__field">
+          <div className="slide-size__field">
             <span>По вертикали</span>
-            <select value={valign} onChange={(e) => apply({ valign: e.target.value as CellFormat['valign'] })}>
-              <option value="top">Сверху</option>
-              <option value="middle">По центру</option>
-              <option value="bottom">Снизу</option>
-            </select>
-          </label>
+            <div className="seg-group" role="group">
+              {([
+                ['top', '⤒', 'Сверху'],
+                ['middle', '⬍', 'По центру'],
+                ['bottom', '⤓', 'Снизу'],
+              ] as const).map(([val, icon, title]) => (
+                <button
+                  key={val}
+                  type="button"
+                  title={title}
+                  className={`seg-btn${valign === val ? ' seg-btn--active' : ''}`}
+                  onClick={() => apply({ valign: val })}
+                >
+                  {icon}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
       <footer className="slide-size__footer">
