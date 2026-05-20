@@ -3,6 +3,55 @@ import { useDeckStore } from '@renderer/stores/deck';
 import { useUiStore } from '@renderer/stores/ui';
 import { tableOps, type CellFormat } from '@renderer/lib/table';
 
+const H_TITLES = { left: 'Слева', center: 'По центру', right: 'Справа', justify: 'По ширине' };
+const V_TITLES = { top: 'Сверху', middle: 'По центру', bottom: 'Снизу' };
+
+// SVG-иконки выравнивания текста (горизонтальные линии разной длины/привязки),
+// как в Slides — без эмодзи.
+function HAlignIcon({ kind }: { kind: 'left' | 'center' | 'right' | 'justify' }) {
+  // Четыре линии; для каждого режима задаём [x1,x2] по строкам.
+  const rows: Array<[number, number]> =
+    kind === 'left'
+      ? [[2, 14], [2, 10], [2, 13], [2, 8]]
+      : kind === 'right'
+        ? [[2, 14], [6, 14], [3, 14], [8, 14]]
+        : kind === 'center'
+          ? [[2, 14], [4, 12], [3, 13], [5, 11]]
+          : [[2, 14], [2, 14], [2, 14], [2, 14]];
+  const ys = [3.5, 6.5, 9.5, 12.5];
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+      {rows.map(([x1, x2], i) => (
+        <line
+          key={i}
+          x1={x1}
+          y1={ys[i]}
+          x2={x2}
+          y2={ys[i]}
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+        />
+      ))}
+    </svg>
+  );
+}
+
+// SVG-иконки вертикального выравнивания: жирная полоса у нужного края +
+// две тонкие «строки текста».
+function VAlignIcon({ kind }: { kind: 'top' | 'middle' | 'bottom' }) {
+  const barY = kind === 'top' ? 2.5 : kind === 'middle' ? 8 : 13.5;
+  const textYs = kind === 'top' ? [6, 9] : kind === 'middle' ? [4.5, 11.5] : [7, 10];
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+      <line x1="2" y1={barY} x2="14" y2={barY} stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      {textYs.map((y, i) => (
+        <line key={i} x1="5" y1={y} x2="11" y2={y} stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      ))}
+    </svg>
+  );
+}
+
 // Диалог «Формат ячеек» (Phase 3.10). Открывается из контекстного меню таблицы;
 // применяет фон, границу, padding и выравнивание к выбранному диапазону ячеек.
 // Изменения применяются сразу (live), закрытие — Esc / кнопка / клик по фону.
@@ -114,20 +163,15 @@ export function TableCellFormatDialog() {
           <div className="slide-size__field">
             <span>По горизонтали</span>
             <div className="seg-group" role="group">
-              {([
-                ['left', '⬅', 'Слева'],
-                ['center', '⬌', 'По центру'],
-                ['right', '➡', 'Справа'],
-                ['justify', '☰', 'По ширине'],
-              ] as const).map(([val, icon, title]) => (
+              {(['left', 'center', 'right', 'justify'] as const).map((val) => (
                 <button
                   key={val}
                   type="button"
-                  title={title}
+                  title={H_TITLES[val]}
                   className={`seg-btn${align === val ? ' seg-btn--active' : ''}`}
                   onClick={() => apply({ align: val })}
                 >
-                  {icon}
+                  <HAlignIcon kind={val} />
                 </button>
               ))}
             </div>
@@ -136,19 +180,15 @@ export function TableCellFormatDialog() {
           <div className="slide-size__field">
             <span>По вертикали</span>
             <div className="seg-group" role="group">
-              {([
-                ['top', '⤒', 'Сверху'],
-                ['middle', '⬍', 'По центру'],
-                ['bottom', '⤓', 'Снизу'],
-              ] as const).map(([val, icon, title]) => (
+              {(['top', 'middle', 'bottom'] as const).map((val) => (
                 <button
                   key={val}
                   type="button"
-                  title={title}
+                  title={V_TITLES[val]}
                   className={`seg-btn${valign === val ? ' seg-btn--active' : ''}`}
                   onClick={() => apply({ valign: val })}
                 >
-                  {icon}
+                  <VAlignIcon kind={val} />
                 </button>
               ))}
             </div>
