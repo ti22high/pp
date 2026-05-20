@@ -27,7 +27,9 @@ export const ChartShapeView = memo(function ChartShapeViewBase({ shape, slideId 
   const { w, h } = shape;
   const els: ReactNode[] = [];
 
-  const titleH = shape.title ? 24 : 0;
+  const titlePos = shape.titlePosition ?? 'top';
+  const titleTopH = shape.title && titlePos === 'top' ? 24 : 0;
+  const titleBotH = shape.title && titlePos === 'bottom' ? 24 : 0;
   const legendPos = shape.legendPosition ?? 'top';
   const isPieLike = shape.chartType === 'pie' || shape.chartType === 'doughnut';
   const legendItems = isPieLike
@@ -43,22 +45,22 @@ export const ChartShapeView = memo(function ChartShapeViewBase({ shape, slideId 
 
   const plot: Rect4 = {
     x: legendPos === 'left' ? legW : 0,
-    y: titleH + (legendPos === 'top' ? legH : 0),
+    y: titleTopH + (legendPos === 'top' ? legH : 0),
     w: w - legW,
-    h: h - titleH - legH,
+    h: h - titleTopH - titleBotH - legH,
   };
 
-  // Заголовок.
+  // Заголовок (сверху или снизу).
   if (shape.title) {
     els.push(
-      <Text key="title" x={0} y={5} width={w} align="center" text={shape.title} fontSize={15} fontStyle="bold" fill="#202124" />,
+      <Text key="title" x={0} y={titlePos === 'top' ? 5 : h - 20} width={w} align="center" text={shape.title} fontSize={15} fontStyle="bold" fill="#202124" />,
     );
   }
 
   // Легенда.
   if (showLegend) {
     const horizontal = legendPos === 'top' || legendPos === 'bottom';
-    const ly = legendPos === 'bottom' ? h - 18 : legendPos === 'top' ? titleH + 3 : titleH + 6;
+    const ly = legendPos === 'bottom' ? h - 18 - titleBotH : legendPos === 'top' ? titleTopH + 3 : titleTopH + 6;
     const lx0 = legendPos === 'right' ? w - legW + 8 : 8;
     let lx = lx0;
     let lyv = ly;

@@ -80,6 +80,10 @@ export const chartOps = {
     withChart(slideId, shapeId, (c) => {
       c.title = title.trim() === '' ? undefined : title;
     }),
+  setTitlePosition: (slideId: string, shapeId: string, pos: 'top' | 'bottom') =>
+    withChart(slideId, shapeId, (c) => {
+      c.titlePosition = pos;
+    }),
   setLegendPosition: (slideId: string, shapeId: string, pos: 'top' | 'bottom' | 'left' | 'right') =>
     withChart(slideId, shapeId, (c) => {
       c.legendPosition = pos;

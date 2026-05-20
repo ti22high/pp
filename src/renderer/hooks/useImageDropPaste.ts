@@ -11,6 +11,8 @@ import {
   insertTableFromRows,
   tableRowsFromClipboard,
 } from '@renderer/lib/csvImport';
+import { paste as pasteShapes } from '@renderer/lib/clipboard';
+import { useClipboardStore } from '@renderer/stores/clipboard';
 
 // Глобальные обработчики вставки изображений (Phase 3.1):
 // - drag-n-drop файла-картинки в окно → вставка на активный слайд;
@@ -83,6 +85,12 @@ export function useImageDropPaste(): void {
       if (tbl && (tbl.text.length > 1 || (tbl.text[0]?.length ?? 0) > 1)) {
         e.preventDefault();
         insertTableFromRows(tbl.text, tbl.fmt);
+        return;
+      }
+      // Внешнего контента нет — вставляем внутренний буфер фигур (если есть).
+      if (useClipboardStore.getState().shapes.length > 0) {
+        e.preventDefault();
+        pasteShapes();
       }
     };
 

@@ -74,6 +74,13 @@ export function ChartDataPanel() {
           <span>Заголовок</span>
           <input type="text" value={chart.title ?? ''} onChange={(e) => chartOps.setTitle(sid, id, e.target.value)} />
         </label>
+        <label className="slide-size__field">
+          <span>Позиция заголовка</span>
+          <select value={chart.titlePosition ?? 'top'} onChange={(e) => chartOps.setTitlePosition(sid, id, e.target.value as 'top' | 'bottom')}>
+            <option value="top">Сверху</option>
+            <option value="bottom">Снизу</option>
+          </select>
+        </label>
 
         <label className="inspector-row inspector-row--checkbox">
           <input type="checkbox" className="inspector-checkbox" checked={chart.showLegend ?? false} onChange={() => chartOps.toggleLegend(sid, id)} />

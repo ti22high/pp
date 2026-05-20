@@ -274,6 +274,7 @@ export const chartShapeSchema = z.object({
   axisYTitle: z.string().optional(),
   // Phase 3.14b.
   title: z.string().optional(),
+  titlePosition: z.enum(['top', 'bottom']).optional(),
   legendPosition: z.enum(['top', 'bottom', 'left', 'right']).optional(),
   dataLabels: z.boolean().optional(),
   numberFormat: z.enum(['auto', 'integer', 'percent', 'thousands']).optional(),

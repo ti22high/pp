@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { useSelectionStore } from '@renderer/stores/selection';
-import { useClipboardStore } from '@renderer/stores/clipboard';
-import { copy, cut, paste, duplicate, deleteSelected, selectAll } from '@renderer/lib/clipboard';
+import { copy, cut, duplicate, deleteSelected, selectAll } from '@renderer/lib/clipboard';
 
 // Cmd/Ctrl+C / X / V / D / A для фигур на канвасе + Del / Backspace.
 // Игнорирует события из text-input / contenteditable, чтобы не конфликтовать
@@ -36,14 +35,12 @@ export function useShapeClipboard() {
         e.preventDefault();
         cut();
       } else if (key === 'v') {
-        // Внутренний буфер фигур вставляем ТОЛЬКО если в нём что-то есть.
-        // Иначе НЕ глушим событие — пусть сработает нативный paste, чтобы
-        // useImageDropPaste вставил картинку/таблицу из внешнего буфера
-        // (Excel/Sheets/скриншот).
-        if (useClipboardStore.getState().shapes.length > 0) {
-          e.preventDefault();
-          paste();
-        }
+        // Вставку (Cmd+V) НЕ перехватываем здесь — её целиком обрабатывает
+        // событие `paste` (useImageDropPaste): сначала внешний буфер
+        // (картинка/таблица из Excel/Sheets), а если его нет — внутренние
+        // фигуры. Так внешний контент имеет приоритет над «застрявшим»
+        // внутренним буфером.
+        return;
       } else if (key === 'd') {
         e.preventDefault();
         duplicate();
