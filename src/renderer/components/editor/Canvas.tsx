@@ -14,6 +14,7 @@ import { SelectionTransformer } from './SelectionTransformer';
 import { TextOverlay } from './TextOverlay';
 import { Rulers } from './Rulers';
 import { ShapeContextMenu } from './ShapeContextMenu';
+import { CropOverlay } from './CropOverlay';
 
 // Canvas — хост Konva Stage. Размер стейджа адаптируется к контейнеру.
 // Содержимое: один активный слайд, отцентрированный и масштабированный по uiStore.zoom.
@@ -36,6 +37,7 @@ export function Canvas() {
   const setStagePan = useUiStore((s) => s.setStagePan);
   const spaceHeld = useUiStore((s) => s.spaceHeld);
   const setSpaceHeld = useUiStore((s) => s.setSpaceHeld);
+  const croppingShapeId = useUiStore((s) => s.croppingShapeId);
   const getStage = useCallback(() => stageRef.current, []);
 
   // Признак: пользователь уже менял pan/zoom вручную → не пере-центрируем автоматически.
@@ -660,7 +662,10 @@ export function Canvas() {
           <Slide slide={slide} width={slideW} height={slideH} />
         </Layer>
         <Layer>
-          <SelectionTransformer slideId={slide.id} getStage={getStage} />
+          {!croppingShapeId && (
+            <SelectionTransformer slideId={slide.id} getStage={getStage} />
+          )}
+          <CropOverlay slideId={slide.id} />
           {rubberBand && (
             <Rect
               x={rubberBand.x}

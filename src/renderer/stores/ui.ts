@@ -16,12 +16,15 @@ interface UiState {
   showInspector: boolean;
   // id текстовой фигуры, открытой в TipTap-оверлее (null = режим просмотра).
   editingShapeId: ShapeId | null;
+  // id изображения в режиме обрезки (crop). null = не обрезаем.
+  croppingShapeId: ShapeId | null;
   // Зажат пробел → режим панорамирования холста. Фигуры в это время не
   // перетаскиваются (Konva native drag отключается), чтобы Space+drag по
   // фигуре панорамировал, а не двигал её.
   spaceHeld: boolean;
   setActiveSlide: (id: SlideId | null) => void;
   setEditingShape: (id: ShapeId | null) => void;
+  setCroppingShape: (id: ShapeId | null) => void;
   setSpaceHeld: (held: boolean) => void;
   setZoom: (zoom: number) => void;
   setStagePan: (pan: { x: number; y: number }) => void;
@@ -43,6 +46,7 @@ export const useUiStore = create<UiState>()(
     showFilmstrip: true,
     showInspector: true,
     editingShapeId: null,
+    croppingShapeId: null,
     spaceHeld: false,
     setActiveSlide: (id) =>
       set((s) => {
@@ -51,6 +55,10 @@ export const useUiStore = create<UiState>()(
     setEditingShape: (id) =>
       set((s) => {
         s.editingShapeId = id;
+      }),
+    setCroppingShape: (id) =>
+      set((s) => {
+        s.croppingShapeId = id;
       }),
     setSpaceHeld: (held) =>
       set((s) => {

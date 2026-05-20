@@ -241,6 +241,33 @@ body,
   gap: 6px 8px;
   margin-bottom: 6px;
 }
+.inspector-row--buttons {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.inspector-btn {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-panel);
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+}
+.inspector-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.inspector-btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.inspector-btn--primary:hover {
+  background: #1765c1;
+  border-color: #1765c1;
+  color: #fff;
+}
 .inspector-row {
   display: flex;
   align-items: center;
