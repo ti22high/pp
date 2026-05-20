@@ -42,6 +42,8 @@ export function ShapeNode({
   children,
 }: ShapeNodeProps) {
   const snapToGrid = useUiStore((s) => s.snapToGrid);
+  // Зажат пробел → панорамирование холста имеет приоритет, фигуры не таскаем.
+  const spaceHeld = useUiStore((s) => s.spaceHeld);
   // В мульти-выделении (2+) Konva native drag отключаем — drag обрабатывает
   // Canvas-овый multiDragRef.
   const inMultiSelection = useSelectionStore(
@@ -145,7 +147,7 @@ export function ShapeNode({
       height={h}
       rotation={rotation ?? 0}
       opacity={opacity ?? 1}
-      draggable={!locked && !inMultiSelection}
+      draggable={!locked && !inMultiSelection && !spaceHeld}
       onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
       onDblClick={() => {

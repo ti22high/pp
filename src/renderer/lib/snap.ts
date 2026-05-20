@@ -132,6 +132,28 @@ export function computeSnap(
   };
 }
 
+// Привязка одного значения-координаты (ребра bbox) к ближайшей цели в
+// пределах threshold. Возвращает привязанное значение и саму цель (для
+// рисования направляющей) либо null, если ничего не подошло.
+export function snapEdge(
+  value: number,
+  targets: number[],
+  threshold: number,
+): { value: number; line: number | null } {
+  let best = value;
+  let bestAbs = threshold;
+  let line: number | null = null;
+  for (const t of targets) {
+    const abs = Math.abs(t - value);
+    if (abs <= bestAbs) {
+      bestAbs = abs;
+      best = t;
+      line = t;
+    }
+  }
+  return { value: best, line };
+}
+
 // Объединённый bbox набора фигур (для multi-drag).
 export function unionBox(boxes: SnapBox[]): SnapBox | null {
   if (boxes.length === 0) return null;

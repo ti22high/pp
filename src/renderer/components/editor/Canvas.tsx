@@ -34,7 +34,8 @@ export function Canvas() {
   const setZoom = useUiStore((s) => s.setZoom);
   const stagePan = useUiStore((s) => s.stagePan);
   const setStagePan = useUiStore((s) => s.setStagePan);
-  const [spaceHeld, setSpaceHeld] = useState(false);
+  const spaceHeld = useUiStore((s) => s.spaceHeld);
+  const setSpaceHeld = useUiStore((s) => s.setSpaceHeld);
   const getStage = useCallback(() => stageRef.current, []);
 
   // Признак: пользователь уже менял pan/zoom вручную → не пере-центрируем автоматически.

@@ -3,6 +3,9 @@ import { Transformer } from 'react-konva';
 import type Konva from 'konva';
 import { useSelectionStore } from '@renderer/stores/selection';
 import { useDeckStore } from '@renderer/stores/deck';
+import { useUiStore } from '@renderer/stores/ui';
+import { useGuidesStore } from '@renderer/stores/guides';
+import { snapEdge, type Guide } from '@renderer/lib/snap';
 import type { ShapeId } from '@shared/types';
 
 interface SelectionTransformerProps {
@@ -136,16 +139,91 @@ export function SelectionTransformer({ slideId, getStage }: SelectionTransformer
     });
   };
 
+  // Snap при resize: привязка движущихся рёбер bbox к краям слайда и
+  // к рёбрам/центрам других фигур. Работает только без поворота (для
+  // повёрнутых фигур геометрия рёбер не осепараллельна). Подсвечивает
+  // направляющие через useGuidesStore (очищаются в onTransformEnd).
+  const resizeBoundBox = (
+    oldBox: { x: number; y: number; width: number; height: number; rotation: number },
+    newBox: { x: number; y: number; width: number; height: number; rotation: number },
+  ) => {
+    if (newBox.width < 5 || newBox.height < 5) return oldBox;
+    if (Math.abs(newBox.rotation) > 0.001) return newBox;
+
+    const ui = useUiStore.getState();
+    const zoom = ui.zoom || 1;
+    const pan = ui.stagePan;
+    const deck = useDeckStore.getState().deck;
+    const slide = deck?.slides[slideId];
+    if (!deck || !slide) return newBox;
+
+    // boundBox в абсолютных stage-координатах → переводим в slide-coords.
+    const toSx = (ax: number) => (ax - pan.x) / zoom;
+    const toSy = (ay: number) => (ay - pan.y) / zoom;
+    let left = toSx(newBox.x);
+    let top = toSy(newBox.y);
+    let right = left + newBox.width / zoom;
+    let bottom = top + newBox.height / zoom;
+    const oldLeft = toSx(oldBox.x);
+    const oldTop = toSy(oldBox.y);
+    const oldRight = oldLeft + oldBox.width / zoom;
+    const oldBottom = oldTop + oldBox.height / zoom;
+
+    const th = 6 / zoom;
+    const vTargets = [0, deck.size.w];
+    const hTargets = [0, deck.size.h];
+    const sel = new Set(selectedIds);
+    for (const sh of slide.shapes) {
+      if (sel.has(sh.id)) continue;
+      vTargets.push(sh.x, sh.x + sh.w / 2, sh.x + sh.w);
+      hTargets.push(sh.y, sh.y + sh.h / 2, sh.y + sh.h);
+    }
+
+    const guides: Guide[] = [];
+    const changed = (a: number, b: number) => Math.abs(a - b) > 0.01;
+    // Снепаем только те рёбра, что реально двигаются (зависит от анкора).
+    if (changed(left, oldLeft)) {
+      const r = snapEdge(left, vTargets, th);
+      left = r.value;
+      if (r.line !== null) guides.push({ kind: 'v', pos: r.line });
+    }
+    if (changed(right, oldRight)) {
+      const r = snapEdge(right, vTargets, th);
+      right = r.value;
+      if (r.line !== null) guides.push({ kind: 'v', pos: r.line });
+    }
+    if (changed(top, oldTop)) {
+      const r = snapEdge(top, hTargets, th);
+      top = r.value;
+      if (r.line !== null) guides.push({ kind: 'h', pos: r.line });
+    }
+    if (changed(bottom, oldBottom)) {
+      const r = snapEdge(bottom, hTargets, th);
+      bottom = r.value;
+      if (r.line !== null) guides.push({ kind: 'h', pos: r.line });
+    }
+    useGuidesStore.getState().setGuides(guides);
+
+    if (right - left < 5 || bottom - top < 5) return newBox;
+    return {
+      ...newBox,
+      x: left * zoom + pan.x,
+      y: top * zoom + pan.y,
+      width: (right - left) * zoom,
+      height: (bottom - top) * zoom,
+    };
+  };
+
   return (
     <Transformer
       ref={transformerRef}
       onTransform={bakeTransform}
-      onTransformEnd={bakeTransform}
-      rotateEnabled
-      boundBoxFunc={(oldBox, newBox) => {
-        if (newBox.width < 5 || newBox.height < 5) return oldBox;
-        return newBox;
+      onTransformEnd={() => {
+        bakeTransform();
+        useGuidesStore.getState().clear();
       }}
+      rotateEnabled
+      boundBoxFunc={resizeBoundBox}
       enabledAnchors={enabledAnchors as unknown as string[]}
       anchorSize={9}
       anchorCornerRadius={2}
