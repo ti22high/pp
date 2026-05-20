@@ -57,15 +57,27 @@ export function CropOverlay({ slideId }: CropOverlayProps) {
   const trRef = useRef<Konva.Transformer>(null);
 
   useEffect(() => {
-    if (!shape || !full || !fixedFrame) {
+    if (!shape) {
       setRect(null);
       return;
     }
-    // Masked → манипулируем изображением (init = полный кадр).
-    // Rect → манипулируем областью кропа (init = текущий bbox).
-    setRect(masked ? full : { x: shape.x, y: shape.y, w: shape.w, h: shape.h });
+    // В обоих режимах rect = текущий bbox фигуры.
+    // Masked → rect это форма (двигаем/тянем форму, картинка cover-вписывается).
+    // Rect → rect это область кропа.
+    setRect({ x: shape.x, y: shape.y, w: shape.w, h: shape.h });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [croppingId]);
+
+  // Cover-fit: прямоугольник, в который вписана картинка целиком, покрывая
+  // рамку формы (frame) без искажения пропорций, по центру.
+  const coverDisp = (frame: Box): Box => {
+    const nW = img?.naturalWidth ?? 1;
+    const nH = img?.naturalHeight ?? 1;
+    const scale = Math.max(frame.w / nW, frame.h / nH);
+    const w = nW * scale;
+    const h = nH * scale;
+    return { x: frame.x + (frame.w - w) / 2, y: frame.y + (frame.h - h) / 2, w, h };
+  };
 
   const rectReady = rect !== null;
   useEffect(() => {
@@ -83,14 +95,16 @@ export function CropOverlay({ slideId }: CropOverlayProps) {
       return;
     }
     if (masked) {
-      // crop = доля fixedFrame внутри текущего imageRect (rect).
+      // Картинка cover-вписана в форму (rect). crop = доля формы внутри
+      // cover-прямоугольника картинки — гарантированно без искажения.
+      const disp = coverDisp(rect);
       const cropFrac = {
-        x: (fixedFrame.x - rect.x) / rect.w,
-        y: (fixedFrame.y - rect.y) / rect.h,
-        w: fixedFrame.w / rect.w,
-        h: fixedFrame.h / rect.h,
+        x: (rect.x - disp.x) / disp.w,
+        y: (rect.y - disp.y) / disp.h,
+        w: rect.w / disp.w,
+        h: rect.h / disp.h,
       };
-      setImageCropAbsolute(slideId, shape.id, cropFrac);
+      setImageCropAbsolute(slideId, shape.id, cropFrac, rect);
     } else {
       const cropFrac = {
         x: (rect.x - full.x) / full.w,
@@ -134,39 +148,34 @@ export function CropOverlay({ slideId }: CropOverlayProps) {
     const y = Math.max(full.y, Math.min(b.y, full.y + full.h - h));
     return { x, y, w, h };
   };
-  // masked-режим: изображение должно полностью покрывать форму (fixedFrame).
-  const clampImage = (b: Box): Box => {
-    const w = Math.max(b.w, fixedFrame.w);
-    const h = Math.max(b.h, fixedFrame.h);
-    const x = Math.min(fixedFrame.x, Math.max(b.x, fixedFrame.x + fixedFrame.w - w));
-    const y = Math.min(fixedFrame.y, Math.max(b.y, fixedFrame.y + fixedFrame.h - h));
-    return { x, y, w, h };
-  };
+
+  // Cover-вписанная картинка для текущей формы (masked-режим).
+  const disp = masked ? coverDisp(rect) : full;
 
   return (
     <>
       {masked ? (
         <>
-          {/* Изображение целиком, затемнено. */}
+          {/* Cover-вписанная картинка целиком, затемнена. */}
           <KonvaImage
-            x={rect.x}
-            y={rect.y}
-            width={rect.w}
-            height={rect.h}
+            x={disp.x}
+            y={disp.y}
+            width={disp.w}
+            height={disp.h}
             image={img}
             opacity={0.35}
             listening={false}
           />
-          {/* Яркая часть — внутри фиксированной формы. */}
+          {/* Яркая часть — внутри формы (= рамка). */}
           <Group
             clipFunc={(ctx) =>
-              maskClipFunc(shape.maskShape!, fixedFrame.x, fixedFrame.y, fixedFrame.w, fixedFrame.h)(ctx)
+              maskClipFunc(shape.maskShape!, rect.x, rect.y, rect.w, rect.h)(ctx)
             }
             listening={false}
           >
-            <KonvaImage x={rect.x} y={rect.y} width={rect.w} height={rect.h} image={img} listening={false} />
+            <KonvaImage x={disp.x} y={disp.y} width={disp.w} height={disp.h} image={img} listening={false} />
           </Group>
-          {/* Контур формы (фиксирован). */}
+          {/* Контур формы (= рамка, двигается/тянется). */}
           <Shape
             x={0}
             y={0}
@@ -175,11 +184,11 @@ export function CropOverlay({ slideId }: CropOverlayProps) {
             strokeWidth={2}
             strokeScaleEnabled={false}
             sceneFunc={(ctx, s) => {
-              maskClipFunc(shape.maskShape!, fixedFrame.x, fixedFrame.y, fixedFrame.w, fixedFrame.h)(ctx);
+              maskClipFunc(shape.maskShape!, rect.x, rect.y, rect.w, rect.h)(ctx);
               ctx.strokeShape(s);
             }}
           />
-          {/* Прокси-рамка изображения: drag + масштаб (с сохранением пропорций). */}
+          {/* Прокси-рамка формы: drag + resize (картинка cover-перевписывается). */}
           <Rect
             ref={rectRef}
             x={rect.x}
@@ -192,9 +201,7 @@ export function CropOverlay({ slideId }: CropOverlayProps) {
             strokeScaleEnabled={false}
             draggable
             onDragMove={(e) => {
-              const next = clampImage({ x: e.target.x(), y: e.target.y(), w: rect.w, h: rect.h });
-              e.target.position({ x: next.x, y: next.y });
-              setRect(next);
+              setRect({ x: e.target.x(), y: e.target.y(), w: rect.w, h: rect.h });
             }}
             onTransform={(e) => {
               const node = e.target as Konva.Rect;
@@ -202,18 +209,14 @@ export function CropOverlay({ slideId }: CropOverlayProps) {
               const h = Math.max(10, node.height() * node.scaleY());
               node.scaleX(1);
               node.scaleY(1);
-              const next = clampImage({ x: node.x(), y: node.y(), w, h });
-              node.position({ x: next.x, y: next.y });
-              node.width(next.w);
-              node.height(next.h);
-              setRect(next);
+              node.width(w);
+              node.height(h);
+              setRect({ x: node.x(), y: node.y(), w, h });
             }}
           />
           <Transformer
             ref={trRef}
             rotateEnabled={false}
-            keepRatio
-            enabledAnchors={['top-left', 'top-right', 'bottom-left', 'bottom-right']}
             anchorSize={9}
             anchorCornerRadius={2}
             borderStroke="#9aa0a6"

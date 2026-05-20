@@ -226,6 +226,7 @@ export function setImageCropAbsolute(
   slideId: string,
   shapeId: string,
   cropFrac: { x: number; y: number; w: number; h: number },
+  box?: { x: number; y: number; w: number; h: number },
 ): void {
   useDeckStore.setState((state) => {
     if (!state.deck) return;
@@ -239,6 +240,12 @@ export function setImageCropAbsolute(
       w: Math.max(0.01, Math.min(1, cropFrac.w)),
       h: Math.max(0.01, Math.min(1, cropFrac.h)),
     };
+    if (box) {
+      sh.x = box.x;
+      sh.y = box.y;
+      sh.w = box.w;
+      sh.h = box.h;
+    }
     state.deck.modifiedAt = new Date().toISOString();
   });
 }
