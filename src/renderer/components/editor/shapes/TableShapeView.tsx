@@ -35,12 +35,17 @@ export const TableShapeView = memo(function TableShapeViewBase({ shape, slideId 
   const localPoint = (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) =>
     e.currentTarget.getRelativePointerPosition();
 
-  const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+  // Выбор ячейки — на mousedown (не click): у таблицы Group draggable, и любой
+  // микро-сдвиг гасит click, из-за чего выбор не обновлялся. Shift расширяет
+  // диапазон; в этом случае гасим всплытие, чтобы Stage не переключил
+  // выделение самой фигуры (его shift-логика мульти-выделения).
+  const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
     const p = localPoint(e);
     if (!p) return;
     const hit = cellAtPoint(shape, p.x, p.y);
     if (!hit) return;
     if (e.evt.shiftKey && selection) {
+      e.cancelBubble = true;
       setTableSelection({ shapeId: shape.id, r0: selection.r0, c0: selection.c0, r1: hit.row, c1: hit.col });
     } else {
       setTableSelection({ shapeId: shape.id, r0: hit.row, c0: hit.col, r1: hit.row, c1: hit.col });
@@ -75,7 +80,7 @@ export const TableShapeView = memo(function TableShapeViewBase({ shape, slideId 
       opacity={shape.opacity}
       locked={shape.locked}
     >
-      <Group onClick={handleClick} onDblClick={handleDblClick} onDblTap={handleDblClick}>
+      <Group onMouseDown={handleMouseDown} onDblClick={handleDblClick} onDblTap={handleDblClick}>
         <Rect x={0} y={0} width={shape.w} height={shape.h} fill="#ffffff" />
         {rects.map((r) => {
           const isEditing = editing && editing.row === r.row && editing.col === r.col;
