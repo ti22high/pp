@@ -1,5 +1,6 @@
 import { useDeckStore } from '@renderer/stores/deck';
 import { useUiStore } from '@renderer/stores/ui';
+import { useCropBridge } from '@renderer/stores/cropBridge';
 import { resetImageCrop } from '@renderer/lib/slides';
 import type { ShapeId, SlideId } from '@shared/types';
 
@@ -22,13 +23,22 @@ export function ImageInspector({ slideId, shapeId }: ImageInspectorProps) {
       <p className="panel-title">Изображение</p>
       <div className="inspector-row inspector-row--buttons">
         {cropping ? (
-          <button
-            type="button"
-            className="inspector-btn inspector-btn--primary"
-            onClick={() => setCroppingShape(null)}
-          >
-            Готово (Enter)
-          </button>
+          <>
+            <button
+              type="button"
+              className="inspector-btn inspector-btn--primary"
+              onClick={() => useCropBridge.getState().commit?.()}
+            >
+              Готово (Enter)
+            </button>
+            <button
+              type="button"
+              className="inspector-btn"
+              onClick={() => useCropBridge.getState().cancel?.()}
+            >
+              Отмена (Esc)
+            </button>
+          </>
         ) : (
           <button
             type="button"

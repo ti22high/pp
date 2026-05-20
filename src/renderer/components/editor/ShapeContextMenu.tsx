@@ -55,6 +55,13 @@ export function ShapeContextMenu({ x, y, onClose }: ShapeContextMenuProps) {
   const hasSel = selectedIds.length > 0;
   const canGrp = selectedIds.length >= 2 && canGroup(selectedIds, shapes);
   const canUngrp = hasSel && canUngroup(selectedIds, shapes);
+  // Обрезка доступна, когда выделено ровно одно изображение.
+  const singleImageId =
+    selectedIds.length === 1 &&
+    shapes.find((s) => s.id === selectedIds[0])?.type === 'image'
+      ? selectedIds[0]
+      : null;
+  const setCroppingShape = useUiStore.getState().setCroppingShape;
 
   const run = (fn: () => void) => {
     fn();
@@ -96,6 +103,18 @@ export function ShapeContextMenu({ x, y, onClose }: ShapeContextMenuProps) {
       >
         Дублировать
       </button>
+
+      {singleImageId && (
+        <>
+          <div className="ctx-menu__sep" />
+          <button
+            className="ctx-menu__item"
+            onClick={() => run(() => setCroppingShape(singleImageId))}
+          >
+            Обрезать
+          </button>
+        </>
+      )}
 
       <div className="ctx-menu__sep" />
 

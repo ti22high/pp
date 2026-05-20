@@ -3,6 +3,7 @@ import { Group, Image as KonvaImage, Rect, Transformer } from 'react-konva';
 import type Konva from 'konva';
 import { useDeckStore } from '@renderer/stores/deck';
 import { useUiStore } from '@renderer/stores/ui';
+import { useCropBridge } from '@renderer/stores/cropBridge';
 import { applyImageCrop } from '@renderer/lib/slides';
 import { useImageElement } from './shapes/useImageElement';
 
@@ -92,7 +93,12 @@ export function CropOverlay({ slideId }: CropOverlayProps) {
       }
     };
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    // Регистрируем commit/cancel для кнопок вне Stage (ImageInspector).
+    useCropBridge.getState().setHandlers(confirm, cancel);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      useCropBridge.getState().setHandlers(null, null);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [croppingId, frame, shape]);
 
