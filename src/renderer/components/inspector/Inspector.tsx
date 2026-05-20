@@ -10,7 +10,6 @@ import { ShadowInspector } from './ShadowInspector';
 import { ReflectionInspector } from './ReflectionInspector';
 import { OpacityInspector } from './OpacityInspector';
 import { ImageInspector } from './ImageInspector';
-import { TableInspector } from './TableInspector';
 
 // Корень правой панели свойств.
 // 0 фигур → плейсхолдер; 1 → набор секций; 2+ → счётчик (multi-edit — Phase 2.15).
@@ -72,9 +71,6 @@ function SingleShapeInspector({ slideId, shapeId }: { slideId: SlideId; shapeId:
       <TransformInspector slideId={slideId} shapeId={shapeId} />
       {shapeFacets.type === 'image' && (
         <ImageInspector slideId={slideId} shapeId={shapeId} />
-      )}
-      {shapeFacets.type === 'table' && (
-        <TableInspector slideId={slideId} shapeId={shapeId} />
       )}
       {showFill && <FillInspector slideId={slideId} shapeId={shapeId} fill={shapeFacets.fill} />}
       {showStroke && (

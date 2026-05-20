@@ -12,6 +12,7 @@ import {
 import { applyZOrder, applyGroup, applyUngroup } from '@renderer/lib/arrange';
 import { canGroup, canUngroup } from '@renderer/lib/group';
 import { useClipboardStore } from '@renderer/stores/clipboard';
+import { tableOps } from '@renderer/lib/table';
 
 interface ShapeContextMenuProps {
   // Экранные координаты (clientX/clientY) точки вызова.
@@ -63,6 +64,23 @@ export function ShapeContextMenu({ x, y, onClose }: ShapeContextMenuProps) {
       : null;
   const setCroppingShape = useUiStore.getState().setCroppingShape;
 
+  // Таблица: операции строк/столбцов/объединения работают по выбранной ячейке
+  // или диапазону (tableSelection). Правый клик по ячейке уже выбрал её
+  // (mousedown в TableShapeView), поэтому меню знает строку/столбец.
+  const singleTableId =
+    selectedIds.length === 1 && shapes.find((s) => s.id === selectedIds[0])?.type === 'table'
+      ? selectedIds[0]
+      : null;
+  const tableSel = useUiStore((s) =>
+    s.tableSelection && s.tableSelection.shapeId === singleTableId ? s.tableSelection : null,
+  );
+  const setTableSelection = useUiStore((s) => s.setTableSelection);
+  const tRMin = tableSel ? Math.min(tableSel.r0, tableSel.r1) : 0;
+  const tRMax = tableSel ? Math.max(tableSel.r0, tableSel.r1) : 0;
+  const tCMin = tableSel ? Math.min(tableSel.c0, tableSel.c1) : 0;
+  const tCMax = tableSel ? Math.max(tableSel.c0, tableSel.c1) : 0;
+  const tIsRange = tableSel !== null && (tRMin !== tRMax || tCMin !== tCMax);
+
   const run = (fn: () => void) => {
     fn();
     onClose();
@@ -112,6 +130,98 @@ export function ShapeContextMenu({ x, y, onClose }: ShapeContextMenuProps) {
             onClick={() => run(() => setCroppingShape(singleImageId))}
           >
             Обрезать
+          </button>
+        </>
+      )}
+
+      {singleTableId && activeSlideId && (
+        <>
+          <div className="ctx-menu__sep" />
+          <button
+            className="ctx-menu__item"
+            disabled={!tableSel}
+            onClick={() => run(() => tableOps.insertRow(activeSlideId, singleTableId, tRMin))}
+          >
+            Вставить строку выше
+          </button>
+          <button
+            className="ctx-menu__item"
+            disabled={!tableSel}
+            onClick={() => run(() => tableOps.insertRow(activeSlideId, singleTableId, tRMax + 1))}
+          >
+            Вставить строку ниже
+          </button>
+          <button
+            className="ctx-menu__item"
+            disabled={!tableSel}
+            onClick={() => run(() => tableOps.insertCol(activeSlideId, singleTableId, tCMin))}
+          >
+            Вставить столбец слева
+          </button>
+          <button
+            className="ctx-menu__item"
+            disabled={!tableSel}
+            onClick={() => run(() => tableOps.insertCol(activeSlideId, singleTableId, tCMax + 1))}
+          >
+            Вставить столбец справа
+          </button>
+          <div className="ctx-menu__sep" />
+          <button
+            className="ctx-menu__item"
+            disabled={!tableSel}
+            onClick={() =>
+              run(() => {
+                tableOps.deleteRow(activeSlideId, singleTableId, tRMin);
+                setTableSelection(null);
+              })
+            }
+          >
+            Удалить строку
+          </button>
+          <button
+            className="ctx-menu__item"
+            disabled={!tableSel}
+            onClick={() =>
+              run(() => {
+                tableOps.deleteCol(activeSlideId, singleTableId, tCMin);
+                setTableSelection(null);
+              })
+            }
+          >
+            Удалить столбец
+          </button>
+          <div className="ctx-menu__sep" />
+          <button
+            className="ctx-menu__item"
+            disabled={!tIsRange}
+            onClick={() =>
+              run(() => {
+                tableOps.merge(activeSlideId, singleTableId, tRMin, tCMin, tRMax, tCMax);
+                setTableSelection({ shapeId: singleTableId, r0: tRMin, c0: tCMin, r1: tRMin, c1: tCMin });
+              })
+            }
+          >
+            Объединить ячейки
+          </button>
+          <button
+            className="ctx-menu__item"
+            disabled={!tableSel}
+            onClick={() => run(() => tableOps.split(activeSlideId, singleTableId, tRMin, tCMin))}
+          >
+            Разбить ячейку
+          </button>
+          <div className="ctx-menu__sep" />
+          <button
+            className="ctx-menu__item"
+            onClick={() => run(() => tableOps.distributeRows(activeSlideId, singleTableId))}
+          >
+            Выровнять строки
+          </button>
+          <button
+            className="ctx-menu__item"
+            onClick={() => run(() => tableOps.distributeCols(activeSlideId, singleTableId))}
+          >
+            Выровнять столбцы
           </button>
         </>
       )}

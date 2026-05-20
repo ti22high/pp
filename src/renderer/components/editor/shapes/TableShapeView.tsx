@@ -1,11 +1,16 @@
-import { memo } from 'react';
+import { memo, type ReactNode } from 'react';
 import { Group, Rect, Text } from 'react-konva';
 import type Konva from 'konva';
 import type { TableShape } from '@renderer/lib/model/schema';
 import { useUiStore } from '@renderer/stores/ui';
 import { useSelectionStore } from '@renderer/stores/selection';
-import { cellRects, cellAtPoint } from '@renderer/lib/table';
+import { cellRects, cellAtPoint, gridLines, tableOps } from '@renderer/lib/table';
 import { ShapeNode } from './ShapeNode';
+
+// Минимальный размер строки/колонки при ресайзе (slide-px).
+const MIN_CELL = 24;
+// Толщина невидимой зоны захвата границы.
+const HANDLE_HIT = 8;
 
 interface TableShapeViewProps {
   shape: TableShape;
@@ -122,7 +127,85 @@ export const TableShapeView = memo(function TableShapeViewBase({ shape, slideId 
             </Group>
           );
         })}
+        {isShapeSelected && <ResizeHandles shape={shape} slideId={slideId} />}
       </Group>
     </ShapeNode>
   );
 });
+
+// Невидимые перетаскиваемые границы для ресайза колонок/строк. Тянем границу —
+// перераспределяем доли двух соседних колонок/строк (их сумма неизменна).
+function ResizeHandles({ shape, slideId }: { shape: TableShape; slideId: string }) {
+  const { colX, rowY } = gridLines(shape);
+  const setCursor = (e: Konva.KonvaEventObject<MouseEvent>, cur: string) => {
+    const c = e.target.getStage()?.container();
+    if (c) c.style.cursor = cur;
+  };
+
+  const handles: ReactNode[] = [];
+  // Вертикальные границы между колонками i-1 и i.
+  for (let i = 1; i < shape.cols; i++) {
+    handles.push(
+      <Rect
+        key={`v${i}`}
+        x={colX[i] - HANDLE_HIT / 2}
+        y={0}
+        width={HANDLE_HIT}
+        height={shape.h}
+        draggable
+        onMouseDown={(e) => {
+          e.cancelBubble = true;
+        }}
+        onMouseEnter={(e) => setCursor(e, 'col-resize')}
+        onMouseLeave={(e) => setCursor(e, '')}
+        onDragMove={(e) => {
+          const node = e.target;
+          node.y(0);
+          const g = gridLines(shape);
+          const boundary = Math.max(
+            g.colX[i - 1] + MIN_CELL,
+            Math.min(g.colX[i + 1] - MIN_CELL, node.x() + HANDLE_HIT / 2),
+          );
+          node.x(boundary - HANDLE_HIT / 2);
+          const fr = [...shape.colFractions];
+          fr[i - 1] = (boundary - g.colX[i - 1]) / shape.w;
+          fr[i] = (g.colX[i + 1] - boundary) / shape.w;
+          tableOps.setColFractions(slideId, shape.id, fr);
+        }}
+      />,
+    );
+  }
+  // Горизонтальные границы между строками i-1 и i.
+  for (let i = 1; i < shape.rows; i++) {
+    handles.push(
+      <Rect
+        key={`h${i}`}
+        x={0}
+        y={rowY[i] - HANDLE_HIT / 2}
+        width={shape.w}
+        height={HANDLE_HIT}
+        draggable
+        onMouseDown={(e) => {
+          e.cancelBubble = true;
+        }}
+        onMouseEnter={(e) => setCursor(e, 'row-resize')}
+        onMouseLeave={(e) => setCursor(e, '')}
+        onDragMove={(e) => {
+          const node = e.target;
+          node.x(0);
+          const g = gridLines(shape);
+          const boundary = Math.max(
+            g.rowY[i - 1] + MIN_CELL,
+            Math.min(g.rowY[i + 1] - MIN_CELL, node.y() + HANDLE_HIT / 2),
+          );
+          node.y(boundary - HANDLE_HIT / 2);
+          const fr = [...shape.rowFractions];
+          fr[i - 1] = (boundary - g.rowY[i - 1]) / shape.h;
+          fr[i] = (g.rowY[i + 1] - boundary) / shape.h;
+          tableOps.setRowFractions(slideId, shape.id, fr);
+        }}
+      />,
+    );
+  }
+  return <>{handles}</>;
+}

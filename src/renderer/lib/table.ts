@@ -12,7 +12,7 @@ export interface CellRect {
 
 // Кумулятивные границы колонок/строк в локальных координатах (0..w / 0..h).
 // Возвращает массивы длиной cols+1 / rows+1.
-function gridLines(shape: TableShape): { colX: number[]; rowY: number[] } {
+export function gridLines(shape: TableShape): { colX: number[]; rowY: number[] } {
   const sumCol = shape.colFractions.reduce((a, b) => a + b, 0) || 1;
   const sumRow = shape.rowFractions.reduce((a, b) => a + b, 0) || 1;
   const colX = [0];
@@ -253,4 +253,12 @@ export const tableOps = {
     withTable(slideId, shapeId, distributeRows),
   distributeCols: (slideId: string, shapeId: string) =>
     withTable(slideId, shapeId, distributeCols),
+  setColFractions: (slideId: string, shapeId: string, fractions: number[]) =>
+    withTable(slideId, shapeId, (t) => {
+      t.colFractions = normalize(fractions);
+    }),
+  setRowFractions: (slideId: string, shapeId: string, fractions: number[]) =>
+    withTable(slideId, shapeId, (t) => {
+      t.rowFractions = normalize(fractions);
+    }),
 };
