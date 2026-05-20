@@ -195,6 +195,10 @@ export const imageShapeSchema = z.object({
       'heart',
     ])
     .optional(),
+  // Перекраска (Phase 3.4): ключ из imageFilters.ts.
+  recolor: z
+    .enum(['none', 'grayscale', 'sepia', 'tintBlue', 'tintGreen', 'tintRed', 'tintPurple'])
+    .optional(),
 });
 
 export const shapeSchema = z.discriminatedUnion('type', [

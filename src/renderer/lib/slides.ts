@@ -256,6 +256,23 @@ export function setImageMask(
   });
 }
 
+// Ставит пресет перекраски изображения (Phase 3.4).
+export function setImageRecolor(
+  slideId: string,
+  shapeId: string,
+  recolor: import('@renderer/lib/model/schema').ImageShape['recolor'],
+): void {
+  useDeckStore.setState((state) => {
+    if (!state.deck) return;
+    const slide = state.deck.slides[slideId];
+    if (!slide) return;
+    const sh = slide.shapes.find((x) => x.id === shapeId);
+    if (!sh || sh.type !== 'image') return;
+    sh.recolor = recolor === 'none' ? undefined : recolor;
+    state.deck.modifiedAt = new Date().toISOString();
+  });
+}
+
 // Ставит / убирает гиперссылку на указанной фигуре. `hl=undefined` снимает
 // ссылку. Используется HyperlinkDialog.
 export function setShapeHyperlink(

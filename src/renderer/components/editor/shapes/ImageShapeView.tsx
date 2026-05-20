@@ -1,4 +1,4 @@
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useEffect, useRef } from 'react';
 import { Image as KonvaImage, Rect, Group } from 'react-konva';
 import type Konva from 'konva';
 import type { ImageShape } from '@renderer/lib/model/schema';
@@ -7,6 +7,7 @@ import { ShapeTextLabel } from './ShapeTextLabel';
 import { resolveStroke, resolveShadow } from './paint';
 import { useImageElement } from './useImageElement';
 import { maskClipFunc } from '@renderer/lib/imageMasks';
+import { applyRecolor } from '@renderer/lib/imageFilters';
 
 interface ImageShapeViewProps {
   shape: ImageShape;
@@ -51,8 +52,20 @@ export const ImageShapeView = memo(function ImageShapeViewBase({
     [mask, maskX, maskY, maskW, maskH],
   );
 
+  // Перекраска через фильтры Konva: применяется императивно к ноде после
+  // загрузки картинки / изменения размера / кропа / самого пресета.
+  const imgNodeRef = useRef<Konva.Image>(null);
+  const recolor = shape.recolor;
+  useEffect(() => {
+    const node = imgNodeRef.current;
+    if (!node || !img) return;
+    applyRecolor(node, recolor);
+    node.getLayer()?.batchDraw();
+  }, [img, recolor, shape.w, shape.h, shape.crop?.x, shape.crop?.y, shape.crop?.w, shape.crop?.h]);
+
   const imageNode = img ? (
     <KonvaImage
+      ref={imgNodeRef}
       x={0}
       y={0}
       width={shape.w}

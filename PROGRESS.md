@@ -82,7 +82,7 @@
 - [x] 3.1. Image insert (drag-n-drop + file dialog + paste from clipboard).
 - [x] 3.2. Image crop tool (handles внутри bbox).
 - [x] 3.3. Crop-to-shape (mask picker из shape gallery — базовый набор 8 масок; полная галерея 3.20).
-- [ ] 3.4. Image recolor (sepia / grayscale / tints).
+- [x] 3.4. Image recolor (sepia / grayscale / tints).
 - [ ] 3.5. Brightness / Contrast / Transparency sliders.
 - [ ] 3.6. Replace image, Reset image.
 - [ ] 3.7. Alt text dialog.
