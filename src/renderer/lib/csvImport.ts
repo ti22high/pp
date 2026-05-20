@@ -37,14 +37,56 @@ function mapValign(v: string | undefined): CellFormat['valign'] | undefined {
   return undefined;
 }
 
-// Извлекает формат из ячейки HTML (inline-style + атрибуты bgcolor/align/valign).
+// Размер шрифта из CSS (px/pt/число) → px. pt → px ≈ ×1.333.
+function fontSizeToPx(v: string | undefined): number | undefined {
+  if (!v) return undefined;
+  const m = v.trim().match(/^([\d.]+)\s*(px|pt)?$/i);
+  if (!m) return undefined;
+  const n = parseFloat(m[1]);
+  if (Number.isNaN(n)) return undefined;
+  return m[2]?.toLowerCase() === 'pt' ? Math.round(n * 1.333) : Math.round(n);
+}
+
+// Извлекает формат ячейки из HTML (фон, выравнивание + стили текста: цвет,
+// шрифт, размер, жирность, курсив) — inline-style, атрибуты и теги b/strong/i/em.
 function cellFormatFromTd(td: HTMLTableCellElement): CellFormat | undefined {
-  const fill =
-    cssColorToHex(td.style.backgroundColor) ?? cssColorToHex(td.getAttribute('bgcolor'));
-  const align = mapAlign(td.style.textAlign || td.getAttribute('align') || undefined);
-  const valign = mapValign(td.style.verticalAlign || td.getAttribute('valign') || undefined);
-  if (fill === undefined && align === undefined && valign === undefined) return undefined;
-  return { ...(fill ? { fill } : {}), ...(align ? { align } : {}), ...(valign ? { valign } : {}) };
+  const st = td.style;
+  // Стили могут лежать на вложенном span/font (Excel так делает) — берём первый.
+  const inner = td.querySelector<HTMLElement>('[style], font, b, strong, i, em');
+  const innerSt = inner?.style;
+
+  const fill = cssColorToHex(st.backgroundColor) ?? cssColorToHex(td.getAttribute('bgcolor'));
+  const align = mapAlign(st.textAlign || td.getAttribute('align') || undefined);
+  const valign = mapValign(st.verticalAlign || td.getAttribute('valign') || undefined);
+  const color =
+    cssColorToHex(st.color) ??
+    cssColorToHex(innerSt?.color) ??
+    cssColorToHex(td.querySelector('font')?.getAttribute('color'));
+  const weight = st.fontWeight || innerSt?.fontWeight || '';
+  const bold =
+    weight === 'bold' || weight === 'bolder' || (Number(weight) >= 600) ||
+    !!td.querySelector('b, strong')
+      ? true
+      : undefined;
+  const italic =
+    st.fontStyle === 'italic' || innerSt?.fontStyle === 'italic' || !!td.querySelector('i, em')
+      ? true
+      : undefined;
+  // font-family: берём первый шрифт из списка, убираем кавычки.
+  const ff = (st.fontFamily || innerSt?.fontFamily || '').split(',')[0].replace(/["']/g, '').trim();
+  const fontFamily = ff || undefined;
+  const fontSize = fontSizeToPx(st.fontSize || innerSt?.fontSize || undefined);
+
+  const fmt: CellFormat = {};
+  if (fill) fmt.fill = fill;
+  if (align) fmt.align = align;
+  if (valign) fmt.valign = valign;
+  if (color) fmt.color = color;
+  if (bold) fmt.bold = true;
+  if (italic) fmt.italic = true;
+  if (fontFamily) fmt.fontFamily = fontFamily;
+  if (fontSize) fmt.fontSize = fontSize;
+  return Object.keys(fmt).length > 0 ? fmt : undefined;
 }
 
 // Импорт CSV как таблицы (Phase 3.11). Парсинг — через SheetJS (умеет кавычки,
@@ -220,6 +262,11 @@ export function insertTableFromRows(
         if (f.fill) cell.fill = f.fill;
         if (f.align) cell.align = f.align;
         if (f.valign) cell.valign = f.valign;
+        if (f.color) cell.color = f.color;
+        if (f.bold) cell.bold = true;
+        if (f.italic) cell.italic = true;
+        if (f.fontFamily) cell.fontFamily = f.fontFamily;
+        if (f.fontSize) cell.fontSize = f.fontSize;
       }
     }
   }

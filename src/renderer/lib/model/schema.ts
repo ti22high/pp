@@ -219,6 +219,12 @@ export const tableCellSchema = z.object({
   padding: z.number().min(0).optional(),
   align: z.enum(['left', 'center', 'right', 'justify']).optional(),
   valign: z.enum(['top', 'middle', 'bottom']).optional(),
+  // Стили текста ячейки (Phase 3.11e) — единые для всей ячейки.
+  color: colorSchema.optional(),
+  bold: z.boolean().optional(),
+  italic: z.boolean().optional(),
+  fontFamily: z.string().optional(),
+  fontSize: z.number().positive().optional(),
 });
 // Таблица (Phase 3.8): сетка rows×cols. Ширины колонок и высоты строк хранятся
 // как доли ширины/высоты фигуры (сумма ≈ 1) — так resize фигуры тянет сетку

@@ -69,6 +69,19 @@ describe('parseHtmlTable (Excel/Sheets paste)', () => {
     expect(fmt?.[0][0]).toMatchObject({ fill: '#ff0000', align: 'center' });
     expect(fmt?.[0][1]).toMatchObject({ fill: '#00ff00', align: 'right', valign: 'top' });
   });
+
+  it('extracts text color, bold, italic, font from cells', () => {
+    const html =
+      '<table><tr>' +
+      '<td style="color: rgb(0,0,255); font-weight: bold; font-family: Calibri, sans-serif; font-size: 12pt">A</td>' +
+      '<td><i>B</i></td>' +
+      '<td><b>C</b></td>' +
+      '</tr></table>';
+    const { fmt } = parseHtmlTableRich(html);
+    expect(fmt?.[0][0]).toMatchObject({ color: '#0000ff', bold: true, fontFamily: 'Calibri', fontSize: 16 });
+    expect(fmt?.[0][1]).toMatchObject({ italic: true });
+    expect(fmt?.[0][2]).toMatchObject({ bold: true });
+  });
 });
 
 describe('applyA1Range', () => {

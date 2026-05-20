@@ -210,6 +210,11 @@ export interface CellFormat {
   padding?: number;
   align?: 'left' | 'center' | 'right' | 'justify';
   valign?: 'top' | 'middle' | 'bottom';
+  color?: string;
+  bold?: boolean;
+  italic?: boolean;
+  fontFamily?: string;
+  fontSize?: number;
 }
 
 // Применяет формат ко всем ячейкам в прямоугольном диапазоне.
@@ -235,6 +240,11 @@ export function setCellFormat(
       if ('padding' in fmt) cell.padding = fmt.padding;
       if ('align' in fmt) cell.align = fmt.align;
       if ('valign' in fmt) cell.valign = fmt.valign;
+      if ('color' in fmt) cell.color = fmt.color;
+      if ('bold' in fmt) cell.bold = fmt.bold;
+      if ('italic' in fmt) cell.italic = fmt.italic;
+      if ('fontFamily' in fmt) cell.fontFamily = fmt.fontFamily;
+      if ('fontSize' in fmt) cell.fontSize = fmt.fontSize;
     }
   }
 }

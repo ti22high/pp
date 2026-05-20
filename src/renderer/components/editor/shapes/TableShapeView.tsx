@@ -131,9 +131,13 @@ export const TableShapeView = memo(function TableShapeViewBase({ shape, slideId 
                   width={Math.max(1, r.w - pad * 2)}
                   height={Math.max(1, r.h - pad * 2)}
                   text={text}
-                  fontSize={FONT_SIZE}
-                  fontFamily="Arial, sans-serif"
-                  fill="#202124"
+                  fontSize={cell?.fontSize ?? FONT_SIZE}
+                  fontFamily={cell?.fontFamily ?? 'Arial, sans-serif'}
+                  fontStyle={
+                    `${cell?.bold ? 'bold' : ''} ${cell?.italic ? 'italic' : ''}`.trim() ||
+                    'normal'
+                  }
+                  fill={cell?.color ?? '#202124'}
                   align={cell?.align ?? 'left'}
                   verticalAlign={cell?.valign ?? 'middle'}
                   wrap="word"

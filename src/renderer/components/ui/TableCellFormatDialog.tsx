@@ -100,6 +100,9 @@ export function TableCellFormatDialog() {
   const padding = cell?.padding ?? 8;
   const align = cell?.align ?? 'left';
   const valign = cell?.valign ?? 'middle';
+  const textColor = cell?.color ?? '#202124';
+  const bold = cell?.bold ?? false;
+  const italic = cell?.italic ?? false;
 
   return (
     <div className="float-panel float-panel--right">
@@ -159,6 +162,39 @@ export function TableCellFormatDialog() {
               onChange={(e) => apply({ padding: Math.max(0, Number(e.target.value) || 0) })}
             />
           </label>
+
+          <label className="slide-size__field">
+            <span>Цвет текста</span>
+            <input
+              type="color"
+              value={textColor}
+              onChange={(e) => apply({ color: e.target.value })}
+            />
+          </label>
+
+          <div className="slide-size__field">
+            <span>Начертание</span>
+            <div className="seg-group" role="group">
+              <button
+                type="button"
+                title="Жирный"
+                className={`seg-btn${bold ? ' seg-btn--active' : ''}`}
+                style={{ fontWeight: 700 }}
+                onClick={() => apply({ bold: !bold })}
+              >
+                Ж
+              </button>
+              <button
+                type="button"
+                title="Курсив"
+                className={`seg-btn${italic ? ' seg-btn--active' : ''}`}
+                style={{ fontStyle: 'italic' }}
+                onClick={() => apply({ italic: !italic })}
+              >
+                К
+              </button>
+            </div>
+          </div>
 
           <div className="slide-size__field">
             <span>По горизонтали</span>
