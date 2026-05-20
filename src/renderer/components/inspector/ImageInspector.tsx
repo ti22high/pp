@@ -1,7 +1,7 @@
 import { useUiStore } from '@renderer/stores/ui';
 import { useDeckStore } from '@renderer/stores/deck';
 import { useCropBridge } from '@renderer/stores/cropBridge';
-import { setImageRecolor } from '@renderer/lib/slides';
+import { setImageRecolor, setImageAdjust } from '@renderer/lib/slides';
 import { maskImageBaked } from '@renderer/lib/imageBake';
 import { MASK_OPTIONS, type MaskKey } from '@renderer/lib/imageMasks';
 import { RECOLOR_OPTIONS, type RecolorKey } from '@renderer/lib/imageFilters';
@@ -21,6 +21,14 @@ export function ImageInspector({ slideId, shapeId }: ImageInspectorProps) {
   const recolor = useDeckStore((s) => {
     const sh = s.deck?.slides[slideId]?.shapes.find((x) => x.id === shapeId);
     return sh?.type === 'image' ? sh.recolor ?? 'none' : 'none';
+  });
+  const brightness = useDeckStore((s) => {
+    const sh = s.deck?.slides[slideId]?.shapes.find((x) => x.id === shapeId);
+    return sh?.type === 'image' ? sh.brightness ?? 0 : 0;
+  });
+  const contrast = useDeckStore((s) => {
+    const sh = s.deck?.slides[slideId]?.shapes.find((x) => x.id === shapeId);
+    return sh?.type === 'image' ? sh.contrast ?? 0 : 0;
   });
 
   return (
@@ -94,6 +102,46 @@ export function ImageInspector({ slideId, shapeId }: ImageInspectorProps) {
               </option>
             ))}
           </select>
+        </label>
+      )}
+      {!cropping && (
+        <label className="inspector-row">
+          <span className="inspector-label">Яркость</span>
+          <span className="inspector-input-wrap">
+            <input
+              type="range"
+              min={-100}
+              max={100}
+              step={1}
+              value={Math.round(brightness * 100)}
+              className="inspector-range"
+              onChange={(e) =>
+                setImageAdjust(slideId, shapeId, {
+                  brightness: parseInt(e.target.value, 10) / 100,
+                })
+              }
+            />
+            <span className="inspector-range-value">{Math.round(brightness * 100)}</span>
+          </span>
+        </label>
+      )}
+      {!cropping && (
+        <label className="inspector-row">
+          <span className="inspector-label">Контраст</span>
+          <span className="inspector-input-wrap">
+            <input
+              type="range"
+              min={-100}
+              max={100}
+              step={1}
+              value={Math.round(contrast)}
+              className="inspector-range"
+              onChange={(e) =>
+                setImageAdjust(slideId, shapeId, { contrast: parseInt(e.target.value, 10) })
+              }
+            />
+            <span className="inspector-range-value">{Math.round(contrast)}</span>
+          </span>
         </label>
       )}
     </section>

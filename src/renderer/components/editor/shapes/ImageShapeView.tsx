@@ -6,7 +6,7 @@ import { ShapeNode } from './ShapeNode';
 import { ShapeTextLabel } from './ShapeTextLabel';
 import { resolveStroke, resolveShadow } from './paint';
 import { useImageElement } from './useImageElement';
-import { applyRecolor } from '@renderer/lib/imageFilters';
+import { applyImageAdjust } from '@renderer/lib/imageFilters';
 
 interface ImageShapeViewProps {
   shape: ImageShape;
@@ -26,12 +26,14 @@ export const ImageShapeView = memo(function ImageShapeViewBase({
 
   const imgNodeRef = useRef<Konva.Image>(null);
   const recolor = shape.recolor;
+  const brightness = shape.brightness;
+  const contrast = shape.contrast;
   useEffect(() => {
     const node = imgNodeRef.current;
     if (!node || !img) return;
-    applyRecolor(node, recolor);
+    applyImageAdjust(node, { recolor, brightness, contrast });
     node.getLayer()?.batchDraw();
-  }, [img, recolor, shape.w, shape.h]);
+  }, [img, recolor, brightness, contrast, shape.w, shape.h]);
 
   return (
     <ShapeNode

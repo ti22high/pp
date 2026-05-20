@@ -199,6 +199,9 @@ export const imageShapeSchema = z.object({
   recolor: z
     .enum(['none', 'grayscale', 'sepia', 'tintBlue', 'tintGreen', 'tintRed', 'tintPurple'])
     .optional(),
+  // Коррекция (Phase 3.5): яркость [-1..1], контраст [-100..100]. 0 = норма.
+  brightness: z.number().min(-1).max(1).optional(),
+  contrast: z.number().min(-100).max(100).optional(),
 });
 
 export const shapeSchema = z.discriminatedUnion('type', [

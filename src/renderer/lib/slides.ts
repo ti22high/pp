@@ -204,6 +204,28 @@ export function setImageRecolor(
   });
 }
 
+// Ставит яркость/контраст изображения (Phase 3.5). 0 → undefined (чистим JSON).
+export function setImageAdjust(
+  slideId: string,
+  shapeId: string,
+  patch: { brightness?: number; contrast?: number },
+): void {
+  useDeckStore.setState((state) => {
+    if (!state.deck) return;
+    const slide = state.deck.slides[slideId];
+    if (!slide) return;
+    const sh = slide.shapes.find((x) => x.id === shapeId);
+    if (!sh || sh.type !== 'image') return;
+    if (patch.brightness !== undefined) {
+      sh.brightness = patch.brightness === 0 ? undefined : patch.brightness;
+    }
+    if (patch.contrast !== undefined) {
+      sh.contrast = patch.contrast === 0 ? undefined : patch.contrast;
+    }
+    state.deck.modifiedAt = new Date().toISOString();
+  });
+}
+
 // Ставит / убирает гиперссылку на указанной фигуре. `hl=undefined` снимает
 // ссылку. Используется HyperlinkDialog.
 export function setShapeHyperlink(

@@ -83,7 +83,7 @@
 - [x] 3.2. Image crop tool (handles внутри bbox).
 - [x] 3.3. Crop-to-shape (mask picker из shape gallery — базовый набор 8 масок; полная галерея 3.20).
 - [x] 3.4. Image recolor (sepia / grayscale / tints).
-- [ ] 3.5. Brightness / Contrast / Transparency sliders.
+- [x] 3.5. Brightness / Contrast / Transparency sliders.
 - [ ] 3.6. Replace image, Reset image.
 - [ ] 3.7. Alt text dialog.
 - [ ] 3.8. Table shape (Konva Group рендерит ячейки как Konva.Rect + Text).
