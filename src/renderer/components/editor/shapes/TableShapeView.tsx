@@ -1,4 +1,4 @@
-import { memo, type ReactNode } from 'react';
+import { memo, useState, type ReactNode } from 'react';
 import { Group, Rect, Text } from 'react-konva';
 import type Konva from 'konva';
 import type { TableShape } from '@renderer/lib/model/schema';
@@ -8,9 +8,9 @@ import { cellRects, cellAtPoint, gridLines, tableOps } from '@renderer/lib/table
 import { ShapeNode } from './ShapeNode';
 
 // Минимальный размер строки/колонки при ресайзе (slide-px).
-const MIN_CELL = 24;
+const MIN_CELL = 16;
 // Толщина невидимой зоны захвата границы.
-const HANDLE_HIT = 8;
+const HANDLE_HIT = 10;
 
 interface TableShapeViewProps {
   shape: TableShape;
@@ -35,6 +35,9 @@ export const TableShapeView = memo(function TableShapeViewBase({ shape, slideId 
     s.tableSelection?.shapeId === shape.id ? s.tableSelection : null,
   );
   const isShapeSelected = useSelectionStore((s) => s.selectedShapeIds.includes(shape.id));
+  // Какая граница сейчас перетаскивается — чтобы показывать линию-превью только
+  // у неё (живёт здесь, а не в ResizeHandles: hook в компоненте, не в функции).
+  const [draggingHandle, setDraggingHandle] = useState<string | null>(null);
   const rects = cellRects(shape);
 
   const localPoint = (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) =>
@@ -132,7 +135,14 @@ export const TableShapeView = memo(function TableShapeViewBase({ shape, slideId 
             </Group>
           );
         })}
-        {isShapeSelected && <ResizeHandles shape={shape} slideId={slideId} />}
+        {isShapeSelected && (
+          <ResizeHandles
+            shape={shape}
+            slideId={slideId}
+            dragging={draggingHandle}
+            setDragging={setDraggingHandle}
+          />
+        )}
       </Group>
     </ShapeNode>
   );
@@ -141,9 +151,19 @@ export const TableShapeView = memo(function TableShapeViewBase({ shape, slideId 
 // Невидимые перетаскиваемые границы для ресайза колонок/строк. Во время drag
 // двигаем ручку ТОЛЬКО императивно (без setState), иначе ре-рендер пересчитает
 // её позицию из стора и собьёт активный Konva-drag → дрожь. Доли пишем один
-// раз на dragEnd. Каждая ручка — Group с тонкой видимой линией (превью) и
-// широкой невидимой зоной захвата.
-function ResizeHandles({ shape, slideId }: { shape: TableShape; slideId: string }) {
+// раз на dragEnd. Линия-превью видна ТОЛЬКО у перетаскиваемой ручки, иначе
+// линии накладывались бы поверх объединённых ячеек и «возвращали» сетку.
+function ResizeHandles({
+  shape,
+  slideId,
+  dragging,
+  setDragging,
+}: {
+  shape: TableShape;
+  slideId: string;
+  dragging: string | null;
+  setDragging: (k: string | null) => void;
+}) {
   const { colX, rowY } = gridLines(shape);
   const setCursor = (e: Konva.KonvaEventObject<MouseEvent>, cur: string) => {
     const c = e.target.getStage()?.container();
@@ -153,25 +173,23 @@ function ResizeHandles({ shape, slideId }: { shape: TableShape; slideId: string 
   const handles: ReactNode[] = [];
   // Вертикальные границы между колонками i-1 и i.
   for (let i = 1; i < shape.cols; i++) {
+    const key = `v${i}`;
     const clampX = (x: number) => {
       const g = gridLines(shape);
       return Math.max(g.colX[i - 1] + MIN_CELL, Math.min(g.colX[i + 1] - MIN_CELL, x));
     };
     handles.push(
       <Group
-        key={`v${i}`}
+        key={key}
         x={colX[i]}
         y={0}
         draggable
-        dragBoundFunc={function (this: Konva.Node, pos) {
-          // Запрещаем вертикальное смещение: возвращаем исходный absolute Y.
-          return { x: pos.x, y: this.absolutePosition().y };
-        }}
         onMouseDown={(e) => {
           e.cancelBubble = true;
         }}
         onMouseEnter={(e) => setCursor(e, 'col-resize')}
         onMouseLeave={(e) => setCursor(e, '')}
+        onDragStart={() => setDragging(key)}
         onDragMove={(e) => {
           const node = e.target;
           node.y(0);
@@ -183,34 +201,36 @@ function ResizeHandles({ shape, slideId }: { shape: TableShape; slideId: string 
           const fr = [...shape.colFractions];
           fr[i - 1] = (b - g.colX[i - 1]) / shape.w;
           fr[i] = (g.colX[i + 1] - b) / shape.w;
+          setDragging(null);
           tableOps.setColFractions(slideId, shape.id, fr);
         }}
       >
         <Rect x={-HANDLE_HIT / 2} y={0} width={HANDLE_HIT} height={shape.h} />
-        <Rect x={-1} y={0} width={2} height={shape.h} fill="rgba(26, 115, 232, 0.5)" />
+        {dragging === key && (
+          <Rect x={-1} y={0} width={2} height={shape.h} fill="#1a73e8" listening={false} />
+        )}
       </Group>,
     );
   }
   // Горизонтальные границы между строками i-1 и i.
   for (let i = 1; i < shape.rows; i++) {
+    const key = `h${i}`;
     const clampY = (y: number) => {
       const g = gridLines(shape);
       return Math.max(g.rowY[i - 1] + MIN_CELL, Math.min(g.rowY[i + 1] - MIN_CELL, y));
     };
     handles.push(
       <Group
-        key={`h${i}`}
+        key={key}
         x={0}
         y={rowY[i]}
         draggable
-        dragBoundFunc={function (this: Konva.Node, pos) {
-          return { x: this.absolutePosition().x, y: pos.y };
-        }}
         onMouseDown={(e) => {
           e.cancelBubble = true;
         }}
         onMouseEnter={(e) => setCursor(e, 'row-resize')}
         onMouseLeave={(e) => setCursor(e, '')}
+        onDragStart={() => setDragging(key)}
         onDragMove={(e) => {
           const node = e.target;
           node.x(0);
@@ -222,11 +242,14 @@ function ResizeHandles({ shape, slideId }: { shape: TableShape; slideId: string 
           const fr = [...shape.rowFractions];
           fr[i - 1] = (b - g.rowY[i - 1]) / shape.h;
           fr[i] = (g.rowY[i + 1] - b) / shape.h;
+          setDragging(null);
           tableOps.setRowFractions(slideId, shape.id, fr);
         }}
       >
         <Rect x={0} y={-HANDLE_HIT / 2} width={shape.w} height={HANDLE_HIT} />
-        <Rect x={0} y={-1} width={shape.w} height={2} fill="rgba(26, 115, 232, 0.5)" />
+        {dragging === key && (
+          <Rect x={0} y={-1} width={shape.w} height={2} fill="#1a73e8" listening={false} />
+        )}
       </Group>,
     );
   }

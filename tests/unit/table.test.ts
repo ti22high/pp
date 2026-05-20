@@ -65,6 +65,15 @@ describe('table operations', () => {
     expect(cellRects(t)).toHaveLength(6);
   });
 
+  it('merges three rows in one column fully (incl. bottom)', () => {
+    const t = make(4, 2);
+    mergeRange(t, 0, 0, 2, 0); // строки 0,1,2 в колонке 0
+    expect(t.cells[0][0].rowSpan).toBe(3);
+    expect(t.cells[1][0].merged).toBe(true);
+    expect(t.cells[2][0].merged).toBe(true);
+    expect(t.cells[3][0].merged).toBeUndefined(); // 4-я строка вне диапазона
+  });
+
   it('splitCell undoes a merge', () => {
     const t = make(2, 2);
     mergeRange(t, 0, 0, 1, 1);
