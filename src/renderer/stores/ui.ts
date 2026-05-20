@@ -32,8 +32,12 @@ interface UiState {
   // Распарсенные строки CSV для диалога «Вставить как таблицу» (Phase 3.11).
   // null = диалог закрыт.
   csvImportRows: string[][] | null;
-  // Распарсенная книга .xlsx для диалога импорта (Phase 3.11b). null = закрыт.
-  xlsxImport: { fileName: string; sheets: { name: string; rows: string[][] }[] } | null;
+  // Распарсенная книга .xlsx для диалога импорта (Phase 3.11b/3.14c). null = закрыт.
+  xlsxImport: {
+    fileName: string;
+    sheets: { name: string; rows: string[][] }[];
+    charts?: { chartType: string; categories: string[]; series: { name: string; data: number[] }[] }[];
+  } | null;
   // Глобально показывать alt-текст при наведении на фигуру (Phase 3.7).
   showAltOnHover: boolean;
   // id фигуры под курсором, у которой есть alt-текст (для оверлея-подсказки).
@@ -54,7 +58,11 @@ interface UiState {
   setChartEditor: (id: ShapeId | null) => void;
   setCsvImportRows: (rows: string[][] | null) => void;
   setXlsxImport: (
-    data: { fileName: string; sheets: { name: string; rows: string[][] }[] } | null,
+    data: {
+      fileName: string;
+      sheets: { name: string; rows: string[][] }[];
+      charts?: { chartType: string; categories: string[]; series: { name: string; data: number[] }[] }[];
+    } | null,
   ) => void;
   toggleAltOnHover: () => void;
   setHoveredAltShape: (id: ShapeId | null) => void;

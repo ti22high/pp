@@ -2,7 +2,8 @@ import * as XLSX from 'xlsx';
 import { useDeckStore } from '@renderer/stores/deck';
 import { useUiStore } from '@renderer/stores/ui';
 import { useSelectionStore } from '@renderer/stores/selection';
-import { appendShape, createTable } from '@renderer/lib/model/factory';
+import { appendShape, createTable, createChart, CHART_PALETTE } from '@renderer/lib/model/factory';
+import { parseXlsxCharts, type ChartImport } from '@renderer/lib/xlsxCharts';
 import type { CellFormat } from '@renderer/lib/table';
 
 // Распарсенная таблица: текст ячеек + (опц.) формат каждой ячейки.
@@ -195,21 +196,48 @@ function sheetToRows(ws: XLSX.WorkSheet): string[][] {
   return rows.map((r) => Array.from({ length: cols }, (_, c) => String(r[c] ?? '')));
 }
 
-// Читает .xlsx-файл и открывает диалог выбора листа/диапазона (Phase 3.11b).
+// Читает .xlsx-файл и открывает диалог выбора листа/диапазона (Phase 3.11b) +
+// извлекает встроенные графики (Phase 3.14c).
 export function openXlsxImport(file: File): void {
   const reader = new FileReader();
-  reader.onload = () => {
-    const data = new Uint8Array(reader.result as ArrayBuffer);
-    const wb = XLSX.read(data, { type: 'array' });
+  reader.onload = async () => {
+    const buf = reader.result as ArrayBuffer;
+    const wb = XLSX.read(new Uint8Array(buf), { type: 'array' });
     const sheets = wb.SheetNames.map((name) => ({
       name,
       rows: sheetToRows(wb.Sheets[name]),
     })).filter((s) => s.rows.length > 0);
-    if (sheets.length > 0) {
-      useUiStore.getState().setXlsxImport({ fileName: file.name, sheets });
+    let charts: ChartImport[] = [];
+    try {
+      charts = await parseXlsxCharts(buf);
+    } catch {
+      charts = [];
+    }
+    if (sheets.length > 0 || charts.length > 0) {
+      useUiStore.getState().setXlsxImport({ fileName: file.name, sheets, charts });
     }
   };
   reader.readAsArrayBuffer(file);
+}
+
+// Вставляет график, импортированный из .xlsx, как наш редактируемый chart.
+export function insertChartFromImport(c: ChartImport): void {
+  const deck = useDeckStore.getState().deck;
+  const slideId = useUiStore.getState().activeSlideId;
+  if (!deck || !slideId) return;
+  const w = Math.min(deck.size.w * 0.5, 640);
+  const h = Math.min(deck.size.h * 0.5, 400);
+  const x = Math.round((deck.size.w - w) / 2);
+  const y = Math.round((deck.size.h - h) / 2);
+  const chart = createChart(x, y, w, h, c.chartType);
+  chart.categories = c.categories;
+  chart.series = c.series.map((s, i) => ({
+    name: s.name,
+    color: CHART_PALETTE[i % CHART_PALETTE.length],
+    data: s.data,
+  }));
+  useDeckStore.getState().setDeck(appendShape(deck, slideId, chart));
+  useSelectionStore.getState().select([chart.id]);
 }
 
 // Применяет диапазон в A1-нотации ("A1:C10") к матрице строк. Пустая/невалидная

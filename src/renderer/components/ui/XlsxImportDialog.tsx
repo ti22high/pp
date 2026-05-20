@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useUiStore } from '@renderer/stores/ui';
-import { applyA1Range, insertTableFromRows } from '@renderer/lib/csvImport';
+import { applyA1Range, insertTableFromRows, insertChartFromImport } from '@renderer/lib/csvImport';
+import type { ChartType } from '@renderer/lib/model/schema';
 
 const PREVIEW_ROWS = 6;
 const PREVIEW_COLS = 8;
@@ -94,6 +95,30 @@ export function XlsxImportDialog() {
               </tbody>
             </table>
           </div>
+
+          {data.charts && data.charts.length > 0 && (
+            <>
+              <p className="panel-title">Диаграммы в файле</p>
+              {data.charts.map((ch, i) => (
+                <div key={i} className="inspector-row inspector-row--buttons">
+                  <button
+                    type="button"
+                    className="inspector-btn"
+                    onClick={() => {
+                      insertChartFromImport({
+                        chartType: ch.chartType as ChartType,
+                        categories: ch.categories,
+                        series: ch.series,
+                      });
+                      setData(null);
+                    }}
+                  >
+                    Вставить график #{i + 1} ({ch.chartType}, {ch.series.length} серий)
+                  </button>
+                </div>
+              ))}
+            </>
+          )}
         </div>
 
         <footer className="slide-size__footer">
