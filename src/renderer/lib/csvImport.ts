@@ -136,6 +136,63 @@ export function isCsvFile(file: File): boolean {
   return file.type === 'text/csv' || /\.csv$/i.test(file.name);
 }
 
+// Является ли файл книгой Excel.
+export function isXlsxFile(file: File): boolean {
+  return /\.xlsx?$/i.test(file.name);
+}
+
+// Конвертирует worksheet в матрицу строк (значения; стили в free-SheetJS не
+// читаются).
+function sheetToRows(ws: XLSX.WorkSheet): string[][] {
+  const rows = XLSX.utils.sheet_to_json<unknown[]>(ws, {
+    header: 1,
+    blankrows: false,
+    defval: '',
+  });
+  const cols = rows.reduce((m, r) => Math.max(m, r.length), 0);
+  return rows.map((r) => Array.from({ length: cols }, (_, c) => String(r[c] ?? '')));
+}
+
+// Читает .xlsx-файл и открывает диалог выбора листа/диапазона (Phase 3.11b).
+export function openXlsxImport(file: File): void {
+  const reader = new FileReader();
+  reader.onload = () => {
+    const data = new Uint8Array(reader.result as ArrayBuffer);
+    const wb = XLSX.read(data, { type: 'array' });
+    const sheets = wb.SheetNames.map((name) => ({
+      name,
+      rows: sheetToRows(wb.Sheets[name]),
+    })).filter((s) => s.rows.length > 0);
+    if (sheets.length > 0) {
+      useUiStore.getState().setXlsxImport({ fileName: file.name, sheets });
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// Применяет диапазон в A1-нотации ("A1:C10") к матрице строк. Пустая/невалидная
+// строка → вся матрица.
+export function applyA1Range(rows: string[][], range: string): string[][] {
+  const m = range.trim().match(/^([A-Za-z]+)(\d+):([A-Za-z]+)(\d+)$/);
+  if (!m) return rows;
+  const colIdx = (s: string) =>
+    s
+      .toUpperCase()
+      .split('')
+      .reduce((acc, ch) => acc * 26 + (ch.charCodeAt(0) - 64), 0) - 1;
+  const c0 = colIdx(m[1]);
+  const r0 = Number(m[2]) - 1;
+  const c1 = colIdx(m[3]);
+  const r1 = Number(m[4]) - 1;
+  const rMin = Math.min(r0, r1);
+  const rMax = Math.max(r0, r1);
+  const cMin = Math.min(c0, c1);
+  const cMax = Math.max(c0, c1);
+  return rows
+    .slice(rMin, rMax + 1)
+    .map((r) => r.slice(cMin, cMax + 1));
+}
+
 // Вставляет таблицу из матрицы строк на активный слайд по центру. fmt —
 // опциональный формат ячеек (фон/выравнивание из HTML-буфера Excel/Sheets).
 export function insertTableFromRows(

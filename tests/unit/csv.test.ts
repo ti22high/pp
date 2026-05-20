@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { parseCsv, parseHtmlTable, parseHtmlTableRich } from '../../src/renderer/lib/csvImport';
+import {
+  parseCsv,
+  parseHtmlTable,
+  parseHtmlTableRich,
+  applyA1Range,
+} from '../../src/renderer/lib/csvImport';
 
 describe('parseCsv', () => {
   it('parses simple csv into a matrix', () => {
@@ -63,5 +68,23 @@ describe('parseHtmlTable (Excel/Sheets paste)', () => {
     const { fmt } = parseHtmlTableRich(html);
     expect(fmt?.[0][0]).toMatchObject({ fill: '#ff0000', align: 'center' });
     expect(fmt?.[0][1]).toMatchObject({ fill: '#00ff00', align: 'right', valign: 'top' });
+  });
+});
+
+describe('applyA1Range', () => {
+  const grid = [
+    ['a', 'b', 'c'],
+    ['1', '2', '3'],
+    ['x', 'y', 'z'],
+  ];
+  it('slices a sub-range', () => {
+    expect(applyA1Range(grid, 'A1:B2')).toEqual([
+      ['a', 'b'],
+      ['1', '2'],
+    ]);
+  });
+  it('returns full grid for empty/invalid range', () => {
+    expect(applyA1Range(grid, '')).toBe(grid);
+    expect(applyA1Range(grid, 'nonsense')).toBe(grid);
   });
 });

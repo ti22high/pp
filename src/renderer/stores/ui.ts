@@ -30,6 +30,8 @@ interface UiState {
   // Распарсенные строки CSV для диалога «Вставить как таблицу» (Phase 3.11).
   // null = диалог закрыт.
   csvImportRows: string[][] | null;
+  // Распарсенная книга .xlsx для диалога импорта (Phase 3.11b). null = закрыт.
+  xlsxImport: { fileName: string; sheets: { name: string; rows: string[][] }[] } | null;
   // Глобально показывать alt-текст при наведении на фигуру (Phase 3.7).
   showAltOnHover: boolean;
   // id фигуры под курсором, у которой есть alt-текст (для оверлея-подсказки).
@@ -48,6 +50,9 @@ interface UiState {
   ) => void;
   setTableFormatOpen: (open: boolean) => void;
   setCsvImportRows: (rows: string[][] | null) => void;
+  setXlsxImport: (
+    data: { fileName: string; sheets: { name: string; rows: string[][] }[] } | null,
+  ) => void;
   toggleAltOnHover: () => void;
   setHoveredAltShape: (id: ShapeId | null) => void;
   setSpaceHeld: (held: boolean) => void;
@@ -77,6 +82,7 @@ export const useUiStore = create<UiState>()(
     tableSelection: null,
     tableFormatOpen: false,
     csvImportRows: null,
+    xlsxImport: null,
     showAltOnHover: false,
     hoveredAltShapeId: null,
     spaceHeld: false,
@@ -111,6 +117,10 @@ export const useUiStore = create<UiState>()(
     setCsvImportRows: (rows) =>
       set((s) => {
         s.csvImportRows = rows;
+      }),
+    setXlsxImport: (data) =>
+      set((s) => {
+        s.xlsxImport = data;
       }),
     toggleAltOnHover: () =>
       set((s) => {

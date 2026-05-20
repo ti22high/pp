@@ -5,7 +5,9 @@ import {
 } from '@renderer/lib/insertImage';
 import {
   isCsvFile,
+  isXlsxFile,
   openCsvImport,
+  openXlsxImport,
   insertTableFromRows,
   tableRowsFromClipboard,
 } from '@renderer/lib/csvImport';
@@ -45,6 +47,13 @@ export function useImageDropPaste(): void {
       if (csv) {
         e.preventDefault();
         openCsvImport(csv);
+        return;
+      }
+      // .xlsx → диалог выбора листа/диапазона (Phase 3.11b).
+      const xlsx = list.find(isXlsxFile);
+      if (xlsx) {
+        e.preventDefault();
+        openXlsxImport(xlsx);
       }
     };
     const onPaste = (e: ClipboardEvent) => {
