@@ -15,7 +15,8 @@ export function TablePicker({ onPick, onClose }: TablePickerProps) {
   const [hover, setHover] = useState<{ r: number; c: number }>({ r: 1, c: 1 });
 
   return (
-    <div className="table-picker-backdrop" onClick={onClose}>
+    <>
+      <div className="table-picker-backdrop" onClick={onClose} />
       <div className="table-picker" onClick={(e) => e.stopPropagation()}>
         <div className="table-picker__grid">
           {Array.from({ length: MAX_ROWS }, (_, r) =>
@@ -36,6 +37,6 @@ export function TablePicker({ onPick, onClose }: TablePickerProps) {
           {hover.c} × {hover.r}
         </p>
       </div>
-    </div>
+    </>
   );
 }
