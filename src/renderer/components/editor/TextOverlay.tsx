@@ -4,6 +4,7 @@ import { tiptapExtensions } from '@renderer/lib/editor/extensions';
 import type { Shape } from '@renderer/lib/model/schema';
 import { useDeckStore } from '@renderer/stores/deck';
 import { useUiStore } from '@renderer/stores/ui';
+import { useActiveEditorStore } from '@renderer/stores/activeEditor';
 
 interface TextOverlayProps {
   slideId: string;
@@ -76,9 +77,26 @@ export function TextOverlay({ slideId, shape, panX, panY, zoom }: TextOverlayPro
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor]);
 
-  // Клик вне оверлея — закрыть.
+  // Регистрируем активный editor в сторе — SpecialCharsDialog вставляет
+  // символы в его текущую позицию курсора.
+  useEffect(() => {
+    if (!editor) return;
+    useActiveEditorStore.getState().setEditor(editor);
+    return () => {
+      // Снимаем только если это всё ещё наш editor (защита от гонки маунтов).
+      if (useActiveEditorStore.getState().editor === editor) {
+        useActiveEditorStore.getState().setEditor(null);
+      }
+    };
+  }, [editor]);
+
+  // Клик вне оверлея — закрыть. Исключение — элементы с [data-keep-editing]
+  // (например модалка спецсимволов): клик по ним не должен коммитить текст,
+  // иначе editor размонтируется и вставлять символ будет некуда.
   useEffect(() => {
     const onMouseDown = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.closest('[data-keep-editing]')) return;
       if (ref.current && !ref.current.contains(e.target as Node)) {
         commit();
       }

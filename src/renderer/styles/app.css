@@ -822,6 +822,87 @@ body,
 .slide-size__btn--ghost {
   background: transparent;
 }
+
+/* Special characters picker (Вставка → Специальные символы…). */
+.modal--special-chars {
+  min-width: 520px;
+  max-width: 560px;
+}
+.special-chars__body {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.special-chars__search {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--bg-panel);
+}
+.special-chars__search:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.special-chars__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.special-chars__tab {
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-panel);
+  font-size: 12px;
+  color: var(--text);
+  cursor: pointer;
+}
+.special-chars__tab:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.special-chars__tab--active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.special-chars__grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 4px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+.special-chars__cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-panel);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+.special-chars__cell:hover:not(:disabled) {
+  background: rgba(26, 115, 232, 0.08);
+  border-color: var(--accent);
+}
+.special-chars__cell:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.special-chars__empty {
+  grid-column: 1 / -1;
+  color: var(--text-muted);
+  font-size: 13px;
+  padding: 12px 0;
+}
 /* Текст внутри shape-bbox. Размер шрифта в slide-coords (20 px) — наследуется
    от .fs-item__shape; CSS-transform на .fs-item__inner уменьшает всё пропорц.
    Раньше тут стоял ручной 6px-шрифт и обрезание — давало искажённую картинку
