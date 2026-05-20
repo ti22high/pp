@@ -397,6 +397,25 @@ body,
   color: var(--text-muted);
   flex-shrink: 0;
 }
+/* Редактируемое числовое поле рядом с ползунком (ручной ввод значения). */
+.inspector-range-num {
+  width: 42px;
+  height: 22px;
+  padding: 0 4px;
+  text-align: right;
+  font: 12px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: var(--text);
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  outline: none;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+.inspector-range-num:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.18);
+}
 
 /* Маленькая инлайн-подсказка внутри лейблов Inspector-а (например,
    "Enabled (рендер — Phase 3)"). */

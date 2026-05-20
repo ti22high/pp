@@ -5,6 +5,7 @@ import { setImageRecolor, setImageAdjust } from '@renderer/lib/slides';
 import { maskImageBaked } from '@renderer/lib/imageBake';
 import { MASK_OPTIONS, type MaskKey } from '@renderer/lib/imageMasks';
 import { RECOLOR_OPTIONS, type RecolorKey } from '@renderer/lib/imageFilters';
+import { RangeNumberField } from './RangeNumberField';
 import type { ShapeId, SlideId } from '@shared/types';
 
 interface ImageInspectorProps {
@@ -105,44 +106,24 @@ export function ImageInspector({ slideId, shapeId }: ImageInspectorProps) {
         </label>
       )}
       {!cropping && (
-        <label className="inspector-row">
-          <span className="inspector-label">Яркость</span>
-          <span className="inspector-input-wrap">
-            <input
-              type="range"
-              min={-100}
-              max={100}
-              step={1}
-              value={Math.round(brightness * 100)}
-              className="inspector-range"
-              onChange={(e) =>
-                setImageAdjust(slideId, shapeId, {
-                  brightness: parseInt(e.target.value, 10) / 100,
-                })
-              }
-            />
-            <span className="inspector-range-value">{Math.round(brightness * 100)}</span>
-          </span>
-        </label>
+        <RangeNumberField
+          label="Яркость"
+          min={-100}
+          max={100}
+          value={brightness * 100}
+          format={Math.round}
+          onChange={(v) => setImageAdjust(slideId, shapeId, { brightness: v / 100 })}
+        />
       )}
       {!cropping && (
-        <label className="inspector-row">
-          <span className="inspector-label">Контраст</span>
-          <span className="inspector-input-wrap">
-            <input
-              type="range"
-              min={-100}
-              max={100}
-              step={1}
-              value={Math.round(contrast)}
-              className="inspector-range"
-              onChange={(e) =>
-                setImageAdjust(slideId, shapeId, { contrast: parseInt(e.target.value, 10) })
-              }
-            />
-            <span className="inspector-range-value">{Math.round(contrast)}</span>
-          </span>
-        </label>
+        <RangeNumberField
+          label="Контраст"
+          min={-100}
+          max={100}
+          value={contrast}
+          format={Math.round}
+          onChange={(v) => setImageAdjust(slideId, shapeId, { contrast: v })}
+        />
       )}
     </section>
   );

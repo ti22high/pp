@@ -1,4 +1,5 @@
 import { useDeckStore } from '@renderer/stores/deck';
+import { RangeNumberField } from './RangeNumberField';
 import type { ShapeId, SlideId } from '@shared/types';
 
 interface OpacityInspectorProps {
@@ -31,21 +32,14 @@ export function OpacityInspector({ slideId, shapeId, opacity }: OpacityInspector
   return (
     <section className="inspector-section">
       <p className="panel-title">Прозрачность</p>
-      <label className="inspector-row">
-        <span className="inspector-label">%</span>
-        <span className="inspector-input-wrap">
-          <input
-            type="range"
-            min={0}
-            max={100}
-            step={1}
-            value={pct}
-            className="inspector-range"
-            onChange={(e) => write(parseInt(e.target.value, 10) / 100)}
-          />
-          <span className="inspector-range-value">{pct}</span>
-        </span>
-      </label>
+      <RangeNumberField
+        label="%"
+        min={0}
+        max={100}
+        value={pct}
+        format={Math.round}
+        onChange={(v) => write(v / 100)}
+      />
     </section>
   );
 }
