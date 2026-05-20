@@ -10,7 +10,15 @@ const TYPES: { key: ChartType; label: string }[] = [
   { key: 'line', label: 'Линия' },
   { key: 'area', label: 'Область' },
   { key: 'pie', label: 'Круговая' },
+  { key: 'doughnut', label: 'Кольцевая' },
   { key: 'scatter', label: 'Точки' },
+  { key: 'scatterLine', label: 'Точки + линия' },
+  { key: 'bubble', label: 'Пузырьковая' },
+  { key: 'radar', label: 'Радар' },
+  { key: 'stackedColumn', label: 'Столбцы с накоплением' },
+  { key: 'stackedBar', label: 'Полосы с накоплением' },
+  { key: 'stackedArea', label: 'Область с накоплением' },
+  { key: 'combo', label: 'Комбо (столбцы+линия)' },
 ];
 
 // Плавающая панель редактирования диаграммы (Phase 3.12–3.14): тип, мини-таблица
@@ -62,13 +70,41 @@ export function ChartDataPanel() {
           </select>
         </label>
 
+        <label className="slide-size__field">
+          <span>Заголовок</span>
+          <input type="text" value={chart.title ?? ''} onChange={(e) => chartOps.setTitle(sid, id, e.target.value)} />
+        </label>
+
         <label className="inspector-row inspector-row--checkbox">
           <input type="checkbox" className="inspector-checkbox" checked={chart.showLegend ?? false} onChange={() => chartOps.toggleLegend(sid, id)} />
           <span className="inspector-checkbox-label">Легенда</span>
         </label>
+        <label className="slide-size__field">
+          <span>Позиция легенды</span>
+          <select value={chart.legendPosition ?? 'top'} onChange={(e) => chartOps.setLegendPosition(sid, id, e.target.value as 'top' | 'bottom' | 'left' | 'right')}>
+            <option value="top">Сверху</option>
+            <option value="bottom">Снизу</option>
+            <option value="left">Слева</option>
+            <option value="right">Справа</option>
+          </select>
+        </label>
         <label className="inspector-row inspector-row--checkbox">
           <input type="checkbox" className="inspector-checkbox" checked={chart.showGridlines ?? false} onChange={() => chartOps.toggleGridlines(sid, id)} />
           <span className="inspector-checkbox-label">Сетка</span>
+        </label>
+        <label className="inspector-row inspector-row--checkbox">
+          <input type="checkbox" className="inspector-checkbox" checked={chart.dataLabels ?? false} onChange={() => chartOps.toggleDataLabels(sid, id)} />
+          <span className="inspector-checkbox-label">Подписи данных</span>
+        </label>
+
+        <label className="slide-size__field">
+          <span>Формат чисел</span>
+          <select value={chart.numberFormat ?? 'auto'} onChange={(e) => chartOps.setNumberFormat(sid, id, e.target.value as 'auto' | 'integer' | 'percent' | 'thousands')}>
+            <option value="auto">Авто</option>
+            <option value="integer">Целое</option>
+            <option value="percent">Проценты</option>
+            <option value="thousands">Разряды (1 000)</option>
+          </select>
         </label>
 
         <label className="slide-size__field">

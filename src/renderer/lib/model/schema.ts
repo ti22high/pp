@@ -249,13 +249,34 @@ export const chartSeriesSchema = z.object({
 export const chartShapeSchema = z.object({
   ...baseShape,
   type: z.literal('chart'),
-  chartType: z.enum(['column', 'bar', 'line', 'area', 'pie', 'scatter']),
+  chartType: z.enum([
+    'column',
+    'bar',
+    'line',
+    'area',
+    'pie',
+    'scatter',
+    // Расширенные типы (Phase 3.14a).
+    'doughnut',
+    'radar',
+    'stackedColumn',
+    'stackedBar',
+    'stackedArea',
+    'combo',
+    'bubble',
+    'scatterLine',
+  ]),
   categories: z.array(z.string()),
   series: z.array(chartSeriesSchema),
   showLegend: z.boolean().optional(),
   showGridlines: z.boolean().optional(),
   axisXTitle: z.string().optional(),
   axisYTitle: z.string().optional(),
+  // Phase 3.14b.
+  title: z.string().optional(),
+  legendPosition: z.enum(['top', 'bottom', 'left', 'right']).optional(),
+  dataLabels: z.boolean().optional(),
+  numberFormat: z.enum(['auto', 'integer', 'percent', 'thousands']).optional(),
 });
 
 export const shapeSchema = z.discriminatedUnion('type', [

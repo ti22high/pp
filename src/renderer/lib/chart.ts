@@ -76,4 +76,39 @@ export const chartOps = {
       if (axis === 'x') c.axisXTitle = t;
       else c.axisYTitle = t;
     }),
+  setTitle: (slideId: string, shapeId: string, title: string) =>
+    withChart(slideId, shapeId, (c) => {
+      c.title = title.trim() === '' ? undefined : title;
+    }),
+  setLegendPosition: (slideId: string, shapeId: string, pos: 'top' | 'bottom' | 'left' | 'right') =>
+    withChart(slideId, shapeId, (c) => {
+      c.legendPosition = pos;
+      c.showLegend = true;
+    }),
+  toggleDataLabels: (slideId: string, shapeId: string) =>
+    withChart(slideId, shapeId, (c) => {
+      c.dataLabels = !c.dataLabels;
+    }),
+  setNumberFormat: (
+    slideId: string,
+    shapeId: string,
+    fmt: 'auto' | 'integer' | 'percent' | 'thousands',
+  ) =>
+    withChart(slideId, shapeId, (c) => {
+      c.numberFormat = fmt;
+    }),
 };
+
+// Форматирование числа подписи по numberFormat диаграммы.
+export function formatChartNumber(v: number, fmt: string | undefined): string {
+  switch (fmt) {
+    case 'integer':
+      return String(Math.round(v));
+    case 'percent':
+      return `${Math.round(v)}%`;
+    case 'thousands':
+      return Math.round(v).toLocaleString('ru-RU');
+    default:
+      return String(Math.round(v * 100) / 100);
+  }
+}
