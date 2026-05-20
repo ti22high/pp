@@ -181,6 +181,20 @@ export const imageShapeSchema = z.object({
       h: z.number().min(0).max(1),
     })
     .optional(),
+  // Маска обрезки-по-форме (Phase 3.3): ключ из imageMasks.ts. undefined =
+  // прямоугольник (без маски).
+  maskShape: z
+    .enum([
+      'roundRect',
+      'circle',
+      'triangle',
+      'diamond',
+      'pentagon',
+      'hexagon',
+      'star5',
+      'heart',
+    ])
+    .optional(),
 });
 
 export const shapeSchema = z.discriminatedUnion('type', [

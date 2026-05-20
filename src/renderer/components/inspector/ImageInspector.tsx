@@ -1,7 +1,8 @@
 import { useDeckStore } from '@renderer/stores/deck';
 import { useUiStore } from '@renderer/stores/ui';
 import { useCropBridge } from '@renderer/stores/cropBridge';
-import { resetImageCrop } from '@renderer/lib/slides';
+import { resetImageCrop, setImageMask } from '@renderer/lib/slides';
+import { MASK_OPTIONS, type MaskKey } from '@renderer/lib/imageMasks';
 import type { ShapeId, SlideId } from '@shared/types';
 
 interface ImageInspectorProps {
@@ -16,6 +17,10 @@ export function ImageInspector({ slideId, shapeId }: ImageInspectorProps) {
   const hasCrop = useDeckStore((s) => {
     const sh = s.deck?.slides[slideId]?.shapes.find((x) => x.id === shapeId);
     return sh?.type === 'image' && sh.crop != null;
+  });
+  const mask = useDeckStore((s) => {
+    const sh = s.deck?.slides[slideId]?.shapes.find((x) => x.id === shapeId);
+    return sh?.type === 'image' ? sh.maskShape ?? '' : '';
   });
 
   return (
@@ -62,6 +67,29 @@ export function ImageInspector({ slideId, shapeId }: ImageInspectorProps) {
         <p className="meta">
           Перетащите рамку и ручки. Enter — применить, Esc — отмена.
         </p>
+      )}
+      {!cropping && (
+        <label className="inspector-row">
+          <span className="inspector-label">Маска</span>
+          <select
+            className="inspector-select"
+            value={mask}
+            onChange={(e) =>
+              setImageMask(
+                slideId,
+                shapeId,
+                e.target.value === '' ? undefined : (e.target.value as MaskKey),
+              )
+            }
+          >
+            <option value="">Прямоугольник</option>
+            {MASK_OPTIONS.map((m) => (
+              <option key={m.key} value={m.key}>
+                {m.label}
+              </option>
+            ))}
+          </select>
+        </label>
       )}
     </section>
   );

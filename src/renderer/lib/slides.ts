@@ -238,6 +238,24 @@ export function resetImageCrop(slideId: string, shapeId: string): void {
   });
 }
 
+// Ставит / убирает маску обрезки-по-форме у изображения. mask=undefined —
+// прямоугольник (без маски).
+export function setImageMask(
+  slideId: string,
+  shapeId: string,
+  mask: import('@renderer/lib/model/schema').ImageShape['maskShape'],
+): void {
+  useDeckStore.setState((state) => {
+    if (!state.deck) return;
+    const slide = state.deck.slides[slideId];
+    if (!slide) return;
+    const sh = slide.shapes.find((x) => x.id === shapeId);
+    if (!sh || sh.type !== 'image') return;
+    sh.maskShape = mask;
+    state.deck.modifiedAt = new Date().toISOString();
+  });
+}
+
 // Ставит / убирает гиперссылку на указанной фигуре. `hl=undefined` снимает
 // ссылку. Используется HyperlinkDialog.
 export function setShapeHyperlink(

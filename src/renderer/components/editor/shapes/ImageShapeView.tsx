@@ -1,10 +1,12 @@
-import { memo } from 'react';
-import { Image as KonvaImage, Rect } from 'react-konva';
+import { memo, useCallback } from 'react';
+import { Image as KonvaImage, Rect, Group } from 'react-konva';
+import type Konva from 'konva';
 import type { ImageShape } from '@renderer/lib/model/schema';
 import { ShapeNode } from './ShapeNode';
 import { ShapeTextLabel } from './ShapeTextLabel';
 import { resolveStroke, resolveShadow } from './paint';
 import { useImageElement } from './useImageElement';
+import { maskClipFunc } from '@renderer/lib/imageMasks';
 
 interface ImageShapeViewProps {
   shape: ImageShape;
@@ -32,6 +34,29 @@ export const ImageShapeView = memo(function ImageShapeViewBase({
         }
       : {};
 
+  // clipFunc маски-по-форме (если задана) — рисует контур в координатах
+  // 0..w, 0..h вокруг картинки.
+  const mask = shape.maskShape;
+  const clipFunc = useCallback(
+    (ctx: Konva.Context) => {
+      if (mask) maskClipFunc(mask, shape.w, shape.h)(ctx);
+    },
+    [mask, shape.w, shape.h],
+  );
+
+  const imageNode = img ? (
+    <KonvaImage
+      x={0}
+      y={0}
+      width={shape.w}
+      height={shape.h}
+      image={img}
+      {...cropProps}
+      {...(mask ? {} : strokeProps)}
+      {...shadowProps}
+    />
+  ) : null;
+
   return (
     <ShapeNode
       id={shape.id}
@@ -45,16 +70,11 @@ export const ImageShapeView = memo(function ImageShapeViewBase({
       locked={shape.locked}
     >
       {img ? (
-        <KonvaImage
-          x={0}
-          y={0}
-          width={shape.w}
-          height={shape.h}
-          image={img}
-          {...cropProps}
-          {...strokeProps}
-          {...shadowProps}
-        />
+        mask ? (
+          <Group clipFunc={clipFunc}>{imageNode}</Group>
+        ) : (
+          imageNode
+        )
       ) : (
         // Плейсхолдер, пока картинка грузится (или если src битый).
         <Rect
