@@ -1,7 +1,8 @@
-import { useDeckStore } from '@renderer/stores/deck';
 import { useUiStore } from '@renderer/stores/ui';
+import { useDeckStore } from '@renderer/stores/deck';
 import { useCropBridge } from '@renderer/stores/cropBridge';
-import { resetImageCrop, setImageMask, setImageRecolor } from '@renderer/lib/slides';
+import { setImageRecolor } from '@renderer/lib/slides';
+import { maskImageBaked } from '@renderer/lib/imageBake';
 import { MASK_OPTIONS, type MaskKey } from '@renderer/lib/imageMasks';
 import { RECOLOR_OPTIONS, type RecolorKey } from '@renderer/lib/imageFilters';
 import type { ShapeId, SlideId } from '@shared/types';
@@ -11,18 +12,12 @@ interface ImageInspectorProps {
   shapeId: ShapeId;
 }
 
-// Секция инспектора для изображения: вход в режим обрезки + сброс обрезки.
+// Секция инспектора для изображения: обрезка, применение формы (маски),
+// перекраска. Обрезка и форма деструктивны («запекаются» в новый src,
+// см. lib/imageBake.ts), поэтому форма — это действие, а не переключатель.
 export function ImageInspector({ slideId, shapeId }: ImageInspectorProps) {
   const setCroppingShape = useUiStore((s) => s.setCroppingShape);
   const cropping = useUiStore((s) => s.croppingShapeId === shapeId);
-  const hasCrop = useDeckStore((s) => {
-    const sh = s.deck?.slides[slideId]?.shapes.find((x) => x.id === shapeId);
-    return sh?.type === 'image' && sh.crop != null;
-  });
-  const mask = useDeckStore((s) => {
-    const sh = s.deck?.slides[slideId]?.shapes.find((x) => x.id === shapeId);
-    return sh?.type === 'image' ? sh.maskShape ?? '' : '';
-  });
   const recolor = useDeckStore((s) => {
     const sh = s.deck?.slides[slideId]?.shapes.find((x) => x.id === shapeId);
     return sh?.type === 'image' ? sh.recolor ?? 'none' : 'none';
@@ -58,15 +53,6 @@ export function ImageInspector({ slideId, shapeId }: ImageInspectorProps) {
             Обрезать
           </button>
         )}
-        {hasCrop && !cropping && (
-          <button
-            type="button"
-            className="inspector-btn"
-            onClick={() => resetImageCrop(slideId, shapeId)}
-          >
-            Сбросить обрезку
-          </button>
-        )}
       </div>
       {cropping && (
         <p className="meta">
@@ -75,19 +61,17 @@ export function ImageInspector({ slideId, shapeId }: ImageInspectorProps) {
       )}
       {!cropping && (
         <label className="inspector-row">
-          <span className="inspector-label">Маска</span>
+          <span className="inspector-label">Форма</span>
           <select
             className="inspector-select"
-            value={mask}
-            onChange={(e) =>
-              setImageMask(
-                slideId,
-                shapeId,
-                e.target.value === '' ? undefined : (e.target.value as MaskKey),
-              )
-            }
+            value=""
+            onChange={(e) => {
+              const k = e.target.value;
+              if (k) void maskImageBaked(slideId, shapeId, k as MaskKey);
+              e.target.value = '';
+            }}
           >
-            <option value="">Прямоугольник</option>
+            <option value="">Применить форму…</option>
             {MASK_OPTIONS.map((m) => (
               <option key={m.key} value={m.key}>
                 {m.label}

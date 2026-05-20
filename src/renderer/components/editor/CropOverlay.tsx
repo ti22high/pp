@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { Group, Image as KonvaImage, Rect, Shape, Transformer } from 'react-konva';
+import { Group, Image as KonvaImage, Rect, Transformer } from 'react-konva';
 import type Konva from 'konva';
 import { useDeckStore } from '@renderer/stores/deck';
 import { useUiStore } from '@renderer/stores/ui';
 import { useCropBridge } from '@renderer/stores/cropBridge';
-import { applyImageCrop } from '@renderer/lib/slides';
-import { maskClipFunc } from '@renderer/lib/imageMasks';
+import { cropImageBaked } from '@renderer/lib/imageBake';
 import { useImageElement } from './shapes/useImageElement';
 
 interface CropOverlayProps {
@@ -19,10 +18,9 @@ interface Box {
   h: number;
 }
 
-// Оверлей обрезки изображения (Phase 3.2/3.3). Рендерится в Stage (slide-coords).
-// Прямоугольная рамка задаёт окно кропа. Если у изображения есть маска-форма,
-// форма «приклеена» к полному кадру: кроп режет саму форму (например, верх
-// сердца), а не сжимает её под новый бокс.
+// Оверлей обрезки изображения (Phase 3.2). Прямоугольная рамка задаёт окно
+// кропа; на подтверждении результат «запекается» в новый src (lib/imageBake).
+// Если картинка уже имеет форму (маска впечатана), кроп режет именно её.
 export function CropOverlay({ slideId }: CropOverlayProps) {
   const croppingId = useUiStore((s) => s.croppingShapeId);
   const setCroppingShape = useUiStore((s) => s.setCroppingShape);
@@ -32,17 +30,10 @@ export function CropOverlay({ slideId }: CropOverlayProps) {
     return sh && sh.type === 'image' ? sh : null;
   });
   const img = useImageElement(shape?.src ?? null);
-  const mask = shape?.maskShape ?? null;
 
-  // Полный кадр в slide-coords (исходя из текущего кропа фигуры).
-  const crop = shape?.crop ?? { x: 0, y: 0, w: 1, h: 1 };
+  // Изображение запечено без отдельного кропа, поэтому полный кадр = bbox.
   const full: Box | null = shape
-    ? {
-        x: shape.x - (crop.x / crop.w) * shape.w,
-        y: shape.y - (crop.y / crop.h) * shape.h,
-        w: shape.w / crop.w,
-        h: shape.h / crop.h,
-      }
+    ? { x: shape.x, y: shape.y, w: shape.w, h: shape.h }
     : null;
 
   const [rect, setRect] = useState<Box | null>(null);
@@ -70,13 +61,13 @@ export function CropOverlay({ slideId }: CropOverlayProps) {
       setCroppingShape(null);
       return;
     }
-    const cropFrac = {
+    const region = {
       x: (rect.x - full.x) / full.w,
       y: (rect.y - full.y) / full.h,
       w: rect.w / full.w,
       h: rect.h / full.h,
     };
-    applyImageCrop(slideId, shape.id, cropFrac, rect);
+    void cropImageBaked(slideId, shape.id, region, rect);
     setCroppingShape(null);
   };
   const cancel = () => setCroppingShape(null);
@@ -103,7 +94,6 @@ export function CropOverlay({ slideId }: CropOverlayProps) {
 
   if (!croppingId || !shape || !img || !rect || !full) return null;
 
-  // Рамка кропа не выходит за полный кадр.
   const clampRect = (b: Box): Box => {
     const w = Math.min(b.w, full.w);
     const h = Math.min(b.h, full.h);
@@ -114,48 +104,12 @@ export function CropOverlay({ slideId }: CropOverlayProps) {
 
   return (
     <>
-      {/* Полный кадр затемнён. Если есть маска — затемнённую часть тоже
-          показываем по форме (приклеена к полному кадру). */}
-      {mask ? (
-        <Group
-          clipFunc={(ctx) => maskClipFunc(mask, full.x, full.y, full.w, full.h)(ctx)}
-          listening={false}
-        >
-          <KonvaImage x={full.x} y={full.y} width={full.w} height={full.h} image={img} opacity={0.35} listening={false} />
-        </Group>
-      ) : (
-        <KonvaImage x={full.x} y={full.y} width={full.w} height={full.h} image={img} opacity={0.35} listening={false} />
-      )}
-
-      {/* Яркая область = внутри рамки И внутри формы (если есть маска). */}
+      {/* Полный кадр затемнён. */}
+      <KonvaImage x={full.x} y={full.y} width={full.w} height={full.h} image={img} opacity={0.35} listening={false} />
+      {/* Яркая область внутри рамки. */}
       <Group clipX={rect.x} clipY={rect.y} clipWidth={rect.w} clipHeight={rect.h} listening={false}>
-        {mask ? (
-          <Group clipFunc={(ctx) => maskClipFunc(mask, full.x, full.y, full.w, full.h)(ctx)} listening={false}>
-            <KonvaImage x={full.x} y={full.y} width={full.w} height={full.h} image={img} listening={false} />
-          </Group>
-        ) : (
-          <KonvaImage x={full.x} y={full.y} width={full.w} height={full.h} image={img} listening={false} />
-        )}
+        <KonvaImage x={full.x} y={full.y} width={full.w} height={full.h} image={img} listening={false} />
       </Group>
-
-      {/* Контур формы (приклеен к полному кадру) — видно, что режем форму. */}
-      {mask && (
-        <Shape
-          x={0}
-          y={0}
-          listening={false}
-          stroke="#1a73e8"
-          strokeWidth={1}
-          opacity={0.5}
-          strokeScaleEnabled={false}
-          sceneFunc={(ctx, s) => {
-            maskClipFunc(mask, full.x, full.y, full.w, full.h)(ctx);
-            ctx.strokeShape(s);
-          }}
-        />
-      )}
-
-      {/* Прямоугольная рамка кропа. */}
       <Rect
         ref={rectRef}
         x={rect.x}
