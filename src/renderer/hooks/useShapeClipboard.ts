@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useSelectionStore } from '@renderer/stores/selection';
+import { useClipboardStore } from '@renderer/stores/clipboard';
 import { copy, cut, paste, duplicate, deleteSelected, selectAll } from '@renderer/lib/clipboard';
 
 // Cmd/Ctrl+C / X / V / D / A для фигур на канвасе + Del / Backspace.
@@ -35,8 +36,14 @@ export function useShapeClipboard() {
         e.preventDefault();
         cut();
       } else if (key === 'v') {
-        e.preventDefault();
-        paste();
+        // Внутренний буфер фигур вставляем ТОЛЬКО если в нём что-то есть.
+        // Иначе НЕ глушим событие — пусть сработает нативный paste, чтобы
+        // useImageDropPaste вставил картинку/таблицу из внешнего буфера
+        // (Excel/Sheets/скриншот).
+        if (useClipboardStore.getState().shapes.length > 0) {
+          e.preventDefault();
+          paste();
+        }
       } else if (key === 'd') {
         e.preventDefault();
         duplicate();
