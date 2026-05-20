@@ -204,10 +204,14 @@ export const imageShapeSchema = z.object({
   contrast: z.number().min(-100).max(100).optional(),
 });
 
-// Ячейка таблицы (Phase 3.8). Пока только текст; форматирование (фон, рамки,
-// выравнивание, padding) добавится в 3.10 опциональными полями.
+// Ячейка таблицы (Phase 3.8). text — содержимое. colSpan/rowSpan (Phase 3.9) —
+// объединение ячеек (по умолчанию 1). merged=true помечает ячейку, накрытую
+// объединением соседней (не рендерится, но хранится для сохранения сетки).
 export const tableCellSchema = z.object({
   text: z.string(),
+  colSpan: z.number().int().min(1).optional(),
+  rowSpan: z.number().int().min(1).optional(),
+  merged: z.boolean().optional(),
 });
 // Таблица (Phase 3.8): сетка rows×cols. Ширины колонок и высоты строк хранятся
 // как доли ширины/высоты фигуры (сумма ≈ 1) — так resize фигуры тянет сетку

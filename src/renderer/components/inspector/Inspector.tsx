@@ -10,6 +10,7 @@ import { ShadowInspector } from './ShadowInspector';
 import { ReflectionInspector } from './ReflectionInspector';
 import { OpacityInspector } from './OpacityInspector';
 import { ImageInspector } from './ImageInspector';
+import { TableInspector } from './TableInspector';
 
 // Корень правой панели свойств.
 // 0 фигур → плейсхолдер; 1 → набор секций; 2+ → счётчик (multi-edit — Phase 2.15).
@@ -64,13 +65,16 @@ function SingleShapeInspector({ slideId, shapeId }: { slideId: SlideId; shapeId:
   // - Text: только Opacity (цвет текста — через TipTap inline-color в 2.10/2.11).
   // - Rect/Ellipse/Path: Fill + Stroke + Opacity.
   const showFill = shapeFacets.type === 'rect' || shapeFacets.type === 'ellipse' || shapeFacets.type === 'path';
-  const showStroke = shapeFacets.type !== 'text';
+  const showStroke = shapeFacets.type !== 'text' && shapeFacets.type !== 'table';
 
   return (
     <>
       <TransformInspector slideId={slideId} shapeId={shapeId} />
       {shapeFacets.type === 'image' && (
         <ImageInspector slideId={slideId} shapeId={shapeId} />
+      )}
+      {shapeFacets.type === 'table' && (
+        <TableInspector slideId={slideId} shapeId={shapeId} />
       )}
       {showFill && <FillInspector slideId={slideId} shapeId={shapeId} fill={shapeFacets.fill} />}
       {showStroke && (

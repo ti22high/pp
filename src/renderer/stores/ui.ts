@@ -22,6 +22,9 @@ interface UiState {
   altTextShapeId: ShapeId | null;
   // Редактируемая ячейка таблицы (Phase 3.8). null = не редактируем.
   editingTableCell: { shapeId: ShapeId; row: number; col: number } | null;
+  // Выбранный прямоугольный диапазон ячеек таблицы (Phase 3.9) — для операций
+  // строк/столбцов и объединения. null = ничего не выбрано.
+  tableSelection: { shapeId: ShapeId; r0: number; c0: number; r1: number; c1: number } | null;
   // Глобально показывать alt-текст при наведении на фигуру (Phase 3.7).
   showAltOnHover: boolean;
   // id фигуры под курсором, у которой есть alt-текст (для оверлея-подсказки).
@@ -35,6 +38,9 @@ interface UiState {
   setCroppingShape: (id: ShapeId | null) => void;
   setAltTextShape: (id: ShapeId | null) => void;
   setEditingTableCell: (cell: { shapeId: ShapeId; row: number; col: number } | null) => void;
+  setTableSelection: (
+    sel: { shapeId: ShapeId; r0: number; c0: number; r1: number; c1: number } | null,
+  ) => void;
   toggleAltOnHover: () => void;
   setHoveredAltShape: (id: ShapeId | null) => void;
   setSpaceHeld: (held: boolean) => void;
@@ -61,6 +67,7 @@ export const useUiStore = create<UiState>()(
     croppingShapeId: null,
     altTextShapeId: null,
     editingTableCell: null,
+    tableSelection: null,
     showAltOnHover: false,
     hoveredAltShapeId: null,
     spaceHeld: false,
@@ -83,6 +90,10 @@ export const useUiStore = create<UiState>()(
     setEditingTableCell: (cell) =>
       set((s) => {
         s.editingTableCell = cell;
+      }),
+    setTableSelection: (sel) =>
+      set((s) => {
+        s.tableSelection = sel;
       }),
     toggleAltOnHover: () =>
       set((s) => {
