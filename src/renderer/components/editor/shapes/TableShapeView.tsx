@@ -138,8 +138,11 @@ export const TableShapeView = memo(function TableShapeViewBase({ shape, slideId 
   );
 });
 
-// Невидимые перетаскиваемые границы для ресайза колонок/строк. Тянем границу —
-// перераспределяем доли двух соседних колонок/строк (их сумма неизменна).
+// Невидимые перетаскиваемые границы для ресайза колонок/строк. Во время drag
+// двигаем ручку ТОЛЬКО императивно (без setState), иначе ре-рендер пересчитает
+// её позицию из стора и собьёт активный Konva-drag → дрожь. Доли пишем один
+// раз на dragEnd. Каждая ручка — Group с тонкой видимой линией (превью) и
+// широкой невидимой зоной захвата.
 function ResizeHandles({ shape, slideId }: { shape: TableShape; slideId: string }) {
   const { colX, rowY } = gridLines(shape);
   const setCursor = (e: Konva.KonvaEventObject<MouseEvent>, cur: string) => {
@@ -150,14 +153,20 @@ function ResizeHandles({ shape, slideId }: { shape: TableShape; slideId: string 
   const handles: ReactNode[] = [];
   // Вертикальные границы между колонками i-1 и i.
   for (let i = 1; i < shape.cols; i++) {
+    const clampX = (x: number) => {
+      const g = gridLines(shape);
+      return Math.max(g.colX[i - 1] + MIN_CELL, Math.min(g.colX[i + 1] - MIN_CELL, x));
+    };
     handles.push(
-      <Rect
+      <Group
         key={`v${i}`}
-        x={colX[i] - HANDLE_HIT / 2}
+        x={colX[i]}
         y={0}
-        width={HANDLE_HIT}
-        height={shape.h}
         draggable
+        dragBoundFunc={function (this: Konva.Node, pos) {
+          // Запрещаем вертикальное смещение: возвращаем исходный absolute Y.
+          return { x: pos.x, y: this.absolutePosition().y };
+        }}
         onMouseDown={(e) => {
           e.cancelBubble = true;
         }}
@@ -166,30 +175,37 @@ function ResizeHandles({ shape, slideId }: { shape: TableShape; slideId: string 
         onDragMove={(e) => {
           const node = e.target;
           node.y(0);
+          node.x(clampX(node.x()));
+        }}
+        onDragEnd={(e) => {
           const g = gridLines(shape);
-          const boundary = Math.max(
-            g.colX[i - 1] + MIN_CELL,
-            Math.min(g.colX[i + 1] - MIN_CELL, node.x() + HANDLE_HIT / 2),
-          );
-          node.x(boundary - HANDLE_HIT / 2);
+          const b = clampX(e.target.x());
           const fr = [...shape.colFractions];
-          fr[i - 1] = (boundary - g.colX[i - 1]) / shape.w;
-          fr[i] = (g.colX[i + 1] - boundary) / shape.w;
+          fr[i - 1] = (b - g.colX[i - 1]) / shape.w;
+          fr[i] = (g.colX[i + 1] - b) / shape.w;
           tableOps.setColFractions(slideId, shape.id, fr);
         }}
-      />,
+      >
+        <Rect x={-HANDLE_HIT / 2} y={0} width={HANDLE_HIT} height={shape.h} />
+        <Rect x={-1} y={0} width={2} height={shape.h} fill="rgba(26, 115, 232, 0.5)" />
+      </Group>,
     );
   }
   // Горизонтальные границы между строками i-1 и i.
   for (let i = 1; i < shape.rows; i++) {
+    const clampY = (y: number) => {
+      const g = gridLines(shape);
+      return Math.max(g.rowY[i - 1] + MIN_CELL, Math.min(g.rowY[i + 1] - MIN_CELL, y));
+    };
     handles.push(
-      <Rect
+      <Group
         key={`h${i}`}
         x={0}
-        y={rowY[i] - HANDLE_HIT / 2}
-        width={shape.w}
-        height={HANDLE_HIT}
+        y={rowY[i]}
         draggable
+        dragBoundFunc={function (this: Konva.Node, pos) {
+          return { x: this.absolutePosition().x, y: pos.y };
+        }}
         onMouseDown={(e) => {
           e.cancelBubble = true;
         }}
@@ -198,18 +214,20 @@ function ResizeHandles({ shape, slideId }: { shape: TableShape; slideId: string 
         onDragMove={(e) => {
           const node = e.target;
           node.x(0);
+          node.y(clampY(node.y()));
+        }}
+        onDragEnd={(e) => {
           const g = gridLines(shape);
-          const boundary = Math.max(
-            g.rowY[i - 1] + MIN_CELL,
-            Math.min(g.rowY[i + 1] - MIN_CELL, node.y() + HANDLE_HIT / 2),
-          );
-          node.y(boundary - HANDLE_HIT / 2);
+          const b = clampY(e.target.y());
           const fr = [...shape.rowFractions];
-          fr[i - 1] = (boundary - g.rowY[i - 1]) / shape.h;
-          fr[i] = (g.rowY[i + 1] - boundary) / shape.h;
+          fr[i - 1] = (b - g.rowY[i - 1]) / shape.h;
+          fr[i] = (g.rowY[i + 1] - b) / shape.h;
           tableOps.setRowFractions(slideId, shape.id, fr);
         }}
-      />,
+      >
+        <Rect x={0} y={-HANDLE_HIT / 2} width={shape.w} height={HANDLE_HIT} />
+        <Rect x={0} y={-1} width={shape.w} height={2} fill="rgba(26, 115, 232, 0.5)" />
+      </Group>,
     );
   }
   return <>{handles}</>;
