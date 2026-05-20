@@ -39,7 +39,7 @@ export const ImageShapeView = memo(function ImageShapeViewBase({
   const mask = shape.maskShape;
   const clipFunc = useCallback(
     (ctx: Konva.Context) => {
-      if (mask) maskClipFunc(mask, shape.w, shape.h)(ctx);
+      if (mask) maskClipFunc(mask, 0, 0, shape.w, shape.h)(ctx);
     },
     [mask, shape.w, shape.h],
   );

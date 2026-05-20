@@ -5,6 +5,7 @@ import { useDeckStore } from '@renderer/stores/deck';
 import { useUiStore } from '@renderer/stores/ui';
 import { useCropBridge } from '@renderer/stores/cropBridge';
 import { applyImageCrop } from '@renderer/lib/slides';
+import { maskClipFunc } from '@renderer/lib/imageMasks';
 import { useImageElement } from './shapes/useImageElement';
 
 interface CropOverlayProps {
@@ -125,12 +126,19 @@ export function CropOverlay({ slideId }: CropOverlayProps) {
         opacity={0.35}
         listening={false}
       />
-      {/* Яркая область внутри рамки (полный кадр, обрезанный clip-ом). */}
+      {/* Яркая область внутри рамки. Если у фигуры задана маска-форма —
+          показываем её здесь же, чтобы при обрезке была видна итоговая форма
+          (сама рамка-кроп при этом остаётся прямоугольной). */}
       <Group
-        clipX={frame.x}
-        clipY={frame.y}
-        clipWidth={frame.w}
-        clipHeight={frame.h}
+        clipFunc={
+          shape.maskShape
+            ? (ctx) => maskClipFunc(shape.maskShape!, frame.x, frame.y, frame.w, frame.h)(ctx)
+            : undefined
+        }
+        clipX={shape.maskShape ? undefined : frame.x}
+        clipY={shape.maskShape ? undefined : frame.y}
+        clipWidth={shape.maskShape ? undefined : frame.w}
+        clipHeight={shape.maskShape ? undefined : frame.h}
         listening={false}
       >
         <KonvaImage
