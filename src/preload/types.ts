@@ -20,5 +20,9 @@ export interface PreloadApi {
     readImage(): string; // data URL или '' если картинки нет
     readHTML(): string;
     readText(): string;
+    // Доступные форматы буфера (диагностика Office-формата графиков).
+    availableFormats(): string[];
+    // Сырые байты формата как base64 (для парсинга встроенного .xlsx/zip).
+    readBufferBase64(format: string): string;
   };
 }

@@ -24,6 +24,14 @@ const api: PreloadApi = {
     },
     readHTML: () => clipboard.readHTML(),
     readText: () => clipboard.readText(),
+    availableFormats: () => clipboard.availableFormats(),
+    readBufferBase64: (format: string) => {
+      try {
+        return clipboard.readBuffer(format).toString('base64');
+      } catch {
+        return '';
+      }
+    },
   },
 };
 

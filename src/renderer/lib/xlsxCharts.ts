@@ -126,10 +126,14 @@ export function parseChartXml(xml: string): ChartImport | null {
 export async function parseXlsxCharts(buf: ArrayBuffer): Promise<ChartImport[]> {
   const zip = await JSZip.loadAsync(buf);
   const charts: ChartImport[] = [];
-  const files = Object.keys(zip.files).filter((n) => /xl\/charts\/chart\d+\.xml$/i.test(n));
+  const allNames = Object.keys(zip.files);
+  // Диагностика: какие chart-связанные файлы есть в книге.
+  console.info('[xlsx import] chart-related entries:', allNames.filter((n) => /chart/i.test(n)));
+  const files = allNames.filter((n) => /xl\/charts\/chart\d+\.xml$/i.test(n));
   for (const name of files.sort()) {
     const xml = await zip.files[name].async('string');
     const parsed = parseChartXml(xml);
+    console.info('[xlsx import] parsed', name, '→', parsed ? parsed.chartType : 'null');
     if (parsed) charts.push(parsed);
   }
   return charts;
