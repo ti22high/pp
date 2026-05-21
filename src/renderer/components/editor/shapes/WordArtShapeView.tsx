@@ -2,6 +2,7 @@ import { memo, useMemo } from 'react';
 import { Text } from 'react-konva';
 import Konva from 'konva';
 import type { WordArtShape } from '@renderer/lib/model/schema';
+import { useUiStore } from '@renderer/stores/ui';
 import { ShapeNode } from './ShapeNode';
 import { resolveFill, resolveStroke, resolveShadow } from './paint';
 import { wordArtFontStyle, WORDART_LINE_HEIGHT } from '@renderer/lib/wordart';
@@ -22,6 +23,8 @@ export const WordArtShapeView = memo(function WordArtShapeViewBase({
   shape,
   slideId,
 }: WordArtShapeViewProps) {
+  // Во время инлайн-правки Konva-текст прячем — поверх рисует WordArtOverlay.
+  const isEditing = useUiStore((s) => s.editingShapeId === shape.id);
   const fontStyle = wordArtFontStyle(shape.bold, shape.italic);
   const natural = useMemo(() => {
     const node = new Konva.Text({
@@ -58,7 +61,7 @@ export const WordArtShapeView = memo(function WordArtShapeViewBase({
         y={0}
         scaleX={sx}
         scaleY={sy}
-        text={shape.text}
+        text={isEditing ? '' : shape.text}
         fontFamily={shape.fontFamily}
         fontSize={shape.fontSize}
         fontStyle={fontStyle}

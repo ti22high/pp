@@ -6,6 +6,7 @@ import { useUiStore } from '@renderer/stores/ui';
 import { useSelectionStore } from '@renderer/stores/selection';
 import { createEmptySlide, cloneSlide } from '@renderer/lib/model/factory';
 import { getLayout, type LayoutKey } from '@renderer/lib/model/layouts';
+import { measureWordArt } from '@renderer/lib/wordart';
 import type { SlideBackground } from '@renderer/lib/model/schema';
 
 export function newSlide(): void {
@@ -275,6 +276,52 @@ export function setShapeHyperlink(
     if (hl) sh.hyperlink = hl;
     else delete sh.hyperlink;
     state.deck.modifiedAt = new Date().toISOString();
+  });
+}
+
+// WordArt (Phase 3.21): правки текста/шрифта подгоняют bbox под натуральный
+// размер текста (как при создании); цвет/контур bbox не трогают.
+export function setWordArtStyle(
+  slideId: string,
+  shapeId: string,
+  patch: { text?: string; fontFamily?: string; fontSize?: number; bold?: boolean; italic?: boolean },
+): void {
+  useDeckStore.setState((state) => {
+    const sh = state.deck?.slides[slideId]?.shapes.find((x) => x.id === shapeId);
+    if (!sh || sh.type !== 'wordart') return;
+    if (patch.text !== undefined) sh.text = patch.text;
+    if (patch.fontFamily !== undefined) sh.fontFamily = patch.fontFamily;
+    if (patch.fontSize !== undefined) sh.fontSize = patch.fontSize;
+    if (patch.bold !== undefined) sh.bold = patch.bold;
+    if (patch.italic !== undefined) sh.italic = patch.italic;
+    const m = measureWordArt(sh.text, sh.fontFamily, sh.fontSize, sh.bold, sh.italic);
+    sh.w = m.w;
+    sh.h = m.h;
+    if (state.deck) state.deck.modifiedAt = new Date().toISOString();
+  });
+}
+
+export function setWordArtFill(slideId: string, shapeId: string, color: string): void {
+  useDeckStore.setState((state) => {
+    const sh = state.deck?.slides[slideId]?.shapes.find((x) => x.id === shapeId);
+    if (!sh || sh.type !== 'wordart') return;
+    sh.fill = { kind: 'solid', color };
+    if (state.deck) state.deck.modifiedAt = new Date().toISOString();
+  });
+}
+
+export function setWordArtStroke(
+  slideId: string,
+  shapeId: string,
+  patch: { color?: string; width?: number },
+): void {
+  useDeckStore.setState((state) => {
+    const sh = state.deck?.slides[slideId]?.shapes.find((x) => x.id === shapeId);
+    if (!sh || sh.type !== 'wordart') return;
+    const color = patch.color ?? sh.stroke?.color ?? '#0a2a66';
+    const width = patch.width ?? sh.stroke?.width ?? 0;
+    sh.stroke = width > 0 ? { color, width } : undefined;
+    if (state.deck) state.deck.modifiedAt = new Date().toISOString();
   });
 }
 

@@ -14,6 +14,7 @@ import type { ShapeId } from '@shared/types';
 import { Slide } from './Slide';
 import { SelectionTransformer } from './SelectionTransformer';
 import { TextOverlay } from './TextOverlay';
+import { WordArtOverlay } from './WordArtOverlay';
 import { Rulers } from './Rulers';
 import { ShapeContextMenu } from './ShapeContextMenu';
 import { CropOverlay } from './CropOverlay';
@@ -968,6 +969,11 @@ function TextOverlayHost({
     return slide.shapes.find((x) => x.id === editingShapeId) ?? null;
   });
   if (!shape) return null;
+  // WordArt редактируется собственным инлайн-оверлеем (одностилевой текст со
+  // шрифтом/заливкой/контуром), остальные фигуры — TipTap-оверлеем.
+  if (shape.type === 'wordart') {
+    return <WordArtOverlay slideId={slideId} shape={shape} panX={panX} panY={panY} zoom={zoom} />;
+  }
   return <TextOverlay slideId={slideId} shape={shape} panX={panX} panY={panY} zoom={zoom} />;
 }
 

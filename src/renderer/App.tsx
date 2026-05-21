@@ -15,12 +15,12 @@ import { HyperlinkDialog } from './components/ui/HyperlinkDialog';
 import { SpecialCharsDialog } from './components/ui/SpecialCharsDialog';
 import { ShortcutsDialog } from './components/ui/ShortcutsDialog';
 import { AltTextDialog } from './components/ui/AltTextDialog';
-import { WordArtDialog } from './components/ui/WordArtDialog';
 import { TableCellFormatDialog } from './components/ui/TableCellFormatDialog';
 import { CsvImportDialog } from './components/ui/CsvImportDialog';
 import { XlsxImportDialog } from './components/ui/XlsxImportDialog';
 import { ChartDataPanel } from './components/ui/ChartDataPanel';
 import { ChartContextToolbar } from './components/ui/ChartContextToolbar';
+import { WordArtContextToolbar } from './components/ui/WordArtContextToolbar';
 import { useMenuCommands } from './hooks/useMenuCommands';
 import { useShapeClipboard } from './hooks/useShapeClipboard';
 import { useUndoRedo } from './hooks/useUndoRedo';
@@ -122,12 +122,12 @@ export function App() {
         onClose={() => setShortcutsOpen(false)}
       />
       <AltTextDialog />
-      <WordArtDialog />
       <TableCellFormatDialog />
       <CsvImportDialog />
       <XlsxImportDialog />
       <ChartDataPanel />
       <ChartContextToolbar />
+      <WordArtContextToolbar />
     </div>
   );
 }

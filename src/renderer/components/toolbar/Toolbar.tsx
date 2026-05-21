@@ -39,7 +39,7 @@ export function Toolbar() {
   const setPolylineMode = useUiStore((s) => s.setPolylineMode);
   const arcMode = useUiStore((s) => s.arcMode);
   const setArcMode = useUiStore((s) => s.setArcMode);
-  const setWordArtShape = useUiStore((s) => s.setWordArtShape);
+  const setEditingShape = useUiStore((s) => s.setEditingShape);
   const [tablePickerOpen, setTablePickerOpen] = useState(false);
   const [shapeLibraryOpen, setShapeLibraryOpen] = useState(false);
 
@@ -146,7 +146,8 @@ export function Toolbar() {
           wa.x = c.x;
           wa.y = c.y;
           insert(wa);
-          setWordArtShape(wa.id);
+          // Сразу открываем инлайн-правку текста (как вставка надписи в PP).
+          setEditingShape(wa.id);
         }}
       />
       <span className="toolbar-sep" />
