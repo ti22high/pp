@@ -17,10 +17,12 @@ describe('presetShapes', () => {
     expect(new Set(keys).size).toBe(keys.length);
   });
 
-  it('все пути замкнуты (M…Z)', () => {
+  it('все пути начинаются с M; заливаемые фигуры замкнуты (Z)', () => {
     for (const s of allShapes) {
       expect(s.path.startsWith('M')).toBe(true);
-      expect(s.path.trim().endsWith('Z')).toBe(true);
+      // Линии — открытые пути (рисуются штрихом); остальные фигуры замкнуты.
+      const isLine = s.native === 'line' || s.native === 'arrowLine';
+      if (!isLine) expect(s.path.trim().endsWith('Z')).toBe(true);
     }
   });
 });

@@ -24,8 +24,10 @@ test('create slide, add shape, undo', async () => {
   await expect(window.locator('.panel-title')).toHaveText('Слайды (2)');
   await window.waitForTimeout(STEP_PAUSE);
 
-  // Добавляем прямоугольник через тулбар — в превью активного слайда
-  // появляется DOM-представление фигуры (.fs-item__shape).
+  // Добавляем прямоугольник через библиотеку фигур (тулбар «Фигуры» →
+  // пресет «Прямоугольник») — в превью активного слайда появляется
+  // DOM-представление фигуры (.fs-item__shape).
+  await window.getByRole('button', { name: 'Фигуры' }).click();
   await window.getByRole('button', { name: 'Прямоугольник' }).click();
   const activePreview = window.locator('.fs-item--active .fs-item__shape');
   await expect(activePreview).toHaveCount(1);

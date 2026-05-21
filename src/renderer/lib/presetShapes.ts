@@ -12,6 +12,10 @@ export interface PresetShape {
   key: string;
   label: string;
   path: string;
+  // Если задано — вставляем нативный примитив (rect/ellipse/line), а не
+  // pathShape: сохраняем семантику типа (cornerRadius, экспорт prstGeom и т.п.).
+  // path при этом используется только для превью в панели.
+  native?: 'rect' | 'ellipse' | 'line' | 'arrowLine';
 }
 
 export interface PresetCategory {
@@ -48,13 +52,13 @@ export const PRESET_CATEGORIES: PresetCategory[] = [
     key: 'basic',
     label: 'Базовые',
     shapes: [
-      { key: 'rect', label: 'Прямоугольник', path: 'M0,0 H100 V100 H0 Z' },
+      { key: 'rect', label: 'Прямоугольник', path: 'M0,0 H100 V100 H0 Z', native: 'rect' },
       {
         key: 'roundRect',
         label: 'Скруглённый прямоугольник',
         path: 'M18,0 H82 Q100,0 100,18 V82 Q100,100 82,100 H18 Q0,100 0,82 V18 Q0,0 18,0 Z',
       },
-      { key: 'ellipse', label: 'Эллипс', path: 'M0,50 A50,50 0 1 0 100,50 A50,50 0 1 0 0,50 Z' },
+      { key: 'ellipse', label: 'Эллипс', path: 'M0,50 A50,50 0 1 0 100,50 A50,50 0 1 0 0,50 Z', native: 'ellipse' },
       { key: 'triangle', label: 'Треугольник', path: 'M50,0 L100,100 L0,100 Z' },
       { key: 'rightTriangle', label: 'Прямоугольный треугольник', path: 'M0,0 L0,100 L100,100 Z' },
       { key: 'diamond', label: 'Ромб', path: 'M50,0 L100,50 L50,100 L0,50 Z' },
@@ -65,6 +69,14 @@ export const PRESET_CATEGORIES: PresetCategory[] = [
       { key: 'heptagon', label: 'Семиугольник', path: regularPolygon(7) },
       { key: 'octagon', label: 'Восьмиугольник', path: 'M30,0 H70 L100,30 V70 L70,100 H30 L0,70 V30 Z' },
       { key: 'cross', label: 'Крест', path: 'M35,0 H65 V35 H100 V65 H65 V100 H35 V65 H0 V35 H35 Z' },
+    ],
+  },
+  {
+    key: 'lines',
+    label: 'Линии',
+    shapes: [
+      { key: 'line', label: 'Линия', path: 'M6,50 H94', native: 'line' },
+      { key: 'arrow', label: 'Стрелка', path: 'M6,50 H88 M80,42 L92,50 L80,58', native: 'arrowLine' },
     ],
   },
   {

@@ -15,6 +15,7 @@ import {
   createConnector,
 } from '@renderer/lib/model/factory';
 import type { Shape } from '@renderer/lib/model/schema';
+import type { PresetShape } from '@renderer/lib/presetShapes';
 import { openImageFileDialog } from '@renderer/lib/insertImage';
 import { TablePicker } from './TablePicker';
 import { ShapeLibrary } from './ShapeLibrary';
@@ -52,36 +53,45 @@ export function Toolbar() {
     y: Math.round((deck?.size.h ?? 1080) / 2 - h / 2),
   });
 
+  // Вставка фигуры из библиотеки: rect/ellipse/line — нативные примитивы
+  // (сохраняем семантику типа), остальные — pathShape из SVG-пресета.
+  const insertPreset = (preset: PresetShape) => {
+    let shape: Shape;
+    if (preset.native === 'rect') {
+      const c = center(320, 200);
+      shape = createRect(c.x, c.y, 320, 200);
+    } else if (preset.native === 'ellipse') {
+      const c = center(240, 240);
+      shape = createEllipse(c.x, c.y, 240, 240);
+    } else if (preset.native === 'line') {
+      const c = center(240, 20);
+      shape = createLine(c.x, c.y, 240, 0);
+    } else if (preset.native === 'arrowLine') {
+      const c = center(240, 20);
+      shape = createLine(c.x, c.y, 240, 0, true);
+    } else {
+      shape = createPreset(0, 0, preset.path);
+      const c = center(shape.w, shape.h);
+      shape.x = c.x;
+      shape.y = c.y;
+    }
+    insert(shape);
+  };
+
   return (
     <div className="toolbar">
-      <ToolbarButton
-        label="Прямоугольник"
-        onClick={() => {
-          const c = center(320, 200);
-          insert(createRect(c.x, c.y, 320, 200));
-        }}
-      />
-      <ToolbarButton
-        label="Эллипс"
-        onClick={() => {
-          const c = center(240, 240);
-          insert(createEllipse(c.x, c.y, 240, 240));
-        }}
-      />
-      <ToolbarButton
-        label="Линия"
-        onClick={() => {
-          const c = center(240, 20);
-          insert(createLine(c.x, c.y, 240, 0));
-        }}
-      />
-      <ToolbarButton
-        label="Стрелка"
-        onClick={() => {
-          const c = center(240, 20);
-          insert(createLine(c.x, c.y, 240, 0, true));
-        }}
-      />
+      <span className="toolbar-shapes">
+        <ToolbarButton label="Фигуры" onClick={() => setShapeLibraryOpen((v) => !v)} />
+        {shapeLibraryOpen && (
+          <ShapeLibrary
+            onClose={() => setShapeLibraryOpen(false)}
+            onPick={(preset) => {
+              setShapeLibraryOpen(false);
+              insertPreset(preset);
+            }}
+          />
+        )}
+      </span>
       <ToolbarButton
         label="Кривая"
         onClick={() => {
@@ -89,22 +99,6 @@ export function Toolbar() {
           insert(createPath(c.x, c.y));
         }}
       />
-      <span className="toolbar-shapes">
-        <ToolbarButton label="Фигуры" onClick={() => setShapeLibraryOpen((v) => !v)} />
-        {shapeLibraryOpen && (
-          <ShapeLibrary
-            onClose={() => setShapeLibraryOpen(false)}
-            onPick={(path) => {
-              setShapeLibraryOpen(false);
-              const shape = createPreset(0, 0, path);
-              const c = center(shape.w, shape.h);
-              shape.x = c.x;
-              shape.y = c.y;
-              insert(shape);
-            }}
-          />
-        )}
-      </span>
       <ToolbarButton
         label="Коннектор"
         onClick={() => {
