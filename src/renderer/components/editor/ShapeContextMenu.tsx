@@ -84,6 +84,12 @@ export function ShapeContextMenu({ x, y, onClose }: ShapeContextMenuProps) {
     selectedIds.length === 1 && shapes.find((s) => s.id === selectedIds[0])?.type === 'connector'
       ? selectedIds[0]
       : null;
+  const singlePathId =
+    selectedIds.length === 1 && shapes.find((s) => s.id === selectedIds[0])?.type === 'path'
+      ? selectedIds[0]
+      : null;
+  const setEditPointsShape = useUiStore((s) => s.setEditPointsShape);
+  const editPointsActive = useUiStore((s) => s.editPointsShapeId === singlePathId && singlePathId !== null);
   const tRMin = tableSel ? Math.min(tableSel.r0, tableSel.r1) : 0;
   const tRMax = tableSel ? Math.max(tableSel.r0, tableSel.r1) : 0;
   const tCMin = tableSel ? Math.min(tableSel.c0, tableSel.c1) : 0;
@@ -253,6 +259,18 @@ export function ShapeContextMenu({ x, y, onClose }: ShapeContextMenuProps) {
             }
           >
             Создать диаграмму из таблицы
+          </button>
+        </>
+      )}
+
+      {singlePathId && (
+        <>
+          <div className="ctx-menu__sep" />
+          <button
+            className="ctx-menu__item"
+            onClick={() => run(() => setEditPointsShape(editPointsActive ? null : singlePathId))}
+          >
+            {editPointsActive ? 'Завершить правку точек' : 'Изменить точки'}
           </button>
         </>
       )}

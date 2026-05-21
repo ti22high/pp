@@ -33,6 +33,8 @@ interface UiState {
   polylineMode: boolean;
   // Режим рисования дуги (Phase 3.17): протяжка от начала к концу.
   arcMode: boolean;
+  // id path-фигуры в режиме правки точек (Phase 3.17). null = не редактируем.
+  editPointsShapeId: ShapeId | null;
   // id диаграммы с открытым редактором данных (Phase 3.12). null = закрыт.
   chartEditorId: ShapeId | null;
   // Распарсенные строки CSV для диалога «Вставить как таблицу» (Phase 3.11).
@@ -65,6 +67,7 @@ interface UiState {
   setPenMode: (on: boolean) => void;
   setPolylineMode: (on: boolean) => void;
   setArcMode: (on: boolean) => void;
+  setEditPointsShape: (id: ShapeId | null) => void;
   setCsvImportRows: (rows: string[][] | null) => void;
   setXlsxImport: (
     data: {
@@ -105,6 +108,7 @@ export const useUiStore = create<UiState>()(
     penMode: false,
     polylineMode: false,
     arcMode: false,
+    editPointsShapeId: null,
     csvImportRows: null,
     xlsxImport: null,
     showAltOnHover: false,
@@ -165,6 +169,10 @@ export const useUiStore = create<UiState>()(
           s.penMode = false;
           s.polylineMode = false;
         }
+      }),
+    setEditPointsShape: (id) =>
+      set((s) => {
+        s.editPointsShapeId = id;
       }),
     setCsvImportRows: (rows) =>
       set((s) => {

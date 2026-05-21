@@ -19,6 +19,7 @@ import { ShapeContextMenu } from './ShapeContextMenu';
 import { CropOverlay } from './CropOverlay';
 import { TableResizeOverlay } from './TableResizeOverlay';
 import { ConnectorOverlay } from './ConnectorOverlay';
+import { PathEditOverlay } from './PathEditOverlay';
 import { AltHoverOverlay } from './AltHoverOverlay';
 import { TableCellEditor } from './TableCellEditor';
 
@@ -850,6 +851,7 @@ export function Canvas() {
           <CropOverlay slideId={slide.id} />
           {!croppingShapeId && <TableResizeOverlay slideId={slide.id} />}
           {!croppingShapeId && <ConnectorOverlay slideId={slide.id} />}
+          {!croppingShapeId && <PathEditOverlay slideId={slide.id} />}
           {rubberBand && (
             <Rect
               x={rubberBand.x}
