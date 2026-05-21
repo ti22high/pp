@@ -29,6 +29,8 @@ interface UiState {
   tableFormatOpen: boolean;
   // Режим рисования карандашом (freeform, Phase 3.16). true = тянем линию.
   penMode: boolean;
+  // Режим рисования ломаной (Phase 3.17): клики добавляют вершины.
+  polylineMode: boolean;
   // id диаграммы с открытым редактором данных (Phase 3.12). null = закрыт.
   chartEditorId: ShapeId | null;
   // Распарсенные строки CSV для диалога «Вставить как таблицу» (Phase 3.11).
@@ -59,6 +61,7 @@ interface UiState {
   setTableFormatOpen: (open: boolean) => void;
   setChartEditor: (id: ShapeId | null) => void;
   setPenMode: (on: boolean) => void;
+  setPolylineMode: (on: boolean) => void;
   setCsvImportRows: (rows: string[][] | null) => void;
   setXlsxImport: (
     data: {
@@ -97,6 +100,7 @@ export const useUiStore = create<UiState>()(
     tableFormatOpen: false,
     chartEditorId: null,
     penMode: false,
+    polylineMode: false,
     csvImportRows: null,
     xlsxImport: null,
     showAltOnHover: false,
@@ -137,6 +141,12 @@ export const useUiStore = create<UiState>()(
     setPenMode: (on) =>
       set((s) => {
         s.penMode = on;
+        if (on) s.polylineMode = false;
+      }),
+    setPolylineMode: (on) =>
+      set((s) => {
+        s.polylineMode = on;
+        if (on) s.penMode = false;
       }),
     setCsvImportRows: (rows) =>
       set((s) => {

@@ -31,6 +31,8 @@ export function Toolbar() {
   const select = useSelectionStore((s) => s.select);
   const penMode = useUiStore((s) => s.penMode);
   const setPenMode = useUiStore((s) => s.setPenMode);
+  const polylineMode = useUiStore((s) => s.polylineMode);
+  const setPolylineMode = useUiStore((s) => s.setPolylineMode);
   const [tablePickerOpen, setTablePickerOpen] = useState(false);
 
   const insert = (shape: Shape) => {
@@ -97,6 +99,21 @@ export function Toolbar() {
       >
         Карандаш
       </button>
+      <button
+        type="button"
+        className={`toolbar-btn${polylineMode ? ' toolbar-btn--active' : ''}`}
+        onClick={() => setPolylineMode(!polylineMode)}
+      >
+        Ломаная
+      </button>
+      <ToolbarButton
+        label="Дуга"
+        onClick={() => {
+          const c = center(200, 120);
+          // Полукруговая дуга как SVG-path (A — arc).
+          insert(createPath(c.x, c.y, 'M0,100 A100,100 0 0 1 200,100'));
+        }}
+      />
       <span className="toolbar-sep" />
       <ToolbarButton
         label="Текст"

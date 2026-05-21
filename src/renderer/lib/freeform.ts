@@ -25,3 +25,11 @@ export function pointsToSmoothPath(pts: Pt[]): string {
   d += ` L ${r(last.x)} ${r(last.y)}`;
   return d;
 }
+
+// Ломаная: прямые сегменты через все точки (Phase 3.17).
+export function pointsToPolylinePath(pts: Pt[]): string {
+  if (pts.length === 0) return '';
+  let d = `M ${r(pts[0].x)} ${r(pts[0].y)}`;
+  for (let i = 1; i < pts.length; i++) d += ` L ${r(pts[i].x)} ${r(pts[i].y)}`;
+  return d;
+}

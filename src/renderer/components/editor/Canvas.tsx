@@ -9,7 +9,7 @@ import { useUiStore } from '@renderer/stores/ui';
 import { useSelectionStore } from '@renderer/stores/selection';
 import { expandToGroups } from '@renderer/lib/group';
 import { appendShape, createFreeform } from '@renderer/lib/model/factory';
-import { pointsToSmoothPath } from '@renderer/lib/freeform';
+import { pointsToSmoothPath, pointsToPolylinePath } from '@renderer/lib/freeform';
 import type { ShapeId } from '@shared/types';
 import { Slide } from './Slide';
 import { SelectionTransformer } from './SelectionTransformer';
@@ -45,7 +45,13 @@ export function Canvas() {
   const setSpaceHeld = useUiStore((s) => s.setSpaceHeld);
   const croppingShapeId = useUiStore((s) => s.croppingShapeId);
   const penMode = useUiStore((s) => s.penMode);
+  const polylineMode = useUiStore((s) => s.polylineMode);
   const getStage = useCallback(() => stageRef.current, []);
+
+  // Ломаная (Phase 3.17): копим вершины кликами, превью до курсора.
+  const polyPointsRef = useRef<number[]>([]);
+  const [polyPreview, setPolyPreview] = useState<number[] | null>(null);
+  const finalizePolylineRef = useRef<() => void>(() => {});
 
   // Freeform-карандаш (Phase 3.16): копим точки текущего штриха и рисуем
   // превью-линию; на mouseup запекаем в pathShape.
@@ -187,6 +193,18 @@ export function Canvas() {
         penDrawingRef.current = true;
         penPointsRef.current = [sx, sy];
         setPenPreview([sx, sy]);
+        return;
+      }
+
+      // Режим ломаной: клик добавляет вершину.
+      if (polylineMode && !spaceHeld) {
+        const pointer = stage.getPointerPosition();
+        if (!pointer) return;
+        const z = zoomRef.current;
+        const sx = (pointer.x - stagePanRef.current.x) / z;
+        const sy = (pointer.y - stagePanRef.current.y) / z;
+        polyPointsRef.current.push(sx, sy);
+        setPolyPreview([...polyPointsRef.current, sx, sy]);
         return;
       }
 
@@ -358,14 +376,67 @@ export function Canvas() {
       setRubberBand({ x: startX, y: startY, w: 0, h: 0 });
       if (!shift) useSelectionStore.getState().clear();
     },
-    [spaceHeld, penMode],
+    [spaceHeld, penMode, polylineMode],
   );
+
+  // Enter — завершить ломаную, Esc — отменить (в режиме ломаной).
+  useEffect(() => {
+    if (!polylineMode) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        finalizePolylineRef.current();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        polyPointsRef.current = [];
+        setPolyPreview(null);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [polylineMode]);
+
+  // Завершение ломаной: запекаем вершины в pathShape (прямые сегменты).
+  const finalizePolyline = useCallback(() => {
+    const flat = polyPointsRef.current;
+    polyPointsRef.current = [];
+    setPolyPreview(null);
+    if (flat.length < 4) return;
+    const pts: { x: number; y: number }[] = [];
+    for (let i = 0; i < flat.length; i += 2) {
+      const x = flat[i];
+      const y = flat[i + 1];
+      const prev = pts[pts.length - 1];
+      // Дедуп подряд идущих совпадающих вершин (двойной клик добавляет дубль).
+      if (prev && Math.abs(prev.x - x) < 1 && Math.abs(prev.y - y) < 1) continue;
+      pts.push({ x, y });
+    }
+    if (pts.length < 2) return;
+    const data = pointsToPolylinePath(pts);
+    const deckNow = useDeckStore.getState().deck;
+    const activeId = useUiStore.getState().activeSlideId;
+    if (deckNow && activeId && data) {
+      const shape = createFreeform(data);
+      useDeckStore.getState().setDeck(appendShape(deckNow, activeId, shape));
+      useSelectionStore.getState().select([shape.id]);
+    }
+  }, []);
+  finalizePolylineRef.current = finalizePolyline;
 
   const handleStageMouseMove = useCallback(() => {
     const stage = stageRef.current;
     if (!stage) return;
     const pointer = stage.getPointerPosition();
     if (!pointer) return;
+
+    // Ломаная: тянем превью-сегмент от последней вершины к курсору.
+    if (polyPointsRef.current.length >= 2) {
+      const z = zoomRef.current;
+      const sx = (pointer.x - stagePanRef.current.x) / z;
+      const sy = (pointer.y - stagePanRef.current.y) / z;
+      setPolyPreview([...polyPointsRef.current, sx, sy]);
+      return;
+    }
 
     // Карандаш: добавляем точку к текущему штриху.
     if (penDrawingRef.current) {
@@ -698,7 +769,7 @@ export function Canvas() {
     <div
       ref={setContainerRef}
       className="app-canvas"
-      style={{ cursor: penMode ? 'crosshair' : spaceHeld ? (panStartRef.current ? 'grabbing' : 'grab') : 'default' }}
+      style={{ cursor: penMode || polylineMode ? 'crosshair' : spaceHeld ? (panStartRef.current ? 'grabbing' : 'grab') : 'default' }}
     >
       <Stage
         ref={stageRef}
@@ -713,6 +784,9 @@ export function Canvas() {
         onMouseMove={handleStageMouseMove}
         onMouseUp={handleStageMouseUp}
         onMouseLeave={handleStageMouseUp}
+        onDblClick={() => {
+          if (polylineMode) finalizePolyline();
+        }}
         onContextMenu={handleContextMenu}
       >
         <Layer>
@@ -746,6 +820,17 @@ export function Canvas() {
               strokeWidth={2}
               strokeScaleEnabled={false}
               tension={0.4}
+              lineCap="round"
+              lineJoin="round"
+              listening={false}
+            />
+          )}
+          {polyPreview && polyPreview.length >= 4 && (
+            <Line
+              points={polyPreview}
+              stroke="#1a73e8"
+              strokeWidth={2}
+              strokeScaleEnabled={false}
               lineCap="round"
               lineJoin="round"
               listening={false}
