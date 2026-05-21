@@ -1,3 +1,4 @@
+import { useDeckStore } from '@renderer/stores/deck';
 import type {
   ConnectorAnchor,
   ConnectorEndpoint,
@@ -63,3 +64,29 @@ export function connectorBBox(a: Pt, b: Pt): { x: number; y: number; w: number; 
   const y = Math.min(a.y, b.y);
   return { x, y, w: Math.abs(b.x - a.x), h: Math.abs(b.y - a.y) };
 }
+
+// ── Операции (мутируют draft в immer setState) ────────────────────────────
+function withConnector(slideId: string, shapeId: string, fn: (c: ConnectorShape) => void): void {
+  useDeckStore.setState((state) => {
+    if (!state.deck) return;
+    const sh = state.deck.slides[slideId]?.shapes.find((x) => x.id === shapeId);
+    if (!sh || sh.type !== 'connector') return;
+    fn(sh);
+    state.deck.modifiedAt = new Date().toISOString();
+  });
+}
+
+export const connectorOps = {
+  setType: (slideId: string, shapeId: string, t: ConnectorShape['connectorType']) =>
+    withConnector(slideId, shapeId, (c) => {
+      c.connectorType = t;
+    }),
+  toggleArrowStart: (slideId: string, shapeId: string) =>
+    withConnector(slideId, shapeId, (c) => {
+      c.arrowStart = !c.arrowStart;
+    }),
+  toggleArrowEnd: (slideId: string, shapeId: string) =>
+    withConnector(slideId, shapeId, (c) => {
+      c.arrowEnd = !c.arrowEnd;
+    }),
+};

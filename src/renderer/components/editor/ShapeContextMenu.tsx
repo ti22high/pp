@@ -14,6 +14,7 @@ import { canGroup, canUngroup } from '@renderer/lib/group';
 import { useClipboardStore } from '@renderer/stores/clipboard';
 import { tableOps } from '@renderer/lib/table';
 import { insertChartFromTable } from '@renderer/lib/chart';
+import { connectorOps } from '@renderer/lib/connector';
 
 interface ShapeContextMenuProps {
   // Экранные координаты (clientX/clientY) точки вызова.
@@ -77,6 +78,12 @@ export function ShapeContextMenu({ x, y, onClose }: ShapeContextMenuProps) {
   );
   const setTableSelection = useUiStore((s) => s.setTableSelection);
   const setTableFormatOpen = useUiStore((s) => s.setTableFormatOpen);
+
+  // Коннектор: выбор маршрута и стрелок.
+  const singleConnectorId =
+    selectedIds.length === 1 && shapes.find((s) => s.id === selectedIds[0])?.type === 'connector'
+      ? selectedIds[0]
+      : null;
   const tRMin = tableSel ? Math.min(tableSel.r0, tableSel.r1) : 0;
   const tRMax = tableSel ? Math.max(tableSel.r0, tableSel.r1) : 0;
   const tCMin = tableSel ? Math.min(tableSel.c0, tableSel.c1) : 0;
@@ -246,6 +253,28 @@ export function ShapeContextMenu({ x, y, onClose }: ShapeContextMenuProps) {
             }
           >
             Создать диаграмму из таблицы
+          </button>
+        </>
+      )}
+
+      {singleConnectorId && activeSlideId && (
+        <>
+          <div className="ctx-menu__sep" />
+          <button className="ctx-menu__item" onClick={() => run(() => connectorOps.setType(activeSlideId, singleConnectorId, 'straight'))}>
+            Маршрут: прямой
+          </button>
+          <button className="ctx-menu__item" onClick={() => run(() => connectorOps.setType(activeSlideId, singleConnectorId, 'elbow'))}>
+            Маршрут: угловой
+          </button>
+          <button className="ctx-menu__item" onClick={() => run(() => connectorOps.setType(activeSlideId, singleConnectorId, 'curved'))}>
+            Маршрут: кривой
+          </button>
+          <div className="ctx-menu__sep" />
+          <button className="ctx-menu__item" onClick={() => run(() => connectorOps.toggleArrowStart(activeSlideId, singleConnectorId))}>
+            Стрелка в начале
+          </button>
+          <button className="ctx-menu__item" onClick={() => run(() => connectorOps.toggleArrowEnd(activeSlideId, singleConnectorId))}>
+            Стрелка в конце
           </button>
         </>
       )}
