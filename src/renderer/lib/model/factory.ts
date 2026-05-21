@@ -274,6 +274,27 @@ export function createFreeform(pathData: string): PathShape {
   };
 }
 
+// Preset-фигура из Shape library (Phase 3.20): pathData в коробке 0..100.
+// Размер вставки масштабируем так, чтобы большая сторона = target, сохраняя
+// пропорции natural-bbox; даём заливку + обводку (как у rect/ellipse).
+export function createPreset(x = 100, y = 100, pathData: string, target = 240): PathShape {
+  const rect = new Konva.Path({ data: pathData }).getSelfRect();
+  const nw = Math.max(1, rect.width);
+  const nh = Math.max(1, rect.height);
+  const scale = target / Math.max(nw, nh);
+  return {
+    id: uuid(),
+    type: 'path',
+    x,
+    y,
+    w: Math.round(nw * scale),
+    h: Math.round(nh * scale),
+    pathData,
+    fill: { kind: 'solid', color: '#4a9eff' },
+    stroke: { color: '#1a73e8', width: 1 },
+  };
+}
+
 export function appendShape(deck: Deck, slideId: string, shape: Shape): Deck {
   const slide = deck.slides[slideId];
   if (!slide) return deck;

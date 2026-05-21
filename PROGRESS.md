@@ -109,7 +109,7 @@
 - [x] 3.17. Polyline + Arc (рисуются интерактивно) + правка точек кривой («Изменить точки» в контекстном меню path): опорные/контрольные точки с «усами», перетаскивание изгибает кривую (Безье-редактор), Esc — выход.
 - [x] 3.18. Gradient fill editor (multi-stop): N стопов (цвет + позиция %), добавить/удалить, превью-бар, тип linear/radial, угол. Геометрия градиента учитывает размер фигуры и угол (исправлено для rect/ellipse/path).
 - [x] 3.19. Image-fill для фигур (rect/ellipse/path): режим «Картинка» в секции «Заливка» → выбор файла, fill={kind:'image',src}; рендер через Konva fillPattern (растягивание на bbox), превью + «Заменить изображение…».
-- [ ] 3.20. Shape library panel: ~187 ECMA-376 preset shapes (SVG-paths).
+- [x] 3.20. Shape library panel: кнопка «Фигуры» на тулбаре → поповер с пресетами по категориям (базовые/стрелки/блок-схема/звёзды-выноски), вставка как pathShape с заливкой+обводкой (createPreset). Курируемый набор ~40 фигур (SVG-paths) вместо всех 187 ECMA-376 — расширяемый каталог lib/presetShapes.ts; полный prstGeom-маппинг с 5.x, импорт своих SVG — 3.32 (см. DECISIONS.md 2026-05-21).
 - [ ] 3.21. WordArt mini-editor (text c outline + fill + font).
 - [ ] 3.22. Bookmarks: добавить anchor на фигуру/текст; ссылка на bookmark в hyperlink dialog.
 - [ ] 3.23. Speaker notes panel (TipTap).

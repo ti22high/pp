@@ -8,6 +8,7 @@ import {
   createEllipse,
   createLine,
   createPath,
+  createPreset,
   createText,
   createTable,
   createChart,
@@ -16,6 +17,7 @@ import {
 import type { Shape } from '@renderer/lib/model/schema';
 import { openImageFileDialog } from '@renderer/lib/insertImage';
 import { TablePicker } from './TablePicker';
+import { ShapeLibrary } from './ShapeLibrary';
 
 // Главный тулбар над канвасом. На Phase 2.9 — только кнопки вставки фигур;
 // иконки шрифта/выравнивания добавятся, когда дойдём до TextShape (2.10/2.11),
@@ -36,6 +38,7 @@ export function Toolbar() {
   const arcMode = useUiStore((s) => s.arcMode);
   const setArcMode = useUiStore((s) => s.setArcMode);
   const [tablePickerOpen, setTablePickerOpen] = useState(false);
+  const [shapeLibraryOpen, setShapeLibraryOpen] = useState(false);
 
   const insert = (shape: Shape) => {
     if (!deck || !activeSlideId) return;
@@ -86,6 +89,22 @@ export function Toolbar() {
           insert(createPath(c.x, c.y));
         }}
       />
+      <span className="toolbar-shapes">
+        <ToolbarButton label="Фигуры" onClick={() => setShapeLibraryOpen((v) => !v)} />
+        {shapeLibraryOpen && (
+          <ShapeLibrary
+            onClose={() => setShapeLibraryOpen(false)}
+            onPick={(path) => {
+              setShapeLibraryOpen(false);
+              const shape = createPreset(0, 0, path);
+              const c = center(shape.w, shape.h);
+              shape.x = c.x;
+              shape.y = c.y;
+              insert(shape);
+            }}
+          />
+        )}
+      </span>
       <ToolbarButton
         label="Коннектор"
         onClick={() => {

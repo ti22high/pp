@@ -733,6 +733,62 @@ body,
   color: var(--text-muted);
 }
 
+/* Библиотека фигур (Phase 3.20). */
+.toolbar-shapes {
+  position: relative;
+  display: inline-flex;
+}
+.shape-library-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+}
+.shape-library {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 51;
+  margin-top: 4px;
+  padding: 8px 10px;
+  width: 280px;
+  max-height: 60vh;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+}
+.shape-library__cat-title {
+  margin: 8px 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.shape-library__grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+}
+.shape-library__item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  aspect-ratio: 1;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+.shape-library__item:hover {
+  border-color: var(--accent);
+  background: rgba(26, 115, 232, 0.08);
+}
+.shape-library__svg {
+  width: 100%;
+  height: 100%;
+}
+
 /* DOM-редактор ячейки таблицы (Phase 3.8). */
 .table-cell-editor {
   position: absolute;
