@@ -397,6 +397,24 @@ export function Canvas() {
     [spaceHeld, penMode, polylineMode, arcMode],
   );
 
+  // Сброс незавершённого рисования при выходе из соответствующего режима,
+  // иначе превью «липнет» к курсору и линию нельзя убрать.
+  useEffect(() => {
+    if (!polylineMode) {
+      polyPointsRef.current = [];
+      setPolyPreview(null);
+    }
+    if (!penMode) {
+      penDrawingRef.current = false;
+      penPointsRef.current = [];
+      setPenPreview(null);
+    }
+    if (!arcMode) {
+      arcStartRef.current = null;
+      setArcPreview(null);
+    }
+  }, [penMode, polylineMode, arcMode]);
+
   // Enter — завершить ломаную, Esc — отменить (в режиме ломаной).
   useEffect(() => {
     if (!polylineMode) return;
@@ -602,6 +620,9 @@ export function Canvas() {
             const shape = createFreeform(data);
             useDeckStore.getState().setDeck(appendShape(deckNow, activeId, shape));
             useSelectionStore.getState().select([shape.id]);
+            // Сразу в режим правки точек: нарисовал дугу → тянешь за усы.
+            useUiStore.getState().setArcMode(false);
+            useUiStore.getState().setEditPointsShape(shape.id);
           }
         }
       }
