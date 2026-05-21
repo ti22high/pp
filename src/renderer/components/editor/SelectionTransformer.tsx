@@ -5,17 +5,14 @@ import { useSelectionStore } from '@renderer/stores/selection';
 import { useDeckStore } from '@renderer/stores/deck';
 import { useUiStore } from '@renderer/stores/ui';
 import { useGuidesStore } from '@renderer/stores/guides';
-import { snapEdge, type Guide } from '@renderer/lib/snap';
+import { snapEdge, computeSnap, type Guide, type SnapBox } from '@renderer/lib/snap';
+import { guidesByAxis } from '@renderer/lib/userGuides';
 import type { ShapeId } from '@shared/types';
 
 interface SelectionTransformerProps {
   slideId: string;
   getStage: () => Konva.Stage | null;
 }
-
-// Снап угла поворота: каждые 15° (как в PowerPoint/Slides), 0..345.
-// Точный произвольный угол задаётся полем «Поворот» в инспекторе.
-const ROTATION_SNAPS = Array.from({ length: 24 }, (_, i) => i * 15);
 
 // Единый Transformer для выделенных фигур текущего слайда.
 // В onTransformEnd сбрасываем scale на Group и записываем в модель новые w/h
@@ -146,6 +143,54 @@ export function SelectionTransformer({ slideId, getStage }: SelectionTransformer
       }
       state.deck.modifiedAt = new Date().toISOString();
     });
+
+    // Направляющие при повороте: показываем те же smart guides (центр/края),
+    // что и при перетаскивании, когда AABB повёрнутой фигуры совпадает с
+    // центром/краями слайда или других фигур. Только подсветка — позицию при
+    // повороте не двигаем (resize-снап обрабатывает resizeBoundBox отдельно).
+    if (tr.getActiveAnchor() === 'rotater' && nodes.length === 1) {
+      const node = nodes[0];
+      const deck = useDeckStore.getState().deck;
+      const slide = deck?.slides[slideId];
+      if (deck && slide) {
+        // AABB повёрнутой фигуры в координатах слайда (node-координаты = slide).
+        const rot = (node.rotation() * Math.PI) / 180;
+        const cos = Math.cos(rot);
+        const sin = Math.sin(rot);
+        const ox = node.x();
+        const oy = node.y();
+        const w = node.width();
+        const h = node.height();
+        const corners: Array<[number, number]> = [
+          [0, 0],
+          [w, 0],
+          [w, h],
+          [0, h],
+        ];
+        let minX = Infinity;
+        let minY = Infinity;
+        let maxX = -Infinity;
+        let maxY = -Infinity;
+        for (const [lx, ly] of corners) {
+          const px = ox + lx * cos - ly * sin;
+          const py = oy + lx * sin + ly * cos;
+          minX = Math.min(minX, px);
+          maxX = Math.max(maxX, px);
+          minY = Math.min(minY, py);
+          maxY = Math.max(maxY, py);
+        }
+        const box: SnapBox = { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+        const others: SnapBox[] = [];
+        const sel = new Set(selectedIds);
+        for (const sh of slide.shapes) {
+          if (!sel.has(sh.id)) others.push({ x: sh.x, y: sh.y, w: sh.w, h: sh.h });
+        }
+        others.push({ x: 0, y: 0, w: deck.size.w, h: deck.size.h });
+        const zoom = useUiStore.getState().zoom || 1;
+        const snap = computeSnap(box, others, 6 / zoom, guidesByAxis(deck.guides ?? []));
+        useGuidesStore.getState().setGuides(snap.guides);
+      }
+    }
   };
 
   // Snap при resize: привязка движущихся рёбер bbox к краям слайда и
@@ -233,8 +278,6 @@ export function SelectionTransformer({ slideId, getStage }: SelectionTransformer
         useGuidesStore.getState().clear();
       }}
       rotateEnabled
-      rotationSnaps={ROTATION_SNAPS}
-      rotationSnapTolerance={7}
       boundBoxFunc={resizeBoundBox}
       enabledAnchors={enabledAnchors as unknown as string[]}
       anchorSize={9}
