@@ -27,6 +27,8 @@ interface UiState {
   tableSelection: { shapeId: ShapeId; r0: number; c0: number; r1: number; c1: number } | null;
   // Открыт ли диалог форматирования ячеек таблицы (Phase 3.10).
   tableFormatOpen: boolean;
+  // Режим рисования карандашом (freeform, Phase 3.16). true = тянем линию.
+  penMode: boolean;
   // id диаграммы с открытым редактором данных (Phase 3.12). null = закрыт.
   chartEditorId: ShapeId | null;
   // Распарсенные строки CSV для диалога «Вставить как таблицу» (Phase 3.11).
@@ -56,6 +58,7 @@ interface UiState {
   ) => void;
   setTableFormatOpen: (open: boolean) => void;
   setChartEditor: (id: ShapeId | null) => void;
+  setPenMode: (on: boolean) => void;
   setCsvImportRows: (rows: string[][] | null) => void;
   setXlsxImport: (
     data: {
@@ -93,6 +96,7 @@ export const useUiStore = create<UiState>()(
     tableSelection: null,
     tableFormatOpen: false,
     chartEditorId: null,
+    penMode: false,
     csvImportRows: null,
     xlsxImport: null,
     showAltOnHover: false,
@@ -129,6 +133,10 @@ export const useUiStore = create<UiState>()(
     setChartEditor: (id) =>
       set((s) => {
         s.chartEditorId = id;
+      }),
+    setPenMode: (on) =>
+      set((s) => {
+        s.penMode = on;
       }),
     setCsvImportRows: (rows) =>
       set((s) => {

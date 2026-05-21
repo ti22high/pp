@@ -203,6 +203,11 @@ body,
   background: #f1f3f4;
   border-color: var(--border);
 }
+.toolbar-btn--active {
+  background: rgba(26, 115, 232, 0.14);
+  border-color: var(--accent);
+  color: var(--accent);
+}
 
 .toolbar-sep {
   width: 1px;

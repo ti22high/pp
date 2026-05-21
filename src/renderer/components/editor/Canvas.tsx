@@ -8,6 +8,8 @@ import { useDeckStore } from '@renderer/stores/deck';
 import { useUiStore } from '@renderer/stores/ui';
 import { useSelectionStore } from '@renderer/stores/selection';
 import { expandToGroups } from '@renderer/lib/group';
+import { appendShape, createFreeform } from '@renderer/lib/model/factory';
+import { pointsToSmoothPath } from '@renderer/lib/freeform';
 import type { ShapeId } from '@shared/types';
 import { Slide } from './Slide';
 import { SelectionTransformer } from './SelectionTransformer';
@@ -42,7 +44,14 @@ export function Canvas() {
   const spaceHeld = useUiStore((s) => s.spaceHeld);
   const setSpaceHeld = useUiStore((s) => s.setSpaceHeld);
   const croppingShapeId = useUiStore((s) => s.croppingShapeId);
+  const penMode = useUiStore((s) => s.penMode);
   const getStage = useCallback(() => stageRef.current, []);
+
+  // Freeform-карандаш (Phase 3.16): копим точки текущего штриха и рисуем
+  // превью-линию; на mouseup запекаем в pathShape.
+  const penDrawingRef = useRef(false);
+  const penPointsRef = useRef<number[]>([]);
+  const [penPreview, setPenPreview] = useState<number[] | null>(null);
 
   // Признак: пользователь уже менял pan/zoom вручную → не пере-центрируем автоматически.
   const [userMoved, setUserMoved] = useState(false);
@@ -167,6 +176,19 @@ export function Canvas() {
     (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
       const stage = stageRef.current;
       if (!stage) return;
+
+      // Режим карандаша: начинаем штрих (точки в slide-coords).
+      if (penMode && !spaceHeld) {
+        const pointer = stage.getPointerPosition();
+        if (!pointer) return;
+        const z = zoomRef.current;
+        const sx = (pointer.x - stagePanRef.current.x) / z;
+        const sy = (pointer.y - stagePanRef.current.y) / z;
+        penDrawingRef.current = true;
+        penPointsRef.current = [sx, sy];
+        setPenPreview([sx, sy]);
+        return;
+      }
 
       // Pan mode имеет приоритет.
       if (spaceHeld) {
@@ -336,7 +358,7 @@ export function Canvas() {
       setRubberBand({ x: startX, y: startY, w: 0, h: 0 });
       if (!shift) useSelectionStore.getState().clear();
     },
-    [spaceHeld],
+    [spaceHeld, penMode],
   );
 
   const handleStageMouseMove = useCallback(() => {
@@ -344,6 +366,16 @@ export function Canvas() {
     if (!stage) return;
     const pointer = stage.getPointerPosition();
     if (!pointer) return;
+
+    // Карандаш: добавляем точку к текущему штриху.
+    if (penDrawingRef.current) {
+      const z = zoomRef.current;
+      const sx = (pointer.x - stagePanRef.current.x) / z;
+      const sy = (pointer.y - stagePanRef.current.y) / z;
+      penPointsRef.current.push(sx, sy);
+      setPenPreview([...penPointsRef.current]);
+      return;
+    }
 
     // Pan имеет приоритет.
     const start = panStartRef.current;
@@ -452,6 +484,27 @@ export function Canvas() {
 
   const handleStageMouseUp = useCallback(() => {
     panStartRef.current = null;
+
+    // Карандаш: завершаем штрих → создаём pathShape.
+    if (penDrawingRef.current) {
+      penDrawingRef.current = false;
+      const flat = penPointsRef.current;
+      penPointsRef.current = [];
+      setPenPreview(null);
+      if (flat.length >= 4) {
+        const pts: { x: number; y: number }[] = [];
+        for (let i = 0; i < flat.length; i += 2) pts.push({ x: flat[i], y: flat[i + 1] });
+        const data = pointsToSmoothPath(pts);
+        const deckNow = useDeckStore.getState().deck;
+        const activeId = useUiStore.getState().activeSlideId;
+        if (deckNow && activeId && data) {
+          const shape = createFreeform(data);
+          useDeckStore.getState().setDeck(appendShape(deckNow, activeId, shape));
+          useSelectionStore.getState().select([shape.id]);
+        }
+      }
+      return;
+    }
 
     // Завершение custom multi-drag — коммитим финальные позиции в модель.
     const md = multiDragRef.current;
@@ -645,7 +698,7 @@ export function Canvas() {
     <div
       ref={setContainerRef}
       className="app-canvas"
-      style={{ cursor: spaceHeld ? (panStartRef.current ? 'grabbing' : 'grab') : 'default' }}
+      style={{ cursor: penMode ? 'crosshair' : spaceHeld ? (panStartRef.current ? 'grabbing' : 'grab') : 'default' }}
     >
       <Stage
         ref={stageRef}
@@ -683,6 +736,18 @@ export function Canvas() {
               strokeWidth={1}
               dash={[4, 2]}
               strokeScaleEnabled={false}
+              listening={false}
+            />
+          )}
+          {penPreview && penPreview.length >= 4 && (
+            <Line
+              points={penPreview}
+              stroke="#1a73e8"
+              strokeWidth={2}
+              strokeScaleEnabled={false}
+              tension={0.4}
+              lineCap="round"
+              lineJoin="round"
               listening={false}
             />
           )}

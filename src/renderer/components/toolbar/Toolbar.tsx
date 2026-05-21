@@ -29,6 +29,8 @@ export function Toolbar() {
   const setDeck = useDeckStore((s) => s.setDeck);
   const activeSlideId = useUiStore((s) => s.activeSlideId);
   const select = useSelectionStore((s) => s.select);
+  const penMode = useUiStore((s) => s.penMode);
+  const setPenMode = useUiStore((s) => s.setPenMode);
   const [tablePickerOpen, setTablePickerOpen] = useState(false);
 
   const insert = (shape: Shape) => {
@@ -88,6 +90,13 @@ export function Toolbar() {
           insert(createConnector(cx - 150, cy, cx + 150, cy, 'elbow'));
         }}
       />
+      <button
+        type="button"
+        className={`toolbar-btn${penMode ? ' toolbar-btn--active' : ''}`}
+        onClick={() => setPenMode(!penMode)}
+      >
+        Карандаш
+      </button>
       <span className="toolbar-sep" />
       <ToolbarButton
         label="Текст"

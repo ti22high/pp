@@ -258,6 +258,22 @@ export function createConnector(
   };
 }
 
+// Freeform-кривая из карандаша (Phase 3.16): pathData в абсолютных slide-
+// координатах, bbox считаем из неё. PathShapeView сам нормализует офсет.
+export function createFreeform(pathData: string): PathShape {
+  const rect = new Konva.Path({ data: pathData }).getSelfRect();
+  return {
+    id: uuid(),
+    type: 'path',
+    x: rect.x,
+    y: rect.y,
+    w: Math.max(2, rect.width),
+    h: Math.max(2, rect.height),
+    pathData,
+    stroke: { color: '#1a73e8', width: 2 },
+  };
+}
+
 export function appendShape(deck: Deck, slideId: string, shape: Shape): Deck {
   const slide = deck.slides[slideId];
   if (!slide) return deck;
