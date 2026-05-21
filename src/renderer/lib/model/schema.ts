@@ -300,10 +300,10 @@ export const connectorShapeSchema = z.object({
   end: connectorEndpointSchema,
   arrowStart: z.boolean().optional(),
   arrowEnd: z.boolean().optional(),
-  // Позиция изгиба elbow-коннектора (Phase 3.15): midX — x вертикального
-  // колена (горизонтальный маршрут), midY — y горизонтального колена.
-  midX: z.number().optional(),
-  midY: z.number().optional(),
+  // Изломы elbow-коннектора (Phase 3.15): промежуточные угловые точки между
+  // началом и концом. Если заданы — маршрут идёт через них; иначе считается
+  // авто-Г-маршрут. Каждую точку можно тянуть отдельной ручкой.
+  bends: z.array(z.object({ x: z.number(), y: z.number() })).optional(),
 });
 
 export const shapeSchema = z.discriminatedUnion('type', [

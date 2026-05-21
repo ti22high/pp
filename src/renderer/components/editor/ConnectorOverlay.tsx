@@ -4,7 +4,7 @@ import type Konva from 'konva';
 import { useDeckStore } from '@renderer/stores/deck';
 import { useUiStore } from '@renderer/stores/ui';
 import { useSelectionStore } from '@renderer/stores/selection';
-import { connectionPoints, resolveEndpoint, elbowHorizontalFirst } from '@renderer/lib/connector';
+import { connectionPoints, resolveEndpoint, elbowInteriorPoints } from '@renderer/lib/connector';
 import type { ConnectorAnchor } from '@renderer/lib/model/schema';
 
 interface ConnectorOverlayProps {
@@ -74,25 +74,18 @@ export function ConnectorOverlay({ slideId }: ConnectorOverlayProps) {
     }
   }
 
-  // Мид-ручка изгиба elbow: тянем колено по перпендикулярной оси.
-  let midHandle: { x: number; y: number; axis: 'x' | 'y' } | null = null;
-  if (connector.connectorType === 'elbow') {
-    if (elbowHorizontalFirst(a, b)) {
-      const mx = connector.midX ?? (a.x + b.x) / 2;
-      midHandle = { x: mx, y: (a.y + b.y) / 2, axis: 'x' };
-    } else {
-      const my = connector.midY ?? (a.y + b.y) / 2;
-      midHandle = { x: (a.x + b.x) / 2, y: my, axis: 'y' };
-    }
-  }
-  const onMidMove = (e: Konva.KonvaEventObject<DragEvent>) => {
+  // Изломы elbow: каждую угловую точку можно тянуть отдельной ручкой.
+  const interior = connector.connectorType === 'elbow' ? elbowInteriorPoints(a, b, connector.bends) : [];
+  const onBendMove = (i: number) => (e: Konva.KonvaEventObject<DragEvent>) => {
     const node = e.target;
     useDeckStore.setState((state) => {
       if (!state.deck) return;
       const sh = state.deck.slides[slideId]?.shapes.find((s) => s.id === connector.id);
       if (!sh || sh.type !== 'connector') return;
-      if (midHandle!.axis === 'x') sh.midX = node.x();
-      else sh.midY = node.y();
+      // Материализуем все изломы и заменяем перетаскиваемый.
+      const pts = elbowInteriorPoints(a, b, sh.bends).map((p) => ({ x: p.x, y: p.y }));
+      pts[i] = { x: node.x(), y: node.y() };
+      sh.bends = pts;
       state.deck.modifiedAt = new Date().toISOString();
     });
   };
@@ -111,26 +104,22 @@ export function ConnectorOverlay({ slideId }: ConnectorOverlayProps) {
           listening={false}
         />
       ))}
-      {midHandle && (
+      {interior.map((p, i) => (
         <Circle
-          x={midHandle.x}
-          y={midHandle.y}
+          key={`bend${i}`}
+          x={p.x}
+          y={p.y}
           radius={5 / zoom}
           fill="#fbbc04"
           stroke="#1a73e8"
           strokeWidth={1.5 / zoom}
           draggable
-          dragBoundFunc={function (this: Konva.Node, pos) {
-            // Двигаем только по перпендикулярной оси колена.
-            const abs = this.absolutePosition();
-            return midHandle!.axis === 'x' ? { x: pos.x, y: abs.y } : { x: abs.x, y: pos.y };
-          }}
           onMouseDown={(e) => {
             e.cancelBubble = true;
           }}
-          onDragMove={onMidMove}
+          onDragMove={onBendMove(i)}
         />
-      )}
+      ))}
       {(['start', 'end'] as const).map((which) => {
         const p = which === 'start' ? a : b;
         return (

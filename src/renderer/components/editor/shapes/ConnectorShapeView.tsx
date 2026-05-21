@@ -24,7 +24,7 @@ export const ConnectorShapeView = memo(function ConnectorShapeViewBase({ shape, 
 
   const a = resolveEndpoint(shape.start, shapes);
   const b = resolveEndpoint(shape.end, shapes);
-  const pts = connectorPoints(shape.connectorType, a, b, { x: shape.midX, y: shape.midY });
+  const pts = connectorPoints(shape.connectorType, a, b, shape.bends);
   const bezier = shape.connectorType === 'curved';
 
   const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
