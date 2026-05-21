@@ -5,6 +5,7 @@ import type { PathShape } from '@renderer/lib/model/schema';
 import { ShapeNode } from './ShapeNode';
 import { ShapeTextLabel } from './ShapeTextLabel';
 import { resolveFill, resolveStroke, resolveShadow } from './paint';
+import { useImageElement } from './useImageElement';
 
 interface PathShapeViewProps {
   shape: PathShape;
@@ -30,8 +31,18 @@ export const PathShapeView = memo(function PathShapeViewBase({ shape, slideId }:
       h: Math.max(1, rect.height),
     };
   }, [shape.pathData]);
-  // Градиент в координатах pathData (локальные для Path-ноды) — центр natural.
-  const fill = resolveFill(shape.fill, natural.w, natural.h, natural.x + natural.w / 2, natural.y + natural.h / 2);
+  // Градиент/image-заливка в координатах pathData (локальные для Path-ноды) —
+  // центр natural-bbox. Картинку (Phase 3.19) грузим и масштабируем по natural,
+  // node-scale (sx/sy) дотягивает её до отображаемого размера фигуры.
+  const fillImage = useImageElement(shape.fill?.kind === 'image' ? shape.fill.src : null);
+  const fill = resolveFill(
+    shape.fill,
+    natural.w,
+    natural.h,
+    natural.x + natural.w / 2,
+    natural.y + natural.h / 2,
+    fillImage,
+  );
   const sx = shape.w / natural.w;
   const sy = shape.h / natural.h;
   return (

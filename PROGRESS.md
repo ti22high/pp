@@ -108,7 +108,7 @@
 - [x] 3.16. Freeform pen (scribble): кнопка «Карандаш» (toggle) → рисование мышью на холсте, точки сглаживаются (квадратичные кривые) и запекаются в pathShape. Превью-линия во время рисования.
 - [x] 3.17. Polyline + Arc (рисуются интерактивно) + правка точек кривой («Изменить точки» в контекстном меню path): опорные/контрольные точки с «усами», перетаскивание изгибает кривую (Безье-редактор), Esc — выход.
 - [x] 3.18. Gradient fill editor (multi-stop): N стопов (цвет + позиция %), добавить/удалить, превью-бар, тип linear/radial, угол. Геометрия градиента учитывает размер фигуры и угол (исправлено для rect/ellipse/path).
-- [ ] 3.19. Image-fill для фигур.
+- [x] 3.19. Image-fill для фигур (rect/ellipse/path): режим «Картинка» в секции «Заливка» → выбор файла, fill={kind:'image',src}; рендер через Konva fillPattern (растягивание на bbox), превью + «Заменить изображение…».
 - [ ] 3.20. Shape library panel: ~187 ECMA-376 preset shapes (SVG-paths).
 - [ ] 3.21. WordArt mini-editor (text c outline + fill + font).
 - [ ] 3.22. Bookmarks: добавить anchor на фигуру/текст; ссылка на bookmark в hyperlink dialog.

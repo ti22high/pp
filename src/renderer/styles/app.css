@@ -518,6 +518,18 @@ body,
   cursor: default;
 }
 
+/* Превью image-заливки фигуры (Phase 3.19). */
+.fill-image-preview {
+  height: 64px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin: 4px 0 6px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #f1f3f4;
+}
+
 /* Контекстный тулбар диаграммы сверху (Phase 3.14f). */
 .chart-toolbar {
   position: fixed;

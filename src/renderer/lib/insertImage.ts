@@ -115,6 +115,33 @@ export function openReplaceImageDialog(slideId: string, shapeId: string): void {
   pickImageFile((file) => void replaceImageFromFile(slideId, shapeId, file));
 }
 
+// Image-fill (Phase 3.19): записывает картинку как заливку фигуры
+// (rect/ellipse/path). Картинка кодируется в data URL и кладётся в
+// fill={kind:'image',src}. Геометрия фигуры не меняется — картинка тянется
+// под bbox при рендере (см. paint.ts/resolveFill).
+async function setShapeFillFromFile(
+  slideId: string,
+  shapeId: string,
+  file: File,
+): Promise<void> {
+  if (!file.type.startsWith('image/')) return;
+  const dataUrl = await fileToDataUrl(file);
+  useDeckStore.setState((state) => {
+    if (!state.deck) return;
+    const slide = state.deck.slides[slideId];
+    if (!slide) return;
+    const sh = slide.shapes.find((x) => x.id === shapeId);
+    if (!sh) return;
+    sh.fill = { kind: 'image', src: dataUrl };
+    state.deck.modifiedAt = new Date().toISOString();
+  });
+}
+
+// Открывает файловый диалог и ставит выбранную картинку как заливку фигуры.
+export function openFillImageDialog(slideId: string, shapeId: string): void {
+  pickImageFile((file) => void setShapeFillFromFile(slideId, shapeId, file));
+}
+
 // Общий помощник: скрытый <input type=file> с фильтром на изображения.
 function pickImageFile(onPick: (file: File) => void): void {
   const input = document.createElement('input');

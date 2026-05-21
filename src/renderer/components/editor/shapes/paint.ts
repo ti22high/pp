@@ -14,6 +14,13 @@ export interface FillProps {
   fillRadialGradientStartRadius?: number;
   fillRadialGradientEndRadius?: number;
   fillRadialGradientColorStops?: Array<number | string>;
+  // Image-заливка (Phase 3.19): растягиваем картинку на bbox фигуры.
+  fillPatternImage?: HTMLImageElement;
+  fillPatternX?: number;
+  fillPatternY?: number;
+  fillPatternScaleX?: number;
+  fillPatternScaleY?: number;
+  fillPatternRepeat?: 'no-repeat' | 'repeat' | 'repeat-x' | 'repeat-y';
   fillPriority?: 'color' | 'linear-gradient' | 'radial-gradient' | 'pattern';
 }
 
@@ -25,12 +32,15 @@ export interface StrokeProps {
 
 // w/h — размеры bbox, cx/cy — центр градиента в локальных координатах ноды
 // (Rect: w/2,h/2; Ellipse: 0,0 — её origin в центре; Path: центр natural-bbox).
+// patternImage — загруженный HTMLImageElement для image-заливки (Phase 3.19);
+// его подгружает сама ShapeView через useImageElement и передаёт сюда.
 export function resolveFill(
   fill: Fill | undefined,
   w = 100,
   h = 100,
   cx = w / 2,
   cy = h / 2,
+  patternImage?: HTMLImageElement | null,
 ): FillProps {
   if (!fill || fill.kind === 'none') {
     return { fill: undefined, fillPriority: 'color' };
@@ -63,8 +73,24 @@ export function resolveFill(
     };
   }
   if (fill.kind === 'image') {
-    // image-заливка появится в 3.19; здесь — заглушка серым.
-    return { fill: '#e0e0e0', fillPriority: 'color' };
+    // Картинка ещё грузится (или не загрузилась) — заглушка серым, чтобы
+    // фигура не пропала и Konva не получил pattern без image.
+    if (!patternImage || !patternImage.width || !patternImage.height) {
+      return { fill: '#e0e0e0', fillPriority: 'color' };
+    }
+    // Растягиваем картинку на bbox фигуры (stretch). Левый-верхний угол bbox
+    // в локальных координатах ноды выводим из центра: bx = cx - w/2.
+    const bx = cx - w / 2;
+    const by = cy - h / 2;
+    return {
+      fillPatternImage: patternImage,
+      fillPatternX: bx,
+      fillPatternY: by,
+      fillPatternScaleX: w / patternImage.width,
+      fillPatternScaleY: h / patternImage.height,
+      fillPatternRepeat: 'no-repeat',
+      fillPriority: 'pattern',
+    };
   }
   return {};
 }

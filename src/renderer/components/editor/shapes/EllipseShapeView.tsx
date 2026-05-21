@@ -4,6 +4,7 @@ import type { EllipseShape } from '@renderer/lib/model/schema';
 import { ShapeNode } from './ShapeNode';
 import { ShapeTextLabel } from './ShapeTextLabel';
 import { resolveFill, resolveStroke, resolveShadow } from './paint';
+import { useImageElement } from './useImageElement';
 
 interface EllipseShapeViewProps {
   shape: EllipseShape;
@@ -15,7 +16,10 @@ interface EllipseShapeViewProps {
 // memo: см. комментарий в RectShapeView — мемоизация нужна, чтобы group-drag
 // не откатывал не-dragged ноды на каждом dragmove.
 export const EllipseShapeView = memo(function EllipseShapeViewBase({ shape, slideId }: EllipseShapeViewProps) {
-  const fillProps = resolveFill(shape.fill, shape.w, shape.h, 0, 0);
+  // Image-заливка (Phase 3.19): origin эллипса — его центр (0,0), поэтому
+  // resolveFill сам выведет bbox от центра.
+  const fillImage = useImageElement(shape.fill?.kind === 'image' ? shape.fill.src : null);
+  const fillProps = resolveFill(shape.fill, shape.w, shape.h, 0, 0, fillImage);
   const strokeProps = resolveStroke(shape.stroke);
   const shadowProps = resolveShadow(shape.shadow);
   return (

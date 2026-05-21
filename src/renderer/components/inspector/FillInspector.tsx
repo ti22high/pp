@@ -1,6 +1,7 @@
 import { useDeckStore } from '@renderer/stores/deck';
 import type { Fill } from '@renderer/lib/model/schema';
 import type { ShapeId, SlideId } from '@shared/types';
+import { openFillImageDialog } from '@renderer/lib/insertImage';
 import { ColorField } from './ColorField';
 import { NumberField } from './NumberField';
 
@@ -10,11 +11,11 @@ interface FillInspectorProps {
   fill: Fill | undefined;
 }
 
-// Секция «Fill». Поддерживает none / solid / gradient.
-// Image — Phase 3 (media), в селект не добавляем.
+// Секция «Fill». Поддерживает none / solid / gradient / image (Phase 3.19).
 //
 // При смене режима подставляем разумный дефолт, чтобы фигура не пропала
 // (например, переход на gradient берёт текущий solid-цвет как первый stop).
+// Для image открываем файловый диалог: fill ставится только после выбора.
 export function FillInspector({ slideId, shapeId, fill }: FillInspectorProps) {
   const mode = fill?.kind ?? 'none';
 
@@ -30,7 +31,7 @@ export function FillInspector({ slideId, shapeId, fill }: FillInspectorProps) {
     });
   };
 
-  const setMode = (m: 'none' | 'solid' | 'gradient') => {
+  const setMode = (m: 'none' | 'solid' | 'gradient' | 'image') => {
     if (m === 'none') {
       write({ kind: 'none' });
       return;
@@ -43,6 +44,12 @@ export function FillInspector({ slideId, shapeId, fill }: FillInspectorProps) {
             ? fill.stops[0]?.color
             : '#1a73e8';
       write({ kind: 'solid', color: fallback ?? '#1a73e8' });
+      return;
+    }
+    if (m === 'image') {
+      // Уже картинка — не трогаем; иначе открываем диалог. fill запишется
+      // только после выбора файла (в openFillImageDialog), отмена — без эффекта.
+      if (fill?.kind !== 'image') openFillImageDialog(slideId, shapeId);
       return;
     }
     // gradient
@@ -67,13 +74,33 @@ export function FillInspector({ slideId, shapeId, fill }: FillInspectorProps) {
         <select
           className="inspector-select"
           value={mode}
-          onChange={(e) => setMode(e.target.value as 'none' | 'solid' | 'gradient')}
+          onChange={(e) => setMode(e.target.value as 'none' | 'solid' | 'gradient' | 'image')}
         >
           <option value="none">Без заливки</option>
           <option value="solid">Сплошная</option>
           <option value="gradient">Градиент</option>
+          <option value="image">Картинка</option>
         </select>
       </label>
+
+      {fill?.kind === 'image' && (
+        <>
+          {/* Превью выбранной картинки (растягивается под фигуру при рендере). */}
+          <div
+            className="fill-image-preview"
+            style={{ backgroundImage: `url(${fill.src})` }}
+          />
+          <div className="inspector-row inspector-row--buttons">
+            <button
+              type="button"
+              className="inspector-btn"
+              onClick={() => openFillImageDialog(slideId, shapeId)}
+            >
+              Заменить изображение…
+            </button>
+          </div>
+        </>
+      )}
 
       {fill?.kind === 'solid' && (
         <ColorField

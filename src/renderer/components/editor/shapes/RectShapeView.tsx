@@ -4,6 +4,7 @@ import type { RectShape } from '@renderer/lib/model/schema';
 import { ShapeNode } from './ShapeNode';
 import { ShapeTextLabel } from './ShapeTextLabel';
 import { resolveFill, resolveStroke, resolveShadow } from './paint';
+import { useImageElement } from './useImageElement';
 
 interface RectShapeViewProps {
   shape: RectShape;
@@ -16,7 +17,10 @@ interface RectShapeViewProps {
 // не трогаются (важно для group-drag, где мы двигаем остальные ноды
 // императивно и не хотим, чтобы React откатил их).
 export const RectShapeView = memo(function RectShapeViewBase({ shape, slideId }: RectShapeViewProps) {
-  const fillProps = resolveFill(shape.fill, shape.w, shape.h);
+  // Image-заливка (Phase 3.19): грузим картинку и отдаём в resolveFill как
+  // pattern. Для прочих заливок src=null → хук вернёт null, pattern не строится.
+  const fillImage = useImageElement(shape.fill?.kind === 'image' ? shape.fill.src : null);
+  const fillProps = resolveFill(shape.fill, shape.w, shape.h, undefined, undefined, fillImage);
   const strokeProps = resolveStroke(shape.stroke);
   const shadowProps = resolveShadow(shape.shadow);
   return (
