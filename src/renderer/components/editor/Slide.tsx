@@ -6,6 +6,7 @@ import { EllipseShapeView } from './shapes/EllipseShapeView';
 import { LineShapeView } from './shapes/LineShapeView';
 import { PathShapeView } from './shapes/PathShapeView';
 import { TextShapeView } from './shapes/TextShapeView';
+import { WordArtShapeView } from './shapes/WordArtShapeView';
 import { ImageShapeView } from './shapes/ImageShapeView';
 import { TableShapeView } from './shapes/TableShapeView';
 import { ChartShapeView } from './shapes/ChartShapeView';
@@ -76,6 +77,8 @@ export function Slide({ slide, width, height }: SlideProps) {
             return <PathShapeView key={shape.id} shape={shape} slideId={slide.id} />;
           case 'text':
             return <TextShapeView key={shape.id} shape={shape} slideId={slide.id} />;
+          case 'wordart':
+            return <WordArtShapeView key={shape.id} shape={shape} slideId={slide.id} />;
           case 'image':
             return <ImageShapeView key={shape.id} shape={shape} slideId={slide.id} />;
           case 'table':

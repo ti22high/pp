@@ -163,6 +163,20 @@ export const textShapeSchema = z.object({
   verticalAlign: z.enum(['top', 'middle', 'bottom']).optional(),
   autoFit: z.enum(['none', 'shrink', 'resize']).optional(),
 });
+// WordArt (Phase 3.21): декоративный текст с заливкой (fill) и контуром
+// (stroke) из baseShape + поля шрифта. Одностилевой (без rich-text): text —
+// простая строка, многострочность через \n. Рендерится Konva.Text, текст
+// растягивается под bbox фигуры (как pathShape). Расширенный WordArt
+// (warp/3D) — вне MVP (SPEC §«не делаем»).
+export const wordartShapeSchema = z.object({
+  ...baseShape,
+  type: z.literal('wordart'),
+  text: z.string(),
+  fontFamily: z.string(),
+  fontSize: z.number().positive(),
+  bold: z.boolean().optional(),
+  italic: z.boolean().optional(),
+});
 // Изображение. `src` — data URL (Phase 3.1) либо путь внутри media/ после
 // внедрения MediaManager (миграция меняет только значение src, не схему).
 // naturalW/naturalH — исходные пиксельные размеры (для сохранения пропорций
@@ -312,6 +326,7 @@ export const shapeSchema = z.discriminatedUnion('type', [
   lineShapeSchema,
   pathShapeSchema,
   textShapeSchema,
+  wordartShapeSchema,
   imageShapeSchema,
   tableShapeSchema,
   chartShapeSchema,
@@ -407,6 +422,7 @@ export type EllipseShape = z.infer<typeof ellipseShapeSchema>;
 export type LineShape = z.infer<typeof lineShapeSchema>;
 export type PathShape = z.infer<typeof pathShapeSchema>;
 export type TextShape = z.infer<typeof textShapeSchema>;
+export type WordArtShape = z.infer<typeof wordartShapeSchema>;
 export type ImageShape = z.infer<typeof imageShapeSchema>;
 export type TableShape = z.infer<typeof tableShapeSchema>;
 export type TableCell = z.infer<typeof tableCellSchema>;

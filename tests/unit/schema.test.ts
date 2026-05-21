@@ -4,6 +4,7 @@ import {
   hyperlinkSchema,
   userGuideSchema,
   pageNumbersSchema,
+  wordartShapeSchema,
 } from '../../src/renderer/lib/model/schema';
 import { createEmptyDeck } from '../../src/renderer/lib/model/factory';
 
@@ -45,5 +46,33 @@ describe('hyperlink schema', () => {
 
   it('rejects a malformed url link', () => {
     expect(hyperlinkSchema.safeParse({ kind: 'url', url: 'not a url' }).success).toBe(false);
+  });
+});
+
+describe('wordart schema (Phase 3.21)', () => {
+  const base = {
+    id: 'w1',
+    type: 'wordart',
+    x: 0,
+    y: 0,
+    w: 200,
+    h: 80,
+    text: 'Hello',
+    fontFamily: 'Montserrat',
+    fontSize: 96,
+  };
+
+  it('accepts a wordart with fill+outline+font', () => {
+    const res = wordartShapeSchema.safeParse({
+      ...base,
+      bold: true,
+      fill: { kind: 'solid', color: '#1a73e8' },
+      stroke: { color: '#0a2a66', width: 2 },
+    });
+    expect(res.success).toBe(true);
+  });
+
+  it('rejects non-positive fontSize', () => {
+    expect(wordartShapeSchema.safeParse({ ...base, fontSize: 0 }).success).toBe(false);
   });
 });

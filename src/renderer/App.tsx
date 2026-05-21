@@ -15,6 +15,7 @@ import { HyperlinkDialog } from './components/ui/HyperlinkDialog';
 import { SpecialCharsDialog } from './components/ui/SpecialCharsDialog';
 import { ShortcutsDialog } from './components/ui/ShortcutsDialog';
 import { AltTextDialog } from './components/ui/AltTextDialog';
+import { WordArtDialog } from './components/ui/WordArtDialog';
 import { TableCellFormatDialog } from './components/ui/TableCellFormatDialog';
 import { CsvImportDialog } from './components/ui/CsvImportDialog';
 import { XlsxImportDialog } from './components/ui/XlsxImportDialog';
@@ -121,6 +122,7 @@ export function App() {
         onClose={() => setShortcutsOpen(false)}
       />
       <AltTextDialog />
+      <WordArtDialog />
       <TableCellFormatDialog />
       <CsvImportDialog />
       <XlsxImportDialog />

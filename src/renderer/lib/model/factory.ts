@@ -4,6 +4,7 @@
 import { v4 as uuid } from 'uuid';
 import Konva from 'konva';
 import { DEFAULT_SLIDE_WIDTH, DEFAULT_SLIDE_HEIGHT } from '@shared/constants';
+import { measureWordArt } from '@renderer/lib/wordart';
 import type {
   Deck,
   Slide,
@@ -13,6 +14,7 @@ import type {
   LineShape,
   PathShape,
   TextShape,
+  WordArtShape,
   ImageShape,
   TableShape,
   ChartShape,
@@ -165,6 +167,33 @@ export function createText(
     tiptapDoc,
     verticalAlign: 'top',
     autoFit: 'none',
+  };
+}
+
+// WordArt (Phase 3.21): декоративный текст с заливкой + контуром. Размер
+// фигуры подгоняем под натуральный размер текста (как pathShape, дальше
+// растягивается при resize). Дефолт — крупный жирный текст с тёмным контуром.
+export function createWordArt(
+  x = 100,
+  y = 100,
+  text = 'WordArt',
+  fontFamily = 'Montserrat',
+  fontSize = 96,
+): WordArtShape {
+  const { w, h } = measureWordArt(text, fontFamily, fontSize, true, false);
+  return {
+    id: uuid(),
+    type: 'wordart',
+    x,
+    y,
+    w,
+    h,
+    text,
+    fontFamily,
+    fontSize,
+    bold: true,
+    fill: { kind: 'solid', color: '#1a73e8' },
+    stroke: { color: '#0a2a66', width: 2 },
   };
 }
 

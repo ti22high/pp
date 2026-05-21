@@ -91,3 +91,6 @@ export async function loadFonts(): Promise<void> {
   // Гарантируем, что браузер закончил применение метрик ко всем зарегистрированным faces.
   await document.fonts.ready;
 }
+
+// Уникальные семейства шрифтов (для селектов, напр. WordArt — Phase 3.21).
+export const FONT_FAMILIES: string[] = [...new Set(FONTS.map((f) => f.family))];

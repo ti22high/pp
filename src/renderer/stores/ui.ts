@@ -20,6 +20,8 @@ interface UiState {
   croppingShapeId: ShapeId | null;
   // id фигуры, для которой открыт диалог Alt-текста (Phase 3.7). null = закрыт.
   altTextShapeId: ShapeId | null;
+  // id WordArt-фигуры, для которой открыт мини-редактор (Phase 3.21). null = закрыт.
+  wordArtShapeId: ShapeId | null;
   // Редактируемая ячейка таблицы (Phase 3.8). null = не редактируем.
   editingTableCell: { shapeId: ShapeId; row: number; col: number } | null;
   // Выбранный прямоугольный диапазон ячеек таблицы (Phase 3.9) — для операций
@@ -58,6 +60,7 @@ interface UiState {
   setEditingShape: (id: ShapeId | null) => void;
   setCroppingShape: (id: ShapeId | null) => void;
   setAltTextShape: (id: ShapeId | null) => void;
+  setWordArtShape: (id: ShapeId | null) => void;
   setEditingTableCell: (cell: { shapeId: ShapeId; row: number; col: number } | null) => void;
   setTableSelection: (
     sel: { shapeId: ShapeId; r0: number; c0: number; r1: number; c1: number } | null,
@@ -101,6 +104,7 @@ export const useUiStore = create<UiState>()(
     editingShapeId: null,
     croppingShapeId: null,
     altTextShapeId: null,
+    wordArtShapeId: null,
     editingTableCell: null,
     tableSelection: null,
     tableFormatOpen: false,
@@ -129,6 +133,10 @@ export const useUiStore = create<UiState>()(
     setAltTextShape: (id) =>
       set((s) => {
         s.altTextShapeId = id;
+      }),
+    setWordArtShape: (id) =>
+      set((s) => {
+        s.wordArtShapeId = id;
       }),
     setEditingTableCell: (cell) =>
       set((s) => {
