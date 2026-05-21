@@ -21,6 +21,7 @@ import { XlsxImportDialog } from './components/ui/XlsxImportDialog';
 import { ChartDataPanel } from './components/ui/ChartDataPanel';
 import { ChartContextToolbar } from './components/ui/ChartContextToolbar';
 import { WordArtContextToolbar } from './components/ui/WordArtContextToolbar';
+import { TextFormatToolbar } from './components/ui/TextFormatToolbar';
 import { useMenuCommands } from './hooks/useMenuCommands';
 import { useShapeClipboard } from './hooks/useShapeClipboard';
 import { useUndoRedo } from './hooks/useUndoRedo';
@@ -128,6 +129,7 @@ export function App() {
       <ChartDataPanel />
       <ChartContextToolbar />
       <WordArtContextToolbar />
+      <TextFormatToolbar />
     </div>
   );
 }

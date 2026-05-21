@@ -325,6 +325,16 @@ export function setWordArtStroke(
   });
 }
 
+// Межстрочный интервал текстового блока (множитель). undefined-сброс к 1.2.
+export function setTextLineHeight(slideId: string, shapeId: string, lineHeight: number): void {
+  useDeckStore.setState((state) => {
+    const sh = state.deck?.slides[slideId]?.shapes.find((x) => x.id === shapeId);
+    if (!sh || sh.type !== 'text') return;
+    sh.lineHeight = lineHeight;
+    if (state.deck) state.deck.modifiedAt = new Date().toISOString();
+  });
+}
+
 // Обновляет настройки номеров слайдов (§1.13). Прозрачно создаёт объект,
 // если его ещё не было в деке.
 export function setPageNumbers(enabled: boolean, skipFirst: boolean): void {

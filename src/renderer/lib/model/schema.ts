@@ -162,6 +162,8 @@ export const textShapeSchema = z.object({
   tiptapDoc: z.unknown(), // ProseMirror JSON
   verticalAlign: z.enum(['top', 'middle', 'bottom']).optional(),
   autoFit: z.enum(['none', 'shrink', 'resize']).optional(),
+  // Межстрочный интервал всего текстового блока (множитель). undefined = 1.2.
+  lineHeight: z.number().min(0.5).max(4).optional(),
 });
 // WordArt (Phase 3.21): декоративный текст с заливкой (fill) и контуром
 // (stroke) из baseShape + поля шрифта. Одностилевой (без rich-text): text —

@@ -4,6 +4,7 @@ import type { TextShape } from '@renderer/lib/model/schema';
 import { useUiStore } from '@renderer/stores/ui';
 import { ShapeNode } from './ShapeNode';
 import { resolveShadow } from './paint';
+import { extractTextStyle } from '@renderer/lib/textStyle';
 
 interface TextShapeViewProps {
   shape: TextShape;
@@ -37,6 +38,9 @@ function extractPlainText(doc: unknown): string {
 export const TextShapeView = memo(function TextShapeViewBase({ shape, slideId }: TextShapeViewProps) {
   const editingShapeId = useUiStore((s) => s.editingShapeId);
   const plain = useMemo(() => extractPlainText(shape.tiptapDoc), [shape.tiptapDoc]);
+  // Единый стиль (шрифт/размер/цвет/жирный/курсив/подчёркивание/выравнивание)
+  // из первого run — Konva.Text одностилевой (см. lib/textStyle).
+  const style = useMemo(() => extractTextStyle(shape.tiptapDoc), [shape.tiptapDoc]);
   const shadow = resolveShadow(shape.shadow);
   const isEditing = editingShapeId === shape.id;
 
@@ -64,9 +68,13 @@ export const TextShapeView = memo(function TextShapeViewBase({ shape, slideId }:
         width={shape.w}
         height={shape.h}
         text={isEditing ? '' : plain}
-        fontSize={20}
-        fontFamily="Roboto, Arial, sans-serif"
-        fill="#202124"
+        fontSize={style.fontSize}
+        fontFamily={style.fontFamily}
+        fontStyle={style.fontStyle}
+        textDecoration={style.textDecoration}
+        fill={style.fill}
+        align={style.align}
+        lineHeight={shape.lineHeight ?? 1.2}
         wrap="word"
         listening={false}
         {...shadow}

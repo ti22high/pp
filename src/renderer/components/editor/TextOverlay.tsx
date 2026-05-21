@@ -127,6 +127,8 @@ export function TextOverlay({ slideId, shape, panX, panY, zoom }: TextOverlayPro
     // показывает 20px, а после blur Konva рендерит 20px * zoom — визуально
     // «прыгает». Базовый размер 20 px согласован с TextShapeView.
     fontSize: `${20 * zoom}px`,
+    // Межстрочный интервал блока (для TextShape) — WYSIWYG с Konva-рендером.
+    lineHeight: shape.type === 'text' ? (shape.lineHeight ?? 1.2) : undefined,
   };
 
   return (
