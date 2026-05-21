@@ -280,6 +280,28 @@ export const chartShapeSchema = z.object({
   numberFormat: z.enum(['auto', 'integer', 'percent', 'thousands']).optional(),
 });
 
+// Коннектор (Phase 3.15): линия между двумя точками, опц. привязанными к
+// точкам фигур (anchor). Если есть shapeId+anchor — конец «прилипает» к фигуре
+// и следует за ней; иначе свободная точка x/y.
+export const connectorAnchorSchema = z.enum([
+  'tl', 'tc', 'tr', 'ml', 'c', 'mr', 'bl', 'bc', 'br',
+]);
+export const connectorEndpointSchema = z.object({
+  x: z.number(),
+  y: z.number(),
+  shapeId: z.string().optional(),
+  anchor: connectorAnchorSchema.optional(),
+});
+export const connectorShapeSchema = z.object({
+  ...baseShape,
+  type: z.literal('connector'),
+  connectorType: z.enum(['straight', 'elbow', 'curved']),
+  start: connectorEndpointSchema,
+  end: connectorEndpointSchema,
+  arrowStart: z.boolean().optional(),
+  arrowEnd: z.boolean().optional(),
+});
+
 export const shapeSchema = z.discriminatedUnion('type', [
   rectShapeSchema,
   ellipseShapeSchema,
@@ -289,6 +311,7 @@ export const shapeSchema = z.discriminatedUnion('type', [
   imageShapeSchema,
   tableShapeSchema,
   chartShapeSchema,
+  connectorShapeSchema,
 ]);
 
 // Фон слайда.
@@ -386,6 +409,9 @@ export type TableCell = z.infer<typeof tableCellSchema>;
 export type ChartShape = z.infer<typeof chartShapeSchema>;
 export type ChartSeries = z.infer<typeof chartSeriesSchema>;
 export type ChartType = ChartShape['chartType'];
+export type ConnectorShape = z.infer<typeof connectorShapeSchema>;
+export type ConnectorEndpoint = z.infer<typeof connectorEndpointSchema>;
+export type ConnectorAnchor = z.infer<typeof connectorAnchorSchema>;
 export type Fill = z.infer<typeof fillSchema>;
 export type Stroke = z.infer<typeof strokeSchema>;
 export type Shadow = z.infer<typeof shadowSchema>;

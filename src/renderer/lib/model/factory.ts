@@ -17,6 +17,7 @@ import type {
   TableShape,
   ChartShape,
   ChartType,
+  ConnectorShape,
 } from './schema';
 
 // Палитра по умолчанию для серий диаграмм (Google-подобная).
@@ -231,6 +232,29 @@ export function createChart(
     ],
     showLegend: true,
     showGridlines: true,
+  };
+}
+
+// Коннектор между двумя свободными точками (Phase 3.15). bbox = по концам.
+export function createConnector(
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  connectorType: ConnectorShape['connectorType'] = 'straight',
+): ConnectorShape {
+  return {
+    id: uuid(),
+    type: 'connector',
+    x: Math.min(x1, x2),
+    y: Math.min(y1, y2),
+    w: Math.abs(x2 - x1),
+    h: Math.abs(y2 - y1),
+    connectorType,
+    start: { x: x1, y: y1 },
+    end: { x: x2, y: y2 },
+    arrowEnd: true,
+    stroke: { color: '#202124', width: 2 },
   };
 }
 

@@ -63,7 +63,12 @@ export function SelectionTransformer({ slideId, getStage }: SelectionTransformer
       tr.getLayer()?.batchDraw();
       return;
     }
-    const wantedIds = new Set(selectedIds);
+    // Коннекторы не масштабируем рамкой — у них концевые ручки (ConnectorOverlay).
+    const slideShapes = useDeckStore.getState().deck?.slides[slideId]?.shapes ?? [];
+    const connectorIds = new Set(
+      slideShapes.filter((s) => s.type === 'connector').map((s) => s.id),
+    );
+    const wantedIds = new Set(selectedIds.filter((id) => !connectorIds.has(id)));
     // Функциональный поиск вместо CSS-селектора `#id`: UUID может начинаться
     // с цифры, тогда селектор невалиден и findOne ничего не находит.
     const nodes: Konva.Node[] = [];

@@ -11,6 +11,7 @@ import {
   createText,
   createTable,
   createChart,
+  createConnector,
 } from '@renderer/lib/model/factory';
 import type { Shape } from '@renderer/lib/model/schema';
 import { openImageFileDialog } from '@renderer/lib/insertImage';
@@ -77,6 +78,14 @@ export function Toolbar() {
         onClick={() => {
           const c = center(160, 40);
           insert(createPath(c.x, c.y));
+        }}
+      />
+      <ToolbarButton
+        label="Коннектор"
+        onClick={() => {
+          const cx = (deck?.size.w ?? 1920) / 2;
+          const cy = (deck?.size.h ?? 1080) / 2;
+          insert(createConnector(cx - 150, cy, cx + 150, cy, 'elbow'));
         }}
       />
       <span className="toolbar-sep" />
