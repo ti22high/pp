@@ -300,6 +300,10 @@ export const connectorShapeSchema = z.object({
   end: connectorEndpointSchema,
   arrowStart: z.boolean().optional(),
   arrowEnd: z.boolean().optional(),
+  // Позиция изгиба elbow-коннектора (Phase 3.15): midX — x вертикального
+  // колена (горизонтальный маршрут), midY — y горизонтального колена.
+  midX: z.number().optional(),
+  midY: z.number().optional(),
 });
 
 export const shapeSchema = z.discriminatedUnion('type', [

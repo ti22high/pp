@@ -38,18 +38,26 @@ export function resolveEndpoint(ep: ConnectorEndpoint, shapes: Shape[]): Pt {
   return { x: ep.x, y: ep.y };
 }
 
+// Маршрут elbow горизонтальный (вертикальное колено) или вертикальный.
+export function elbowHorizontalFirst(a: Pt, b: Pt): boolean {
+  return Math.abs(b.x - a.x) >= Math.abs(b.y - a.y);
+}
+
 // Точки полилинии коннектора (плоский массив для Konva) по типу маршрута.
-export function connectorPoints(type: ConnectorShape['connectorType'], a: Pt, b: Pt): number[] {
+// mid — позиция изгиба elbow (midX/midY), если задана пользователем.
+export function connectorPoints(
+  type: ConnectorShape['connectorType'],
+  a: Pt,
+  b: Pt,
+  mid?: { x?: number; y?: number },
+): number[] {
   if (type === 'straight') return [a.x, a.y, b.x, b.y];
   if (type === 'elbow') {
-    // Г-образный маршрут: ведём по большей оси первым коленом.
-    const dx = Math.abs(b.x - a.x);
-    const dy = Math.abs(b.y - a.y);
-    if (dx >= dy) {
-      const mx = (a.x + b.x) / 2;
+    if (elbowHorizontalFirst(a, b)) {
+      const mx = mid?.x ?? (a.x + b.x) / 2;
       return [a.x, a.y, mx, a.y, mx, b.y, b.x, b.y];
     }
-    const my = (a.y + b.y) / 2;
+    const my = mid?.y ?? (a.y + b.y) / 2;
     return [a.x, a.y, a.x, my, b.x, my, b.x, b.y];
   }
   // curved: кубическая кривая (контрольные точки по горизонтали).
@@ -80,6 +88,8 @@ export const connectorOps = {
   setType: (slideId: string, shapeId: string, t: ConnectorShape['connectorType']) =>
     withConnector(slideId, shapeId, (c) => {
       c.connectorType = t;
+      c.midX = undefined;
+      c.midY = undefined;
     }),
   toggleArrowStart: (slideId: string, shapeId: string) =>
     withConnector(slideId, shapeId, (c) => {

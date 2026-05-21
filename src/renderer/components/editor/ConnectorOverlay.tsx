@@ -4,7 +4,7 @@ import type Konva from 'konva';
 import { useDeckStore } from '@renderer/stores/deck';
 import { useUiStore } from '@renderer/stores/ui';
 import { useSelectionStore } from '@renderer/stores/selection';
-import { connectionPoints, resolveEndpoint } from '@renderer/lib/connector';
+import { connectionPoints, resolveEndpoint, elbowHorizontalFirst } from '@renderer/lib/connector';
 import type { ConnectorAnchor } from '@renderer/lib/model/schema';
 
 interface ConnectorOverlayProps {
@@ -74,6 +74,29 @@ export function ConnectorOverlay({ slideId }: ConnectorOverlayProps) {
     }
   }
 
+  // Мид-ручка изгиба elbow: тянем колено по перпендикулярной оси.
+  let midHandle: { x: number; y: number; axis: 'x' | 'y' } | null = null;
+  if (connector.connectorType === 'elbow') {
+    if (elbowHorizontalFirst(a, b)) {
+      const mx = connector.midX ?? (a.x + b.x) / 2;
+      midHandle = { x: mx, y: (a.y + b.y) / 2, axis: 'x' };
+    } else {
+      const my = connector.midY ?? (a.y + b.y) / 2;
+      midHandle = { x: (a.x + b.x) / 2, y: my, axis: 'y' };
+    }
+  }
+  const onMidMove = (e: Konva.KonvaEventObject<DragEvent>) => {
+    const node = e.target;
+    useDeckStore.setState((state) => {
+      if (!state.deck) return;
+      const sh = state.deck.slides[slideId]?.shapes.find((s) => s.id === connector.id);
+      if (!sh || sh.type !== 'connector') return;
+      if (midHandle!.axis === 'x') sh.midX = node.x();
+      else sh.midY = node.y();
+      state.deck.modifiedAt = new Date().toISOString();
+    });
+  };
+
   return (
     <Group>
       {glue.map((p, i) => (
@@ -88,6 +111,26 @@ export function ConnectorOverlay({ slideId }: ConnectorOverlayProps) {
           listening={false}
         />
       ))}
+      {midHandle && (
+        <Circle
+          x={midHandle.x}
+          y={midHandle.y}
+          radius={5 / zoom}
+          fill="#fbbc04"
+          stroke="#1a73e8"
+          strokeWidth={1.5 / zoom}
+          draggable
+          dragBoundFunc={function (this: Konva.Node, pos) {
+            // Двигаем только по перпендикулярной оси колена.
+            const abs = this.absolutePosition();
+            return midHandle!.axis === 'x' ? { x: pos.x, y: abs.y } : { x: abs.x, y: pos.y };
+          }}
+          onMouseDown={(e) => {
+            e.cancelBubble = true;
+          }}
+          onDragMove={onMidMove}
+        />
+      )}
       {(['start', 'end'] as const).map((which) => {
         const p = which === 'start' ? a : b;
         return (
