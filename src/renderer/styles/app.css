@@ -485,6 +485,39 @@ body,
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
 }
 
+/* Редактор градиента (Phase 3.18). */
+.gradient-preview {
+  height: 16px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin: 4px 0 6px;
+}
+.gradient-stop {
+  gap: 6px;
+}
+.gradient-stop__pos {
+  width: 52px;
+  height: 24px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0 4px;
+  font-size: 12px;
+  text-align: right;
+}
+.gradient-stop__del {
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+.gradient-stop__del:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 /* Контекстный тулбар диаграммы сверху (Phase 3.14f). */
 .chart-toolbar {
   position: fixed;

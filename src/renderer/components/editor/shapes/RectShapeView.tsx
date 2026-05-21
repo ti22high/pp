@@ -16,7 +16,7 @@ interface RectShapeViewProps {
 // не трогаются (важно для group-drag, где мы двигаем остальные ноды
 // императивно и не хотим, чтобы React откатил их).
 export const RectShapeView = memo(function RectShapeViewBase({ shape, slideId }: RectShapeViewProps) {
-  const fillProps = resolveFill(shape.fill);
+  const fillProps = resolveFill(shape.fill, shape.w, shape.h);
   const strokeProps = resolveStroke(shape.stroke);
   const shadowProps = resolveShadow(shape.shadow);
   return (

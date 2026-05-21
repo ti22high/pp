@@ -23,7 +23,15 @@ export interface StrokeProps {
   dash?: number[];
 }
 
-export function resolveFill(fill: Fill | undefined): FillProps {
+// w/h — размеры bbox, cx/cy — центр градиента в локальных координатах ноды
+// (Rect: w/2,h/2; Ellipse: 0,0 — её origin в центре; Path: центр natural-bbox).
+export function resolveFill(
+  fill: Fill | undefined,
+  w = 100,
+  h = 100,
+  cx = w / 2,
+  cy = h / 2,
+): FillProps {
   if (!fill || fill.kind === 'none') {
     return { fill: undefined, fillPriority: 'color' };
   }
@@ -31,23 +39,25 @@ export function resolveFill(fill: Fill | undefined): FillProps {
     return { fill: fill.color, fillPriority: 'color' };
   }
   if (fill.kind === 'gradient') {
-    // Координаты градиента считаем относительно bounding box фигуры в долях [0..1];
-    // Konva ожидает абсолютные значения — фигуры передают свой bbox через размеры.
-    // На пункте 2.6 — простое решение: линейный сверху-вниз / радиальный из центра.
-    const stops = fill.stops.flatMap((s) => [s.pos, s.color]);
+    // Konva требует стопы по возрастанию позиции.
+    const stops = [...fill.stops].sort((a, b) => a.pos - b.pos).flatMap((s) => [s.pos, s.color]);
     if (fill.type === 'linear') {
+      // Угол в градусах: 0 = сверху-вниз, по часовой.
+      const rad = ((fill.angle ?? 0) * Math.PI) / 180;
+      const dx = Math.sin(rad);
+      const dy = -Math.cos(rad);
       return {
-        fillLinearGradientStartPoint: { x: 0, y: 0 },
-        fillLinearGradientEndPoint: { x: 0, y: 1 },
+        fillLinearGradientStartPoint: { x: cx - (dx * w) / 2, y: cy - (dy * h) / 2 },
+        fillLinearGradientEndPoint: { x: cx + (dx * w) / 2, y: cy + (dy * h) / 2 },
         fillLinearGradientColorStops: stops,
         fillPriority: 'linear-gradient',
       };
     }
     return {
-      fillRadialGradientStartPoint: { x: 0.5, y: 0.5 },
-      fillRadialGradientEndPoint: { x: 0.5, y: 0.5 },
+      fillRadialGradientStartPoint: { x: cx, y: cy },
+      fillRadialGradientEndPoint: { x: cx, y: cy },
       fillRadialGradientStartRadius: 0,
-      fillRadialGradientEndRadius: 1,
+      fillRadialGradientEndRadius: Math.max(w, h) / 2,
       fillRadialGradientColorStops: stops,
       fillPriority: 'radial-gradient',
     };

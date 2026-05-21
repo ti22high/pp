@@ -15,7 +15,7 @@ interface EllipseShapeViewProps {
 // memo: см. комментарий в RectShapeView — мемоизация нужна, чтобы group-drag
 // не откатывал не-dragged ноды на каждом dragmove.
 export const EllipseShapeView = memo(function EllipseShapeViewBase({ shape, slideId }: EllipseShapeViewProps) {
-  const fillProps = resolveFill(shape.fill);
+  const fillProps = resolveFill(shape.fill, shape.w, shape.h, 0, 0);
   const strokeProps = resolveStroke(shape.stroke);
   const shadowProps = resolveShadow(shape.shadow);
   return (

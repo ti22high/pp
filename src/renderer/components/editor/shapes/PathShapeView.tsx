@@ -18,7 +18,6 @@ interface PathShapeViewProps {
 // strokeScaleEnabled=false — толщина штриха не растёт при scale.
 // memo: см. RectShapeView — мемоизация для group-drag.
 export const PathShapeView = memo(function PathShapeViewBase({ shape, slideId }: PathShapeViewProps) {
-  const fill = resolveFill(shape.fill);
   const stroke = resolveStroke(shape.stroke);
   const shadow = resolveShadow(shape.shadow);
   const natural = useMemo(() => {
@@ -31,6 +30,8 @@ export const PathShapeView = memo(function PathShapeViewBase({ shape, slideId }:
       h: Math.max(1, rect.height),
     };
   }, [shape.pathData]);
+  // Градиент в координатах pathData (локальные для Path-ноды) — центр natural.
+  const fill = resolveFill(shape.fill, natural.w, natural.h, natural.x + natural.w / 2, natural.y + natural.h / 2);
   const sx = shape.w / natural.w;
   const sy = shape.h / natural.h;
   return (

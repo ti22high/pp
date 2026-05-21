@@ -106,32 +106,67 @@ export function FillInspector({ slideId, shapeId, fill }: FillInspectorProps) {
               onCommit={(v) => write({ ...fill, angle: v })}
             />
           )}
-          <ColorField
-            label="От"
-            value={fill.stops[0]?.color}
-            onCommit={(v) =>
-              write({
-                ...fill,
-                stops: [
-                  { pos: 0, color: v },
-                  fill.stops[1] ?? { pos: 1, color: '#ffffff' },
-                ],
-              })
-            }
+          {/* Превью градиента. */}
+          <div
+            className="gradient-preview"
+            style={{
+              background: `linear-gradient(90deg, ${[...fill.stops]
+                .sort((a, b) => a.pos - b.pos)
+                .map((s) => `${s.color} ${Math.round(s.pos * 100)}%`)
+                .join(', ')})`,
+            }}
           />
-          <ColorField
-            label="До"
-            value={fill.stops[1]?.color}
-            onCommit={(v) =>
-              write({
-                ...fill,
-                stops: [
-                  fill.stops[0] ?? { pos: 0, color: '#1a73e8' },
-                  { pos: 1, color: v },
-                ],
-              })
-            }
-          />
+          {/* Список стопов: цвет + позиция % + удаление (если стопов > 2). */}
+          {fill.stops.map((stop, i) => (
+            <div key={i} className="inspector-row gradient-stop">
+              <input
+                type="color"
+                value={stop.color}
+                onChange={(e) => {
+                  const stops = fill.stops.map((s, j) => (j === i ? { ...s, color: e.target.value } : s));
+                  write({ ...fill, stops });
+                }}
+              />
+              <input
+                type="number"
+                min={0}
+                max={100}
+                value={Math.round(stop.pos * 100)}
+                className="gradient-stop__pos"
+                onChange={(e) => {
+                  const pos = Math.max(0, Math.min(100, Number(e.target.value) || 0)) / 100;
+                  const stops = fill.stops.map((s, j) => (j === i ? { ...s, pos } : s));
+                  write({ ...fill, stops });
+                }}
+              />
+              <span className="inspector-suffix">%</span>
+              <button
+                type="button"
+                className="gradient-stop__del"
+                disabled={fill.stops.length <= 2}
+                title="Удалить стоп"
+                onClick={() => write({ ...fill, stops: fill.stops.filter((_, j) => j !== i) })}
+              >
+                ×
+              </button>
+            </div>
+          ))}
+          <div className="inspector-row inspector-row--buttons">
+            <button
+              type="button"
+              className="inspector-btn"
+              onClick={() => {
+                // Новый стоп посередине между крайними.
+                const sorted = [...fill.stops].sort((a, b) => a.pos - b.pos);
+                const a = sorted[0];
+                const b = sorted[sorted.length - 1];
+                const mid = { pos: (a.pos + b.pos) / 2, color: a.color };
+                write({ ...fill, stops: [...fill.stops, mid] });
+              }}
+            >
+              + Стоп
+            </button>
+          </div>
         </>
       )}
     </section>
