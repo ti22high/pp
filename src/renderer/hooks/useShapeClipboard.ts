@@ -42,8 +42,6 @@ export function useShapeClipboard() {
         // фигуры. preventDefault ставим только если что-то вставили — иначе
         // даём шанс сработать DOM paste-событию (useImageDropPaste).
         const cb = window.api?.clipboard;
-        // Диагностика форматов буфера (для разбора Office-графиков из Excel).
-        console.info('[paste] clipboard formats:', cb?.availableFormats?.());
         if (cb) {
           const tbl = tableRowsFromHtmlText(cb.readHTML(), cb.readText());
           if (tbl && (tbl.text.length > 1 || (tbl.text[0]?.length ?? 0) > 1)) {
