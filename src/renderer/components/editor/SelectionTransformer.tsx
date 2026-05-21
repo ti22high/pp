@@ -13,6 +13,10 @@ interface SelectionTransformerProps {
   getStage: () => Konva.Stage | null;
 }
 
+// Снап угла поворота: каждые 15° (как в PowerPoint/Slides), 0..345.
+// Точный произвольный угол задаётся полем «Поворот» в инспекторе.
+const ROTATION_SNAPS = Array.from({ length: 24 }, (_, i) => i * 15);
+
 // Единый Transformer для выделенных фигур текущего слайда.
 // В onTransformEnd сбрасываем scale на Group и записываем в модель новые w/h
 // (иначе при каждом следующем resize накапливается scale и обводки «жирнеют»).
@@ -229,6 +233,8 @@ export function SelectionTransformer({ slideId, getStage }: SelectionTransformer
         useGuidesStore.getState().clear();
       }}
       rotateEnabled
+      rotationSnaps={ROTATION_SNAPS}
+      rotationSnapTolerance={7}
       boundBoxFunc={resizeBoundBox}
       enabledAnchors={enabledAnchors as unknown as string[]}
       anchorSize={9}
