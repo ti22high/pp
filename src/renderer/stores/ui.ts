@@ -31,6 +31,8 @@ interface UiState {
   penMode: boolean;
   // Режим рисования ломаной (Phase 3.17): клики добавляют вершины.
   polylineMode: boolean;
+  // Режим рисования дуги (Phase 3.17): протяжка от начала к концу.
+  arcMode: boolean;
   // id диаграммы с открытым редактором данных (Phase 3.12). null = закрыт.
   chartEditorId: ShapeId | null;
   // Распарсенные строки CSV для диалога «Вставить как таблицу» (Phase 3.11).
@@ -62,6 +64,7 @@ interface UiState {
   setChartEditor: (id: ShapeId | null) => void;
   setPenMode: (on: boolean) => void;
   setPolylineMode: (on: boolean) => void;
+  setArcMode: (on: boolean) => void;
   setCsvImportRows: (rows: string[][] | null) => void;
   setXlsxImport: (
     data: {
@@ -101,6 +104,7 @@ export const useUiStore = create<UiState>()(
     chartEditorId: null,
     penMode: false,
     polylineMode: false,
+    arcMode: false,
     csvImportRows: null,
     xlsxImport: null,
     showAltOnHover: false,
@@ -141,12 +145,26 @@ export const useUiStore = create<UiState>()(
     setPenMode: (on) =>
       set((s) => {
         s.penMode = on;
-        if (on) s.polylineMode = false;
+        if (on) {
+          s.polylineMode = false;
+          s.arcMode = false;
+        }
       }),
     setPolylineMode: (on) =>
       set((s) => {
         s.polylineMode = on;
-        if (on) s.penMode = false;
+        if (on) {
+          s.penMode = false;
+          s.arcMode = false;
+        }
+      }),
+    setArcMode: (on) =>
+      set((s) => {
+        s.arcMode = on;
+        if (on) {
+          s.penMode = false;
+          s.polylineMode = false;
+        }
       }),
     setCsvImportRows: (rows) =>
       set((s) => {

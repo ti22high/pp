@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback, type ReactElement } from 'react';
-import { Stage, Layer, Rect, Line } from 'react-konva';
+import { Stage, Layer, Rect, Line, Path } from 'react-konva';
 import { useGuidesStore } from '@renderer/stores/guides';
 import { computeSnap, unionBox, type SnapBox } from '@renderer/lib/snap';
 import { guidesByAxis, moveUserGuide, removeUserGuide } from '@renderer/lib/userGuides';
@@ -9,7 +9,7 @@ import { useUiStore } from '@renderer/stores/ui';
 import { useSelectionStore } from '@renderer/stores/selection';
 import { expandToGroups } from '@renderer/lib/group';
 import { appendShape, createFreeform } from '@renderer/lib/model/factory';
-import { pointsToSmoothPath, pointsToPolylinePath } from '@renderer/lib/freeform';
+import { pointsToSmoothPath, pointsToPolylinePath, arcPath } from '@renderer/lib/freeform';
 import type { ShapeId } from '@shared/types';
 import { Slide } from './Slide';
 import { SelectionTransformer } from './SelectionTransformer';
@@ -46,7 +46,12 @@ export function Canvas() {
   const croppingShapeId = useUiStore((s) => s.croppingShapeId);
   const penMode = useUiStore((s) => s.penMode);
   const polylineMode = useUiStore((s) => s.polylineMode);
+  const arcMode = useUiStore((s) => s.arcMode);
   const getStage = useCallback(() => stageRef.current, []);
+
+  // Дуга (Phase 3.17): протяжка от начала к концу.
+  const arcStartRef = useRef<{ x: number; y: number } | null>(null);
+  const [arcPreview, setArcPreview] = useState<string | null>(null);
 
   // Ломаная (Phase 3.17): копим вершины кликами, превью до курсора.
   const polyPointsRef = useRef<number[]>([]);
@@ -205,6 +210,18 @@ export function Canvas() {
         const sy = (pointer.y - stagePanRef.current.y) / z;
         polyPointsRef.current.push(sx, sy);
         setPolyPreview([...polyPointsRef.current, sx, sy]);
+        return;
+      }
+
+      // Режим дуги: начало протяжки.
+      if (arcMode && !spaceHeld) {
+        const pointer = stage.getPointerPosition();
+        if (!pointer) return;
+        const z = zoomRef.current;
+        arcStartRef.current = {
+          x: (pointer.x - stagePanRef.current.x) / z,
+          y: (pointer.y - stagePanRef.current.y) / z,
+        };
         return;
       }
 
@@ -376,7 +393,7 @@ export function Canvas() {
       setRubberBand({ x: startX, y: startY, w: 0, h: 0 });
       if (!shift) useSelectionStore.getState().clear();
     },
-    [spaceHeld, penMode, polylineMode],
+    [spaceHeld, penMode, polylineMode, arcMode],
   );
 
   // Enter — завершить ломаную, Esc — отменить (в режиме ломаной).
@@ -428,6 +445,15 @@ export function Canvas() {
     if (!stage) return;
     const pointer = stage.getPointerPosition();
     if (!pointer) return;
+
+    // Дуга: превью от начала к курсору.
+    if (arcStartRef.current) {
+      const z = zoomRef.current;
+      const ex = (pointer.x - stagePanRef.current.x) / z;
+      const ey = (pointer.y - stagePanRef.current.y) / z;
+      setArcPreview(arcPath(arcStartRef.current, { x: ex, y: ey }));
+      return;
+    }
 
     // Ломаная: тянем превью-сегмент от последней вершины к курсору.
     if (polyPointsRef.current.length >= 2) {
@@ -555,6 +581,31 @@ export function Canvas() {
 
   const handleStageMouseUp = useCallback(() => {
     panStartRef.current = null;
+
+    // Дуга: завершаем протяжку → создаём дуговой pathShape.
+    if (arcStartRef.current) {
+      const stage = stageRef.current;
+      const pointer = stage?.getPointerPosition();
+      const start = arcStartRef.current;
+      arcStartRef.current = null;
+      setArcPreview(null);
+      if (pointer) {
+        const z = zoomRef.current;
+        const ex = (pointer.x - stagePanRef.current.x) / z;
+        const ey = (pointer.y - stagePanRef.current.y) / z;
+        if (Math.hypot(ex - start.x, ey - start.y) >= 4) {
+          const data = arcPath(start, { x: ex, y: ey });
+          const deckNow = useDeckStore.getState().deck;
+          const activeId = useUiStore.getState().activeSlideId;
+          if (deckNow && activeId) {
+            const shape = createFreeform(data);
+            useDeckStore.getState().setDeck(appendShape(deckNow, activeId, shape));
+            useSelectionStore.getState().select([shape.id]);
+          }
+        }
+      }
+      return;
+    }
 
     // Карандаш: завершаем штрих → создаём pathShape.
     if (penDrawingRef.current) {
@@ -769,7 +820,7 @@ export function Canvas() {
     <div
       ref={setContainerRef}
       className="app-canvas"
-      style={{ cursor: penMode || polylineMode ? 'crosshair' : spaceHeld ? (panStartRef.current ? 'grabbing' : 'grab') : 'default' }}
+      style={{ cursor: penMode || polylineMode || arcMode ? 'crosshair' : spaceHeld ? (panStartRef.current ? 'grabbing' : 'grab') : 'default' }}
     >
       <Stage
         ref={stageRef}
@@ -833,6 +884,15 @@ export function Canvas() {
               strokeScaleEnabled={false}
               lineCap="round"
               lineJoin="round"
+              listening={false}
+            />
+          )}
+          {arcPreview && (
+            <Path
+              data={arcPreview}
+              stroke="#1a73e8"
+              strokeWidth={2}
+              strokeScaleEnabled={false}
               listening={false}
             />
           )}

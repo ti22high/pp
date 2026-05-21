@@ -26,6 +26,19 @@ export function pointsToSmoothPath(pts: Pt[]): string {
   return d;
 }
 
+// Дуга между двумя точками (Phase 3.17): квадратичная кривая с прогибом
+// перпендикулярно отрезку (bulge — доля длины).
+export function arcPath(a: Pt, b: Pt, bulge = 0.35): string {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const len = Math.hypot(dx, dy) || 1;
+  const mx = (a.x + b.x) / 2;
+  const my = (a.y + b.y) / 2;
+  const cx = mx + (-dy / len) * len * bulge;
+  const cy = my + (dx / len) * len * bulge;
+  return `M ${r(a.x)} ${r(a.y)} Q ${r(cx)} ${r(cy)} ${r(b.x)} ${r(b.y)}`;
+}
+
 // Ломаная: прямые сегменты через все точки (Phase 3.17).
 export function pointsToPolylinePath(pts: Pt[]): string {
   if (pts.length === 0) return '';

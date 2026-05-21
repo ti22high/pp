@@ -14,3 +14,12 @@ describe('pointsToSmoothPath', () => {
     expect(pointsToSmoothPath([])).toBe('');
   });
 });
+
+import { arcPath } from '../../src/renderer/lib/freeform';
+describe('arcPath', () => {
+  it('builds a quadratic arc between two points', () => {
+    const d = arcPath({ x: 0, y: 0 }, { x: 100, y: 0 }, 0.5);
+    expect(d.startsWith('M 0 0 Q')).toBe(true);
+    expect(d.endsWith('100 0')).toBe(true);
+  });
+});
