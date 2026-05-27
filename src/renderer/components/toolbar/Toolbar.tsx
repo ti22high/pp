@@ -10,7 +10,6 @@ import {
   createPath,
   createPreset,
   createText,
-  createEquation,
   createTable,
   createChart,
   createConnector,
@@ -18,6 +17,7 @@ import {
 import type { Shape } from '@renderer/lib/model/schema';
 import type { PresetShape } from '@renderer/lib/presetShapes';
 import { openImageFileDialog } from '@renderer/lib/insertImage';
+import { insertEquation } from '@renderer/lib/equation';
 import { TablePicker } from './TablePicker';
 import { ShapeLibrary } from './ShapeLibrary';
 
@@ -39,7 +39,6 @@ export function Toolbar() {
   const setPolylineMode = useUiStore((s) => s.setPolylineMode);
   const arcMode = useUiStore((s) => s.arcMode);
   const setArcMode = useUiStore((s) => s.setArcMode);
-  const setEquationShape = useUiStore((s) => s.setEquationShape);
   const [tablePickerOpen, setTablePickerOpen] = useState(false);
   const [shapeLibraryOpen, setShapeLibraryOpen] = useState(false);
 
@@ -138,15 +137,7 @@ export function Toolbar() {
           insert(createText(c.x, c.y, 480, 80, 'Введите текст'));
         }}
       />
-      <ToolbarButton
-        label="Формула"
-        onClick={() => {
-          const c = center(160, 56);
-          const eq = createEquation(c.x, c.y, 160, 56, '');
-          insert(eq);
-          setEquationShape(eq.id);
-        }}
-      />
+      <ToolbarButton label="Формула" onClick={insertEquation} />
       <span className="toolbar-sep" />
       <ToolbarButton label="Изображение" onClick={openImageFileDialog} />
       <span className="toolbar-table">

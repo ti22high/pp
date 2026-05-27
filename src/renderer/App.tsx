@@ -30,6 +30,7 @@ import { useUndoRedo } from './hooks/useUndoRedo';
 import { useArrowNudge } from './hooks/useArrowNudge';
 import { useImageDropPaste } from './hooks/useImageDropPaste';
 import { openImageFileDialog } from './lib/insertImage';
+import { insertEquation } from './lib/equation';
 
 // Главный UI редактора. Структура: header / toolbar / (filmstrip + canvas + inspector).
 // При первом маунте создаём пустой deck — остальные компоненты подписываются на него.
@@ -68,6 +69,7 @@ export function App() {
       else if (cmd === 'insert:special-chars') setSpecialCharsOpen(true);
       else if (cmd === 'help:shortcuts') setShortcutsOpen(true);
       else if (cmd === 'insert:image') openImageFileDialog();
+      else if (cmd === 'insert:equation') insertEquation();
     });
   }, []);
 
