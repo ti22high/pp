@@ -5,12 +5,46 @@ import { useActiveEditorStore } from '@renderer/stores/activeEditor';
 import { FONT_FAMILIES } from '@renderer/lib/fonts';
 import { setTextLineHeight } from '@renderer/lib/slides';
 
-const ALIGNS = [
-  { key: 'left', label: '⬅' },
-  { key: 'center', label: '⬌' },
-  { key: 'right', label: '➡' },
-  { key: 'justify', label: '☰' },
-] as const;
+type AlignKey = 'left' | 'center' | 'right' | 'justify';
+const ALIGNS: AlignKey[] = ['left', 'center', 'right', 'justify'];
+const ALIGN_TITLES: Record<AlignKey, string> = {
+  left: 'По левому краю',
+  center: 'По центру',
+  right: 'По правому краю',
+  justify: 'По ширине',
+};
+
+// Иконка выравнивания «как в Word»: 4 горизонтальные линии, расставленные
+// по краю/центру/ширине. currentColor — наследует цвет кнопки.
+function AlignIcon({ kind }: { kind: AlignKey }) {
+  // Для каждой из 4 строк — пара [x1, x2] в коробке 16. left/right —
+  // чередование длинной/короткой линии; center — короткие по центру;
+  // justify — все во всю ширину.
+  const rows: Array<[number, number]> =
+    kind === 'left'
+      ? [[1, 15], [1, 10], [1, 15], [1, 10]]
+      : kind === 'right'
+        ? [[1, 15], [6, 15], [1, 15], [6, 15]]
+        : kind === 'center'
+          ? [[1, 15], [4, 12], [1, 15], [4, 12]]
+          : [[1, 15], [1, 15], [1, 15], [1, 15]];
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden focusable="false">
+      {rows.map(([x1, x2], i) => (
+        <line
+          key={i}
+          x1={x1}
+          x2={x2}
+          y1={3 + i * 3.3}
+          y2={3 + i * 3.3}
+          stroke="currentColor"
+          strokeWidth={1.4}
+          strokeLinecap="round"
+        />
+      ))}
+    </svg>
+  );
+}
 
 const LINE_HEIGHTS = [1, 1.15, 1.5, 2];
 
@@ -88,6 +122,7 @@ export function TextFormatToolbar() {
         type="button"
         className={`toolbar-btn${editor.isActive('bold') ? ' toolbar-btn--active' : ''}`}
         title="Жирный"
+        style={{ fontWeight: 700 }}
         onMouseDown={(e) => e.preventDefault()}
         onClick={() => editor.chain().focus().toggleBold().run()}
       >
@@ -97,6 +132,7 @@ export function TextFormatToolbar() {
         type="button"
         className={`toolbar-btn${editor.isActive('italic') ? ' toolbar-btn--active' : ''}`}
         title="Курсив"
+        style={{ fontStyle: 'italic' }}
         onMouseDown={(e) => e.preventDefault()}
         onClick={() => editor.chain().focus().toggleItalic().run()}
       >
@@ -106,6 +142,7 @@ export function TextFormatToolbar() {
         type="button"
         className={`toolbar-btn${editor.isActive('underline') ? ' toolbar-btn--active' : ''}`}
         title="Подчёркнутый"
+        style={{ textDecoration: 'underline' }}
         onMouseDown={(e) => e.preventDefault()}
         onClick={() => editor.chain().focus().toggleUnderline().run()}
       >
@@ -122,14 +159,14 @@ export function TextFormatToolbar() {
       <span className="toolbar-sep" />
       {ALIGNS.map((a) => (
         <button
-          key={a.key}
+          key={a}
           type="button"
-          className={`toolbar-btn${curAlign === a.key ? ' toolbar-btn--active' : ''}`}
-          title={`Выравнивание: ${a.key}`}
+          className={`toolbar-btn toolbar-btn--icon${curAlign === a ? ' toolbar-btn--active' : ''}`}
+          title={ALIGN_TITLES[a]}
           onMouseDown={(e) => e.preventDefault()}
-          onClick={() => editor.chain().focus().setTextAlign(a.key).run()}
+          onClick={() => editor.chain().focus().setTextAlign(a).run()}
         >
-          {a.label}
+          <AlignIcon kind={a} />
         </button>
       ))}
       <span className="toolbar-sep" />
