@@ -33,16 +33,68 @@ body,
 .app-shell {
   display: grid;
   grid-template-columns: 220px 1fr 280px;
-  grid-template-rows: 48px 40px 1fr;
+  grid-template-rows: 48px 40px 1fr 30px;
   grid-template-areas:
     'header header header'
     'toolbar toolbar toolbar'
-    'filmstrip canvas inspector';
+    'filmstrip canvas inspector'
+    'filmstrip notes inspector';
   height: 100vh;
+}
+/* Развёрнутая панель заметок (Phase 3.23): нижняя строка выше. */
+.app-shell--notes-open {
+  grid-template-rows: 48px 40px 1fr 170px;
 }
 /* Свёрнутая правая панель: колонка инспектора схлопывается в узкую полосу. */
 .app-shell--inspector-collapsed {
   grid-template-columns: 220px 1fr 28px;
+}
+
+/* Панель заметок докладчика (Phase 3.23). */
+.app-notes {
+  grid-area: notes;
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+.app-notes--collapsed {
+  flex-direction: row;
+  align-items: center;
+  padding: 0 8px;
+}
+.notes-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px;
+}
+.notes-panel__toggle {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 12px;
+  padding: 2px 4px;
+}
+.notes-panel__toggle:hover {
+  color: var(--text);
+}
+.notes-panel__body {
+  flex: 1;
+  overflow: auto;
+  padding: 0 12px 8px;
+}
+.notes-panel__pm {
+  outline: none;
+  min-height: 100%;
+  font: 14px/1.5 system-ui, sans-serif;
+  color: var(--text);
+}
+.notes-panel__pm p {
+  margin: 0 0 6px;
 }
 
 .app-toolbar {

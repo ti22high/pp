@@ -4,6 +4,7 @@ import { useDeckStore } from './stores/deck';
 import { useUiStore } from './stores/ui';
 import { createEmptyDeck } from './lib/model/factory';
 import { Canvas } from './components/editor/Canvas';
+import { NotesPanel } from './components/editor/NotesPanel';
 import { Toolbar } from './components/toolbar/Toolbar';
 import { Inspector } from './components/inspector/Inspector';
 import { Filmstrip } from './components/filmstrip/Filmstrip';
@@ -44,6 +45,7 @@ export function App() {
   const setDeck = useDeckStore((s) => s.setDeck);
   const setActiveSlide = useUiStore((s) => s.setActiveSlide);
   const showInspector = useUiStore((s) => s.showInspector);
+  const showNotes = useUiStore((s) => s.showNotes);
 
   useMenuCommands();
   useShapeClipboard();
@@ -83,7 +85,11 @@ export function App() {
   }, [deck, setDeck, setActiveSlide]);
 
   return (
-    <div className={`app-shell${showInspector ? '' : ' app-shell--inspector-collapsed'}`}>
+    <div
+      className={`app-shell${showInspector ? '' : ' app-shell--inspector-collapsed'}${
+        showNotes ? ' app-shell--notes-open' : ''
+      }`}
+    >
       <header className="app-header">
         <h1>SlidesClone</h1>
         {versions && (
@@ -100,6 +106,8 @@ export function App() {
       <Filmstrip />
 
       <Canvas />
+
+      <NotesPanel />
 
       <Inspector />
 

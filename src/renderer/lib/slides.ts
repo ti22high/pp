@@ -350,6 +350,18 @@ export function setTextLineHeight(slideId: string, shapeId: string, lineHeight: 
   });
 }
 
+// Заметки докладчика слайда (Phase 3.23). Хранятся строкой — сериализованный
+// TipTap JSON (SPEC §5.2). Пустая строка = нет заметок.
+export function setSlideNotes(slideId: string, notes: string): void {
+  useDeckStore.setState((state) => {
+    if (!state.deck) return;
+    const slide = state.deck.slides[slideId];
+    if (!slide) return;
+    slide.notes = notes;
+    state.deck.modifiedAt = new Date().toISOString();
+  });
+}
+
 // Обновляет настройки номеров слайдов (§1.13). Прозрачно создаёт объект,
 // если его ещё не было в деке.
 export function setPageNumbers(enabled: boolean, skipFirst: boolean): void {

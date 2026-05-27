@@ -14,6 +14,8 @@ interface UiState {
   snapToGrid: boolean;
   showFilmstrip: boolean;
   showInspector: boolean;
+  // Панель заметок докладчика снизу (Phase 3.23). false = свёрнута в полоску.
+  showNotes: boolean;
   // id текстовой фигуры, открытой в TipTap-оверлее (null = режим просмотра).
   editingShapeId: ShapeId | null;
   // id изображения в режиме обрезки (crop). null = не обрезаем.
@@ -86,6 +88,7 @@ interface UiState {
   toggleSnapToGrid: () => void;
   toggleFilmstrip: () => void;
   toggleInspector: () => void;
+  toggleNotes: () => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -98,6 +101,7 @@ export const useUiStore = create<UiState>()(
     snapToGrid: false,
     showFilmstrip: true,
     showInspector: true,
+    showNotes: false,
     editingShapeId: null,
     croppingShapeId: null,
     altTextShapeId: null,
@@ -222,6 +226,10 @@ export const useUiStore = create<UiState>()(
     toggleInspector: () =>
       set((s) => {
         s.showInspector = !s.showInspector;
+      }),
+    toggleNotes: () =>
+      set((s) => {
+        s.showNotes = !s.showNotes;
       }),
   })),
 );
