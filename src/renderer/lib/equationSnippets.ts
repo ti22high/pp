@@ -1,12 +1,10 @@
-// Палитра шаблонов формул (Phase 3.24a): кнопки вставляют LaTeX-сниппеты в
-// поле редактора. Сниппет может содержать маркер каретки SNIPPET_CARET —
-// после вставки курсор встаёт на его место (плейсхолдер), иначе — в конец.
-
-export const SNIPPET_CARET = '‸';
+// Палитра шаблонов формул (Phase 3.24a). Кнопки вставляют сниппеты в визуальный
+// редактор MathLive через mf.insert(). Токен `#?` = редактируемый плейсхолдер
+// (слот, по которому можно перейти Tab-ом) — поведение «как в Word».
 
 export interface SnippetItem {
   label: string;
-  snippet: string;
+  insert: string;
 }
 export interface SnippetGroup {
   title: string;
@@ -17,67 +15,52 @@ export const SNIPPET_GROUPS: SnippetGroup[] = [
   {
     title: 'Структуры',
     items: [
-      { label: 'a/b', snippet: `\\frac{${SNIPPET_CARET}}{}` },
-      { label: '√', snippet: `\\sqrt{${SNIPPET_CARET}}` },
-      { label: 'ⁿ√', snippet: `\\sqrt[${SNIPPET_CARET}]{}` },
-      { label: 'xⁿ', snippet: `^{${SNIPPET_CARET}}` },
-      { label: 'xₙ', snippet: `_{${SNIPPET_CARET}}` },
-      { label: 'Σ', snippet: `\\sum_{${SNIPPET_CARET}}^{}` },
-      { label: '∏', snippet: `\\prod_{${SNIPPET_CARET}}^{}` },
-      { label: '∫', snippet: `\\int_{${SNIPPET_CARET}}^{}` },
-      { label: 'lim', snippet: `\\lim_{${SNIPPET_CARET}}` },
-      { label: '( )', snippet: `\\left(${SNIPPET_CARET}\\right)` },
-      { label: '[ ]', snippet: `\\begin{pmatrix} ${SNIPPET_CARET} & \\\\ & \\end{pmatrix}` },
-      { label: 'a⃗', snippet: `\\vec{${SNIPPET_CARET}}` },
+      { label: 'a/b', insert: '\\frac{#?}{#?}' },
+      { label: '√', insert: '\\sqrt{#?}' },
+      { label: 'ⁿ√', insert: '\\sqrt[#?]{#?}' },
+      { label: 'xⁿ', insert: '^{#?}' },
+      { label: 'xₙ', insert: '_{#?}' },
+      { label: 'Σ', insert: '\\sum_{#?}^{#?}' },
+      { label: '∏', insert: '\\prod_{#?}^{#?}' },
+      { label: '∫', insert: '\\int_{#?}^{#?}' },
+      { label: 'lim', insert: '\\lim_{#?}' },
+      { label: '( )', insert: '\\left(#?\\right)' },
+      { label: '[ ]', insert: '\\begin{pmatrix}#? & #? \\\\ #? & #?\\end{pmatrix}' },
+      { label: 'a⃗', insert: '\\vec{#?}' },
     ],
   },
   {
     title: 'Греческие',
     items: [
-      { label: 'α', snippet: '\\alpha' },
-      { label: 'β', snippet: '\\beta' },
-      { label: 'γ', snippet: '\\gamma' },
-      { label: 'δ', snippet: '\\delta' },
-      { label: 'θ', snippet: '\\theta' },
-      { label: 'λ', snippet: '\\lambda' },
-      { label: 'μ', snippet: '\\mu' },
-      { label: 'π', snippet: '\\pi' },
-      { label: 'ρ', snippet: '\\rho' },
-      { label: 'σ', snippet: '\\sigma' },
-      { label: 'φ', snippet: '\\phi' },
-      { label: 'ω', snippet: '\\omega' },
-      { label: 'Δ', snippet: '\\Delta' },
-      { label: 'Σ', snippet: '\\Sigma' },
-      { label: 'Ω', snippet: '\\Omega' },
+      { label: 'α', insert: '\\alpha' },
+      { label: 'β', insert: '\\beta' },
+      { label: 'γ', insert: '\\gamma' },
+      { label: 'δ', insert: '\\delta' },
+      { label: 'θ', insert: '\\theta' },
+      { label: 'λ', insert: '\\lambda' },
+      { label: 'μ', insert: '\\mu' },
+      { label: 'π', insert: '\\pi' },
+      { label: 'ρ', insert: '\\rho' },
+      { label: 'σ', insert: '\\sigma' },
+      { label: 'φ', insert: '\\phi' },
+      { label: 'ω', insert: '\\omega' },
+      { label: 'Δ', insert: '\\Delta' },
+      { label: 'Σ', insert: '\\Sigma' },
+      { label: 'Ω', insert: '\\Omega' },
     ],
   },
   {
     title: 'Операторы',
     items: [
-      { label: '×', snippet: '\\times ' },
-      { label: '·', snippet: '\\cdot ' },
-      { label: '±', snippet: '\\pm ' },
-      { label: '≤', snippet: '\\leq ' },
-      { label: '≥', snippet: '\\geq ' },
-      { label: '≠', snippet: '\\neq ' },
-      { label: '≈', snippet: '\\approx ' },
-      { label: '→', snippet: '\\rightarrow ' },
-      { label: '∞', snippet: '\\infty ' },
+      { label: '×', insert: '\\times' },
+      { label: '·', insert: '\\cdot' },
+      { label: '±', insert: '\\pm' },
+      { label: '≤', insert: '\\le' },
+      { label: '≥', insert: '\\ge' },
+      { label: '≠', insert: '\\ne' },
+      { label: '≈', insert: '\\approx' },
+      { label: '→', insert: '\\rightarrow' },
+      { label: '∞', insert: '\\infty' },
     ],
   },
 ];
-
-// Вставляет snippet в value, заменяя выделение [start,end). Возвращает новый
-// текст и позицию каретки (по маркеру SNIPPET_CARET либо в конце вставки).
-export function applySnippet(
-  value: string,
-  start: number,
-  end: number,
-  snippet: string,
-): { value: string; caret: number } {
-  const markerIdx = snippet.indexOf(SNIPPET_CARET);
-  const clean = snippet.replace(SNIPPET_CARET, '');
-  const next = value.slice(0, start) + clean + value.slice(end);
-  const caret = markerIdx >= 0 ? start + markerIdx : start + clean.length;
-  return { value: next, caret };
-}

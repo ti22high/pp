@@ -711,6 +711,7 @@ slides-clone/
     "fast-xml-parser": "5.8.0",
     "jszip": "3.10.1",
     "katex": "0.16.46",
+    "mathlive": "0.109.2",
     "nspell": "2.1.5",
     "dictionary-en-us": "3.0.0",
     "dictionary-ru": "3.0.0",
