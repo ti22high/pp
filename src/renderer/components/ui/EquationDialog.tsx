@@ -6,6 +6,7 @@ import { measureEquation } from '@renderer/lib/equation';
 import { SNIPPET_GROUPS } from '@renderer/lib/equationSnippets';
 import { setEquationLatex } from '@renderer/lib/slides';
 import { MathField } from './MathField';
+import { InkPad } from './InkPad';
 
 // Редактор формулы (Phase 3.24/3.24a): визуальный ввод «как в Word» через
 // MathLive (math-field) + палитра кнопок-шаблонов. На выходе LaTeX, рендер на
@@ -16,6 +17,7 @@ export function EquationDialog() {
   const slideId = useUiStore((s) => s.activeSlideId);
   const [mathfield, setMathfield] = useState<MathfieldElement | null>(null);
   const [showLatex, setShowLatex] = useState(false);
+  const [showInk, setShowInk] = useState(false);
 
   const latex = useDeckStore((s) => {
     if (!slideId || !shapeId) return null;
@@ -75,13 +77,23 @@ export function EquationDialog() {
           {/* Визуальное поле формулы (WYSIWYG). */}
           <MathField value={latex} onChange={setLatex} onReady={setMathfield} />
 
-          <button
-            type="button"
-            className="equation-latex-toggle"
-            onClick={() => setShowLatex((v) => !v)}
-          >
-            {showLatex ? '▾ Скрыть LaTeX' : '▸ Показать LaTeX'}
-          </button>
+          <div className="equation-toggles">
+            <button
+              type="button"
+              className="equation-latex-toggle"
+              onClick={() => setShowInk((v) => !v)}
+            >
+              {showInk ? '▾ Скрыть рисование' : '✏ Рисовать символ'}
+            </button>
+            <button
+              type="button"
+              className="equation-latex-toggle"
+              onClick={() => setShowLatex((v) => !v)}
+            >
+              {showLatex ? '▾ Скрыть LaTeX' : '▸ Показать LaTeX'}
+            </button>
+          </div>
+          {showInk && <InkPad onPick={(l) => mathfield?.insert(l, { focus: true })} />}
           {showLatex && (
             <textarea
               className="alt-text__area"

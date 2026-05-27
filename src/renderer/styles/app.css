@@ -986,6 +986,52 @@ body,
 .equation-latex-toggle:hover {
   color: var(--text);
 }
+.equation-toggles {
+  display: flex;
+  gap: 14px;
+  margin-top: 4px;
+}
+/* Холст рукописного ввода формул (Phase 3.24b). */
+.inkpad {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-top: 6px;
+}
+.inkpad__canvas {
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  background: #fff;
+  cursor: crosshair;
+  touch-action: none; /* перо/палец не скроллят, а рисуют */
+  flex: 0 0 auto;
+}
+.inkpad__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 6px;
+  flex: 1;
+}
+.inkpad__hint {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.inkpad__clear {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--text-muted);
+  font-size: 12px;
+  padding: 4px 8px;
+  cursor: pointer;
+  margin-left: auto;
+  align-self: flex-start;
+}
+.inkpad__clear:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
 
 /* Инлайн-редактор WordArt (Phase 3.21): textarea поверх Konva-фигуры. */
 .wordart-overlay {
