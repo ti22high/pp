@@ -15,8 +15,8 @@ export type InkStroke = InkPoint[];
 export interface InkTemplate {
   latex: string;
   label: string;
-  // Точки эталона одним списком (порядок обхода; для многоштриховых — конкатенация).
-  points: InkPoint[];
+  // Эталон в виде штрихов (поддержка многоштриховых символов: =, +, ×, …).
+  strokes: InkStroke[];
 }
 
 export interface InkMatch {
@@ -76,13 +76,27 @@ function centroid(points: InkPoint[]): InkPoint {
   return { x: x / points.length, y: y / points.length };
 }
 
-// Нормализация: передискретизация → равномерный масштаб → центр в начало координат.
-function normalizePoints(points: InkPoint[]): InkPoint[] {
-  const sampled = resample(points, NUM_POINTS);
-  const xs = sampled.map((p) => p.x);
-  const ys = sampled.map((p) => p.y);
+// Нормализация многоштрихового символа: каждый штрих ресэмплится отдельно
+// (без «прыжков» между штрихами) пропорционально своей длине → ровно NUM_POINTS
+// точек → равномерный масштаб → центр в начало координат.
+function normalize(strokes: InkStroke[]): InkPoint[] {
+  const clean = strokes.filter((s) => s.length >= 2 && pathLength(s) > 0);
+  if (clean.length === 0) return [];
+  const lens = clean.map(pathLength);
+  const total = lens.reduce((a, b) => a + b, 0);
+  let pts: InkPoint[] = [];
+  clean.forEach((s, i) => {
+    const ni = Math.max(2, Math.round(NUM_POINTS * (lens[i] / total)));
+    pts = pts.concat(resample(s, ni));
+  });
+  // Гарантируем ровно NUM_POINTS точек (для $P оба облака одной длины).
+  while (pts.length < NUM_POINTS) pts.push(pts[pts.length - 1]);
+  pts = pts.slice(0, NUM_POINTS);
+
+  const xs = pts.map((p) => p.x);
+  const ys = pts.map((p) => p.y);
   const size = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) || 1;
-  const scaled = sampled.map((p) => ({ x: p.x / size, y: p.y / size }));
+  const scaled = pts.map((p) => ({ x: p.x / size, y: p.y / size }));
   const c = centroid(scaled);
   return scaled.map((p) => ({ x: p.x - c.x, y: p.y - c.y }));
 }
@@ -129,13 +143,12 @@ export function recognize(
   templates: InkTemplate[],
   topN = 4,
 ): InkMatch[] {
-  const points = strokes.flat();
-  if (points.length < 2 || pathLength(points) === 0) return [];
-  const candidate = normalizePoints(points);
+  const candidate = normalize(strokes);
+  if (candidate.length === 0) return [];
   const matches: InkMatch[] = templates.map((t) => ({
     latex: t.latex,
     label: t.label,
-    score: greedyCloudMatch(candidate, normalizePoints(t.points)),
+    score: greedyCloudMatch(candidate, normalize(t.strokes)),
   }));
   matches.sort((a, b) => a.score - b.score);
   return matches.slice(0, topN);

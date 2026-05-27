@@ -22,9 +22,10 @@ function circle(cx: number, cy: number, r: number, k = 24): InkPoint[] {
 }
 
 const templates: InkTemplate[] = [
-  { latex: '-', label: 'минус', points: line(0, 0, 10, 0) },
-  { latex: '|', label: 'палочка', points: line(0, 0, 0, 10) },
-  { latex: 'O', label: 'круг', points: circle(5, 5, 5) },
+  { latex: '-', label: 'минус', strokes: [line(0, 0, 10, 0)] },
+  { latex: '|', label: 'палочка', strokes: [line(0, 0, 0, 10)] },
+  { latex: 'O', label: 'круг', strokes: [circle(5, 5, 5)] },
+  { latex: '=', label: 'равно', strokes: [line(0, 0, 10, 0), line(0, 4, 10, 4)] },
 ];
 
 describe('recognize ($P)', () => {
@@ -41,6 +42,11 @@ describe('recognize ($P)', () => {
   it('замкнутый штрих → круг', () => {
     const m = recognize([circle(3, 3, 4)], templates);
     expect(m[0].latex).toBe('O');
+  });
+
+  it('два горизонтальных штриха → равно (многоштриховой)', () => {
+    const m = recognize([line(0.2, 0.1, 9.8, -0.1), line(0, 3.1, 10, 2.9)], templates);
+    expect(m[0].latex).toBe('=');
   });
 
   it('возвращает ранжированный список (по возрастанию score)', () => {
