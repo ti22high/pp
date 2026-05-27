@@ -3,6 +3,7 @@ import { useDeckStore } from '@renderer/stores/deck';
 import { useUiStore } from '@renderer/stores/ui';
 import { useSelectionStore } from '@renderer/stores/selection';
 import { setShapeHyperlink } from '@renderer/lib/slides';
+import { listBookmarks } from '@renderer/lib/bookmarks';
 import type { Hyperlink } from '@renderer/lib/model/schema';
 
 interface HyperlinkDialogProps {
@@ -24,11 +25,15 @@ type SlideTarget = string | 'next' | 'prev' | 'first' | 'last';
 export function HyperlinkDialog({ open, onClose }: HyperlinkDialogProps) {
   const slideOrder = useDeckStore((s) => s.deck?.slideOrder ?? []);
   const slidesById = useDeckStore((s) => s.deck?.slides ?? {});
+  const deck = useDeckStore((s) => s.deck);
   const activeSlideId = useUiStore((s) => s.activeSlideId);
   const selectedIds = useSelectionStore((s) => s.selectedShapeIds);
 
   const [mode, setMode] = useState<Mode>('slide');
   const [slideTarget, setSlideTarget] = useState<SlideTarget>('next');
+  const [bookmarkId, setBookmarkId] = useState<string>('');
+
+  const bookmarks = useMemo(() => listBookmarks(deck), [deck]);
 
   // Если выделена одна фигура — инициализируем форму её текущей ссылкой.
   // Если несколько — берём ссылку первой как преcет.
@@ -55,6 +60,7 @@ export function HyperlinkDialog({ open, onClose }: HyperlinkDialogProps) {
       setSlideTarget(primaryHyperlink.rel);
     } else if (primaryHyperlink.kind === 'bookmark') {
       setMode('bookmark');
+      setBookmarkId(primaryHyperlink.bookmarkId);
     } else {
       // url / email — пока в UI не редактируем (отсутствует сетевой scope).
       setMode('slide');
@@ -81,8 +87,9 @@ export function HyperlinkDialog({ open, onClose }: HyperlinkDialogProps) {
       }
       return { kind: 'slide', slideId: slideTarget };
     }
-    // bookmark: до 3.22 источников нет — кнопка «Применить» disabled,
-    // сюда мы не должны попасть.
+    if (mode === 'bookmark' && bookmarkId) {
+      return { kind: 'bookmark', bookmarkId };
+    }
     return null;
   };
 
@@ -114,7 +121,8 @@ export function HyperlinkDialog({ open, onClose }: HyperlinkDialogProps) {
   };
 
   const hasSelection = activeSlideId !== null && selectedIds.length > 0;
-  const canApply = hasSelection && mode === 'slide';
+  const canApply =
+    hasSelection && (mode === 'slide' || (mode === 'bookmark' && bookmarkId !== ''));
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -165,7 +173,7 @@ export function HyperlinkDialog({ open, onClose }: HyperlinkDialogProps) {
                 checked={mode === 'bookmark'}
                 onChange={() => setMode('bookmark')}
               />
-              <span>На закладку (с Phase 3)</span>
+              <span>На закладку</span>
             </label>
           </div>
 
@@ -192,12 +200,29 @@ export function HyperlinkDialog({ open, onClose }: HyperlinkDialogProps) {
             </label>
           )}
 
-          {mode === 'bookmark' && (
-            <p className="slide-size__error">
-              Закладки появятся в Phase 3 (пункт 3.22). Пока сюда ссылаться
-              не на что.
-            </p>
-          )}
+          {mode === 'bookmark' &&
+            (bookmarks.length === 0 ? (
+              <p className="slide-size__error">
+                Закладок пока нет. Задайте имя закладки в панели свойств фигуры
+                (секция «Закладка»), затем сошлитесь на неё здесь.
+              </p>
+            ) : (
+              <label className="slide-size__field">
+                <span>Закладка</span>
+                <select
+                  value={bookmarkId}
+                  onChange={(e) => setBookmarkId(e.target.value)}
+                  disabled={!hasSelection}
+                >
+                  <option value="">— выберите закладку —</option>
+                  {bookmarks.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name} (Слайд {b.slideIndex + 1})
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ))}
         </div>
 
         <footer className="slide-size__footer">

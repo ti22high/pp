@@ -129,6 +129,9 @@ const baseShape = {
   reflection: reflectionSchema.optional(),
   hyperlink: hyperlinkSchema.optional(),
   altText: z.string().optional(),
+  // Имя закладки-якоря (Phase 3.22). Если задано — фигура является целью для
+  // гиперссылок kind:'bookmark' (bookmarkId = id этой фигуры).
+  bookmark: z.string().optional(),
   animations: z.array(animationSchema).optional(),
   locked: z.boolean().optional(),
   // Идентификатор группы. Фигуры с одним groupId трактуются как единое

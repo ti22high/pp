@@ -260,6 +260,21 @@ export function setShapeAltText(slideId: string, shapeId: string, text: string):
   });
 }
 
+// Задаёт/снимает имя закладки-якоря на фигуре (Phase 3.22). Пустое имя
+// убирает закладку. Цель для гиперссылок kind:'bookmark' (bookmarkId = id).
+export function setShapeBookmark(slideId: string, shapeId: string, name: string): void {
+  useDeckStore.setState((state) => {
+    if (!state.deck) return;
+    const slide = state.deck.slides[slideId];
+    if (!slide) return;
+    const sh = slide.shapes.find((x) => x.id === shapeId);
+    if (!sh) return;
+    const trimmed = name.trim();
+    sh.bookmark = trimmed === '' ? undefined : trimmed;
+    state.deck.modifiedAt = new Date().toISOString();
+  });
+}
+
 // Ставит / убирает гиперссылку на указанной фигуре. `hl=undefined` снимает
 // ссылку. Используется HyperlinkDialog.
 export function setShapeHyperlink(

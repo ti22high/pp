@@ -11,6 +11,7 @@ import { ReflectionInspector } from './ReflectionInspector';
 import { OpacityInspector } from './OpacityInspector';
 import { ImageInspector } from './ImageInspector';
 import { AltTextInspector } from './AltTextInspector';
+import { BookmarkInspector } from './BookmarkInspector';
 
 // Корень правой панели свойств.
 // 0 фигур → плейсхолдер; 1 → набор секций; 2+ → счётчик (multi-edit — Phase 2.15).
@@ -113,6 +114,7 @@ function SingleShapeInspector({ slideId, shapeId }: { slideId: SlideId; shapeId:
       />
       <OpacityInspector slideId={slideId} shapeId={shapeId} opacity={shapeFacets.opacity} />
       <AltTextInspector slideId={slideId} shapeId={shapeId} />
+      <BookmarkInspector slideId={slideId} shapeId={shapeId} />
     </>
   );
 }
