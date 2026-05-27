@@ -110,23 +110,22 @@ export function TextOverlay({ slideId, shape, panX, panY, zoom }: TextOverlayPro
   if (!editor) return null;
 
   // Координаты в системе .app-canvas (родительский контейнер с position:relative).
-  // Stage сдвинут на (panX,panY) и отмасштабирован zoom, поэтому экранная
-  // позиция фигуры = pan + shape.xy * zoom; экранный размер = shape.wh * zoom.
-  // Rotation для текста в Phase 2.10 не учитываем — full-text editing с rotation
-  // редко используется в Slides, добавим позже при необходимости.
+  // Stage сдвинут на (panX,panY) и отмасштабирован zoom. Оверлей задаём в
+  // КООРДИНАТАХ СЛАЙДА (ширина shape.w, базовый шрифт 20px), а весь блок
+  // масштабируем одним transform: scale(zoom). Иначе абсолютные размеры из
+  // марок TipTap (напр. font-size:40px) не масштабировались бы под zoom и текст
+  // при правке был бы крупнее, чем рендер Konva (slide-px * zoom).
+  const transforms = [`scale(${zoom})`];
+  if (shape.rotation) transforms.push(`rotate(${shape.rotation}deg)`);
   const style: CSSProperties = {
     position: 'absolute',
     left: panX + shape.x * zoom,
     top: panY + shape.y * zoom,
-    width: shape.w * zoom,
-    height: shape.h * zoom,
-    transform: shape.rotation ? `rotate(${shape.rotation}deg)` : undefined,
+    width: shape.w,
+    height: shape.h,
+    transform: transforms.join(' '),
     transformOrigin: 'top left',
-    // Шрифт и padding масштабируем под zoom, чтобы оверлей при редактировании
-    // выглядел один-в-один как Konva.Text после blur-а. Без этого редактирование
-    // показывает 20px, а после blur Konva рендерит 20px * zoom — визуально
-    // «прыгает». Базовый размер 20 px согласован с TextShapeView.
-    fontSize: `${20 * zoom}px`,
+    fontSize: '20px',
     // Межстрочный интервал блока (для TextShape) — WYSIWYG с Konva-рендером.
     lineHeight: shape.type === 'text' ? (shape.lineHeight ?? 1.2) : undefined,
   };
