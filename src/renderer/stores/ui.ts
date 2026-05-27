@@ -16,6 +16,9 @@ interface UiState {
   showInspector: boolean;
   // Панель заметок докладчика снизу (Phase 3.23). false = свёрнута в полоску.
   showNotes: boolean;
+  // Поповеры вставки на тулбаре (Phase 3.24): открываются и кнопкой, и меню.
+  shapeLibraryOpen: boolean;
+  tablePickerOpen: boolean;
   // id текстовой фигуры, открытой в TipTap-оверлее (null = режим просмотра).
   editingShapeId: ShapeId | null;
   // id изображения в режиме обрезки (crop). null = не обрезаем.
@@ -92,6 +95,8 @@ interface UiState {
   toggleFilmstrip: () => void;
   toggleInspector: () => void;
   toggleNotes: () => void;
+  setShapeLibraryOpen: (open: boolean) => void;
+  setTablePickerOpen: (open: boolean) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -105,6 +110,8 @@ export const useUiStore = create<UiState>()(
     showFilmstrip: true,
     showInspector: true,
     showNotes: false,
+    shapeLibraryOpen: false,
+    tablePickerOpen: false,
     editingShapeId: null,
     croppingShapeId: null,
     altTextShapeId: null,
@@ -238,6 +245,14 @@ export const useUiStore = create<UiState>()(
     toggleNotes: () =>
       set((s) => {
         s.showNotes = !s.showNotes;
+      }),
+    setShapeLibraryOpen: (open) =>
+      set((s) => {
+        s.shapeLibraryOpen = open;
+      }),
+    setTablePickerOpen: (open) =>
+      set((s) => {
+        s.tablePickerOpen = open;
       }),
   })),
 );

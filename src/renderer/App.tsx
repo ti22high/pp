@@ -31,6 +31,7 @@ import { useArrowNudge } from './hooks/useArrowNudge';
 import { useImageDropPaste } from './hooks/useImageDropPaste';
 import { openImageFileDialog } from './lib/insertImage';
 import { insertEquation } from './lib/equation';
+import { insertText, insertChart, insertLine } from './lib/insertShapes';
 
 // Главный UI редактора. Структура: header / toolbar / (filmstrip + canvas + inspector).
 // При первом маунте создаём пустой deck — остальные компоненты подписываются на него.
@@ -70,6 +71,11 @@ export function App() {
       else if (cmd === 'help:shortcuts') setShortcutsOpen(true);
       else if (cmd === 'insert:image') openImageFileDialog();
       else if (cmd === 'insert:equation') insertEquation();
+      else if (cmd === 'insert:text') insertText();
+      else if (cmd === 'insert:chart') insertChart();
+      else if (cmd === 'insert:line') insertLine();
+      else if (cmd === 'insert:shape') useUiStore.getState().setShapeLibraryOpen(true);
+      else if (cmd === 'insert:table') useUiStore.getState().setTablePickerOpen(true);
     });
   }, []);
 

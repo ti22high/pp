@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useDeckStore } from '@renderer/stores/deck';
 import { useUiStore } from '@renderer/stores/ui';
 import { useSelectionStore } from '@renderer/stores/selection';
@@ -39,8 +38,11 @@ export function Toolbar() {
   const setPolylineMode = useUiStore((s) => s.setPolylineMode);
   const arcMode = useUiStore((s) => s.arcMode);
   const setArcMode = useUiStore((s) => s.setArcMode);
-  const [tablePickerOpen, setTablePickerOpen] = useState(false);
-  const [shapeLibraryOpen, setShapeLibraryOpen] = useState(false);
+  // Поповеры в ui-сторе — открываются и кнопкой тулбара, и пунктом меню «Вставка».
+  const tablePickerOpen = useUiStore((s) => s.tablePickerOpen);
+  const setTablePickerOpen = useUiStore((s) => s.setTablePickerOpen);
+  const shapeLibraryOpen = useUiStore((s) => s.shapeLibraryOpen);
+  const setShapeLibraryOpen = useUiStore((s) => s.setShapeLibraryOpen);
 
   const insert = (shape: Shape) => {
     if (!deck || !activeSlideId) return;
@@ -82,7 +84,7 @@ export function Toolbar() {
   return (
     <div className="toolbar">
       <span className="toolbar-shapes">
-        <ToolbarButton label="Фигуры" onClick={() => setShapeLibraryOpen((v) => !v)} />
+        <ToolbarButton label="Фигуры" onClick={() => setShapeLibraryOpen(!shapeLibraryOpen)} />
         {shapeLibraryOpen && (
           <ShapeLibrary
             onClose={() => setShapeLibraryOpen(false)}
@@ -141,7 +143,7 @@ export function Toolbar() {
       <span className="toolbar-sep" />
       <ToolbarButton label="Изображение" onClick={openImageFileDialog} />
       <span className="toolbar-table">
-        <ToolbarButton label="Таблица" onClick={() => setTablePickerOpen((v) => !v)} />
+        <ToolbarButton label="Таблица" onClick={() => setTablePickerOpen(!tablePickerOpen)} />
         {tablePickerOpen && (
           <TablePicker
             onClose={() => setTablePickerOpen(false)}
