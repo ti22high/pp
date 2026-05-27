@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { loadFonts } from './lib/fonts';
+import 'katex/dist/katex.min.css';
 import './styles/app.css';
 
 // Точка входа рендерера. Сначала грузим bundled-шрифты (нужно для корректных

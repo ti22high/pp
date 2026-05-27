@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback, type ReactElement } from 'react';
+import { useShallow } from 'zustand/shallow';
 import { Stage, Layer, Rect, Line, Path } from 'react-konva';
 import { useGuidesStore } from '@renderer/stores/guides';
 import { computeSnap, unionBox, type SnapBox } from '@renderer/lib/snap';
@@ -15,6 +16,7 @@ import { Slide } from './Slide';
 import { SelectionTransformer } from './SelectionTransformer';
 import { TextOverlay } from './TextOverlay';
 import { WordArtOverlay } from './WordArtOverlay';
+import { EquationOverlay } from './EquationOverlay';
 import { Rulers } from './Rulers';
 import { ShapeContextMenu } from './ShapeContextMenu';
 import { CropOverlay } from './CropOverlay';
@@ -925,6 +927,7 @@ export function Canvas() {
           <UserGuidesLayer slideW={slideW} slideH={slideH} />
         </Layer>
       </Stage>
+      <EquationOverlayHost slideId={slide.id} panX={stagePan.x} panY={stagePan.y} zoom={zoom} />
       <TextOverlayHost slideId={slide.id} panX={stagePan.x} panY={stagePan.y} zoom={zoom} />
       <AltHoverOverlay slideId={slide.id} panX={stagePan.x} panY={stagePan.y} zoom={zoom} />
       <TableCellEditor slideId={slide.id} panX={stagePan.x} panY={stagePan.y} zoom={zoom} />
@@ -975,6 +978,36 @@ function TextOverlayHost({
     return <WordArtOverlay slideId={slideId} shape={shape} panX={panX} panY={panY} zoom={zoom} />;
   }
   return <TextOverlay slideId={slideId} shape={shape} panX={panX} panY={panY} zoom={zoom} />;
+}
+
+// Хост DOM-оверлеев формул (Phase 3.24): рисует KaTeX для всех equation-фигур
+// активного слайда поверх Konva (pointer-events:none — взаимодействие через
+// прокси-rect EquationShapeView). Подписка на shapes слайда — следуют за
+// перетаскиванием/масштабом.
+function EquationOverlayHost({
+  slideId,
+  panX,
+  panY,
+  zoom,
+}: {
+  slideId: string;
+  panX: number;
+  panY: number;
+  zoom: number;
+}) {
+  const equations = useDeckStore(
+    useShallow((s) => s.deck?.slides[slideId]?.shapes.filter((x) => x.type === 'equation') ?? []),
+  );
+  if (equations.length === 0) return null;
+  return (
+    <>
+      {equations.map((shape) =>
+        shape.type === 'equation' ? (
+          <EquationOverlay key={shape.id} shape={shape} panX={panX} panY={panY} zoom={zoom} />
+        ) : null,
+      )}
+    </>
+  );
 }
 
 // Сетка 10×10 — отображается, когда View → Show grid включён.

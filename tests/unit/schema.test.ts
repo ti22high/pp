@@ -5,6 +5,7 @@ import {
   userGuideSchema,
   pageNumbersSchema,
   wordartShapeSchema,
+  equationShapeSchema,
 } from '../../src/renderer/lib/model/schema';
 import { createEmptyDeck } from '../../src/renderer/lib/model/factory';
 
@@ -74,5 +75,26 @@ describe('wordart schema (Phase 3.21)', () => {
 
   it('rejects non-positive fontSize', () => {
     expect(wordartShapeSchema.safeParse({ ...base, fontSize: 0 }).success).toBe(false);
+  });
+});
+
+describe('equation schema (Phase 3.24)', () => {
+  it('accepts an equation with latex', () => {
+    const res = equationShapeSchema.safeParse({
+      id: 'e1',
+      type: 'equation',
+      x: 0,
+      y: 0,
+      w: 160,
+      h: 56,
+      latex: '\\frac{a}{b}',
+    });
+    expect(res.success).toBe(true);
+  });
+
+  it('rejects equation without latex', () => {
+    expect(
+      equationShapeSchema.safeParse({ id: 'e1', type: 'equation', x: 0, y: 0, w: 1, h: 1 }).success,
+    ).toBe(false);
   });
 });

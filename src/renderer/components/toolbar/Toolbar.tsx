@@ -10,6 +10,7 @@ import {
   createPath,
   createPreset,
   createText,
+  createEquation,
   createTable,
   createChart,
   createConnector,
@@ -38,6 +39,7 @@ export function Toolbar() {
   const setPolylineMode = useUiStore((s) => s.setPolylineMode);
   const arcMode = useUiStore((s) => s.arcMode);
   const setArcMode = useUiStore((s) => s.setArcMode);
+  const setEquationShape = useUiStore((s) => s.setEquationShape);
   const [tablePickerOpen, setTablePickerOpen] = useState(false);
   const [shapeLibraryOpen, setShapeLibraryOpen] = useState(false);
 
@@ -134,6 +136,15 @@ export function Toolbar() {
         onClick={() => {
           const c = center(480, 80);
           insert(createText(c.x, c.y, 480, 80, 'Введите текст'));
+        }}
+      />
+      <ToolbarButton
+        label="Формула"
+        onClick={() => {
+          const c = center(160, 56);
+          const eq = createEquation(c.x, c.y, 160, 56, '');
+          insert(eq);
+          setEquationShape(eq.id);
         }}
       />
       <span className="toolbar-sep" />

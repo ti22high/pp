@@ -171,8 +171,7 @@ export const textShapeSchema = z.object({
 // WordArt (Phase 3.21): декоративный текст с заливкой (fill) и контуром
 // (stroke) из baseShape + поля шрифта. Одностилевой (без rich-text): text —
 // простая строка, многострочность через \n. Рендерится Konva.Text, текст
-// растягивается под bbox фигуры (как pathShape). Расширенный WordArt
-// (warp/3D) — вне MVP (SPEC §«не делаем»).
+// растягивается под bbox фигуры (как pathShape).
 export const wordartShapeSchema = z.object({
   ...baseShape,
   type: z.literal('wordart'),
@@ -181,6 +180,14 @@ export const wordartShapeSchema = z.object({
   fontSize: z.number().positive(),
   bold: z.boolean().optional(),
   italic: z.boolean().optional(),
+});
+// Формула KaTeX (Phase 3.24): latex-исходник. Рендерится DOM-оверлеем
+// (katex.renderToString), на Konva — прозрачный прокси-rect для выделения/
+// трансформации (SPEC §6.6). w/h — отображаемый bbox в координатах слайда.
+export const equationShapeSchema = z.object({
+  ...baseShape,
+  type: z.literal('equation'),
+  latex: z.string(),
 });
 // Изображение. `src` — data URL (Phase 3.1) либо путь внутри media/ после
 // внедрения MediaManager (миграция меняет только значение src, не схему).
@@ -332,6 +339,7 @@ export const shapeSchema = z.discriminatedUnion('type', [
   pathShapeSchema,
   textShapeSchema,
   wordartShapeSchema,
+  equationShapeSchema,
   imageShapeSchema,
   tableShapeSchema,
   chartShapeSchema,
@@ -428,6 +436,7 @@ export type LineShape = z.infer<typeof lineShapeSchema>;
 export type PathShape = z.infer<typeof pathShapeSchema>;
 export type TextShape = z.infer<typeof textShapeSchema>;
 export type WordArtShape = z.infer<typeof wordartShapeSchema>;
+export type EquationShape = z.infer<typeof equationShapeSchema>;
 export type ImageShape = z.infer<typeof imageShapeSchema>;
 export type TableShape = z.infer<typeof tableShapeSchema>;
 export type TableCell = z.infer<typeof tableCellSchema>;

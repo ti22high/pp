@@ -51,6 +51,7 @@ export function ShapeNode({
   );
   const setEditingShape = useUiStore((s) => s.setEditingShape);
   const setChartEditor = useUiStore((s) => s.setChartEditor);
+  const setEquationShape = useUiStore((s) => s.setEquationShape);
   const setHoveredAltShape = useUiStore((s) => s.setHoveredAltShape);
 
   // Двойной клик: текст-оверлей для большинства фигур; для диаграммы — редактор
@@ -58,6 +59,10 @@ export function ShapeNode({
   const handleDblActivate = () => {
     if (shapeType === 'chart') {
       setChartEditor(id);
+      return;
+    }
+    if (shapeType === 'equation') {
+      setEquationShape(id);
       return;
     }
     // WordArt и обычный текст редактируются инлайн-оверлеем (editingShapeId).

@@ -340,6 +340,25 @@ export function setWordArtStroke(
   });
 }
 
+// Формула KaTeX (Phase 3.24): обновляет latex и bbox (w/h измеряются по
+// рендеру в диалоге). Минимум 2px, чтобы прокси-rect был кликабелен.
+export function setEquationLatex(
+  slideId: string,
+  shapeId: string,
+  latex: string,
+  w: number,
+  h: number,
+): void {
+  useDeckStore.setState((state) => {
+    const sh = state.deck?.slides[slideId]?.shapes.find((x) => x.id === shapeId);
+    if (!sh || sh.type !== 'equation') return;
+    sh.latex = latex;
+    sh.w = Math.max(2, Math.round(w));
+    sh.h = Math.max(2, Math.round(h));
+    if (state.deck) state.deck.modifiedAt = new Date().toISOString();
+  });
+}
+
 // Межстрочный интервал текстового блока (множитель). undefined-сброс к 1.2.
 export function setTextLineHeight(slideId: string, shapeId: string, lineHeight: number): void {
   useDeckStore.setState((state) => {

@@ -15,6 +15,7 @@ import type {
   PathShape,
   TextShape,
   WordArtShape,
+  EquationShape,
   ImageShape,
   TableShape,
   ChartShape,
@@ -195,6 +196,12 @@ export function createWordArt(
     fill: { kind: 'solid', color: '#1a73e8' },
     stroke: { color: '#0a2a66', width: 2 },
   };
+}
+
+// Формула KaTeX (Phase 3.24): хранит latex-исходник; w/h — отображаемый bbox
+// (измеряется по рендеру KaTeX в диалоге). Рендер — DOM-оверлеем (§6.6).
+export function createEquation(x = 100, y = 100, w = 160, h = 56, latex = ''): EquationShape {
+  return { id: uuid(), type: 'equation', x, y, w, h, latex };
 }
 
 // Универсальный «добавить фигуру в слайд» — обновляет дату модификации deck.

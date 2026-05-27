@@ -888,6 +888,47 @@ body,
   box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.18);
 }
 
+/* Формулы KaTeX (Phase 3.24). */
+.equation-overlay {
+  color: #202124;
+}
+.equation-overlay .katex-display {
+  margin: 0;
+}
+.equation-overlay--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 13px/1 system-ui, sans-serif;
+  color: var(--text-muted);
+  border: 1px dashed var(--border);
+  border-radius: 4px;
+}
+.equation-preview {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  margin: 4px 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  overflow-x: auto;
+}
+.equation-preview .katex-display {
+  margin: 0;
+}
+.equation-examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.equation-examples .inspector-btn {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+
 /* Инлайн-редактор WordArt (Phase 3.21): textarea поверх Konva-фигуры. */
 .wordart-overlay {
   z-index: 10;
