@@ -131,6 +131,52 @@
 
 ---
 
+## Phase 5 (partial, перенесён вперёд) — Импорт больших .pptx
+
+**Контекст:** Пользователь работает с большими `.pptx` (200–300 слайдов, 200+ МБ); Р7 Офис их ломает. По его запросу импорт `.pptx` поднят вперёд Фазы 4. v1 — только импорт (без экспорта обратно в .pptx) + нативный .gslx save, чтобы было куда сохранять отредактированный документ. Полный план: `/root/.claude/plans/declarative-noodling-bentley.md`. См. DECISIONS 2026-05-27.
+
+### Спринт A — MediaManager + укрепление памяти
+
+- [ ] A.1. `src/main/media.ts` MediaManager: `userData/media/<sha256>.<ext>` (создание директории, saveMedia/getMediaPath/mediaExists).
+- [ ] A.2. `src/main/ipc/media.ts` IPC `media:save`, `media:exists` + expose в `src/preload`.
+- [ ] A.3. `src/main/protocol.ts:72–73` подключить `app://media/<sha256>.<ext>` (вместо 404).
+- [ ] A.4. `src/renderer/lib/media.ts` обёртка над IPC: `saveBytes`, `dataUrlToMediaSrc`, `fileToMediaSrc`.
+- [ ] A.5. Миграция вставки картинок `src/renderer/lib/insertImage.ts` — везде `app://media/...` вместо data URL.
+- [ ] A.6. Миграция `BackgroundEditor.tsx` на MediaManager.
+- [ ] A.7. Миграция загрузки деков: при `setDeck` сканировать `src` на data URL → сохранять в MediaManager → переписывать.
+- [ ] A.8. `Canvas.tsx` cleanup-effect на смену `activeSlideId` → `stageRef.current?.destroy()`.
+- [ ] A.9. `useImageElement.ts` обнуление ref на unmount.
+- [ ] A.10. Тесты MediaManager + миграции.
+
+### Спринт B — парсер .pptx MVP
+
+- [ ] B.1. `src/renderer/lib/pptx/parser/` orchestrator + unzip + xml + emu.
+- [ ] B.2. parsers/contentTypes + rels.
+- [ ] B.3. parsers/presentation + theme + slideMaster + slideLayout.
+- [ ] B.4. parsers/color — schemeClr+lumMod/lumOff/shade/tint.
+- [ ] B.5. parsers/slide (spTree обход) + shape (prstGeom/custGeom) + shapes-map (~30 prstGeom).
+- [ ] B.6. parsers/pic — извлечение медиа через MediaManager.
+- [ ] B.7. parsers/text — runs → TipTap JSON.
+- [ ] B.8. parsers/table.
+- [ ] B.9. parsers/connector.
+- [ ] B.10. parsers/hyperlink.
+- [ ] B.11. preserveRaw + расширение схемы `Slide.unknownXml` + `Shape.unknownXml` + `unknownShape`.
+- [ ] B.12. `PptxImportDialog.tsx` + меню File→Open + IPC `file:readBinary`.
+- [ ] B.13. Тесты под-парсеров + e2e на маленьком эталоне.
+
+### Спринт C — устойчивость, точность, Р7-quirks + .gslx save
+
+- [ ] C.1. Defensive parsing: per-slide/shape try/catch, warnings[].
+- [ ] C.2. Тестирование на 5 реальных Р7-Офис файлах, фиксация квирков в BUGS.md.
+- [ ] C.3. Theme color edge cases (lumMod/lumOff/shade/tint).
+- [ ] C.4. Текстовая точность: bullets/numbering, paragraph spacing, indents.
+- [ ] C.5. Таблицы: cell fill/borders/merging.
+- [ ] C.6. Within-slide rendering culling через rbush.
+- [ ] C.7. 5 эталонных смоук-тестов в TESTS.md.
+- [ ] C.8. `.gslx` writer/reader (items 5.1–5.3) — чтобы было куда сохранять.
+
+---
+
 ## Phase 4 — Animations & transitions (2 недели)
 
 **Цель (§11):** Animation pane, 15 анимаций через GSAP, transitions между слайдами, presenter timeline controller.
