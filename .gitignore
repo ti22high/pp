@@ -9,6 +9,10 @@ dist/
 build/Release/
 *.tsbuildinfo
 
+# Тестовые .pptx-файлы (нагрузочные образцы — генерируются локально через
+# scripts/duplicate-pptx-slides.ts; занимают сотни МБ, не для репо).
+test-assets/*.pptx
+
 # Logs
 *.log
 npm-debug.log*
