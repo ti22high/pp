@@ -6,6 +6,7 @@ import {
   setSlideBackground,
   setAllSlidesBackground,
 } from '@renderer/lib/slides';
+import { fileToMediaSrc } from '@renderer/lib/media';
 
 interface BackgroundEditorProps {
   open: boolean;
@@ -98,19 +99,15 @@ export function BackgroundEditor({ open, onClose }: BackgroundEditorProps) {
 
   const onPickFile = () => fileInputRef.current?.click();
 
-  const onFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const onFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        setImageSrc(reader.result);
-        setMode('image');
-      }
-    };
-    reader.readAsDataURL(file);
-    // Сбрасываем value, чтобы повторный выбор того же файла триггерил change.
+    // Сбрасываем value заранее: повторный выбор того же файла триггерит change.
     e.target.value = '';
+    if (!file) return;
+    // Картинка сохраняется на диск через MediaManager → 'app://media/<sha256>.<ext>'.
+    const src = await fileToMediaSrc(file);
+    setImageSrc(src);
+    setMode('image');
   };
 
   return (

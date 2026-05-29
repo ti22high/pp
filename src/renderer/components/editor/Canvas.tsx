@@ -42,6 +42,18 @@ export function Canvas() {
   const deck = useDeckStore((s) => s.deck);
   const activeSlideId = useUiStore((s) => s.activeSlideId);
   const zoom = useUiStore((s) => s.zoom);
+
+  // Освобождение Konva при размонтаже Canvas (SPEC §14.10, Спринт A.8). Конкретно
+  // ноды слайдов react-konva очищает сам при reconciliation; нам нужно держать Stage
+  // живым между слайдами, но при УХОДЕ из редактора (закрытие документа, переход
+  // в Presenter) — освободить все ресурсы за один вызов. Захват stageRef.current
+  // на момент unmount — намеренный (предупреждение eslint неприменимо).
+  useEffect(() => {
+    return () => {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      stageRef.current?.destroy();
+    };
+  }, []);
   const setZoom = useUiStore((s) => s.setZoom);
   const stagePan = useUiStore((s) => s.stagePan);
   const setStagePan = useUiStore((s) => s.setStagePan);

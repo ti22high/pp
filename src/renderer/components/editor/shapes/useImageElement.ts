@@ -21,6 +21,13 @@ export function useImageElement(src: string | null): HTMLImageElement | null {
     next.src = src;
     return () => {
       cancelled = true;
+      // Обрываем загрузку и обнуляем src, чтобы браузер мог освободить bitmap
+      // (Спринт A.9): без этого на смене слайдов в 300-слайдовом деке
+      // HTMLImageElement-ы копятся в памяти даже после размонтажа Konva-ноды.
+      next.onload = null;
+      next.onerror = null;
+      next.src = '';
+      setImg(null);
     };
   }, [src]);
   return img;
