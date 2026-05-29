@@ -150,19 +150,20 @@
 
 ### Спринт B — парсер .pptx MVP
 
-- [ ] B.1. `src/renderer/lib/pptx/parser/` orchestrator + unzip + xml + emu.
-- [ ] B.2. parsers/contentTypes + rels.
-- [ ] B.3. parsers/presentation + theme + slideMaster + slideLayout.
-- [ ] B.4. parsers/color — schemeClr+lumMod/lumOff/shade/tint.
-- [ ] B.5. parsers/slide (spTree обход) + shape (prstGeom/custGeom) + shapes-map (~30 prstGeom).
-- [ ] B.6. parsers/pic — извлечение медиа через MediaManager.
-- [ ] B.7. parsers/text — runs → TipTap JSON.
-- [ ] B.8. parsers/table.
-- [ ] B.9. parsers/connector.
-- [ ] B.10. parsers/hyperlink.
-- [ ] B.11. preserveRaw + расширение схемы `Slide.unknownXml` + `Shape.unknownXml` + `unknownShape`.
-- [ ] B.12. `PptxImportDialog.tsx` + меню File→Open + IPC `file:readBinary`.
-- [ ] B.13. Тесты под-парсеров + e2e на маленьком эталоне.
+- [x] B.1. Foundation: `parser/xml.ts` (fast-xml-parser + isArray, SPEC §14.4 fix) + `parser/zip.ts` (JSZip обёртка) + `parser/emu.ts` (EMU/sz/rot) + `parser/rels.ts` (.rels + resolveRelTarget). 14 тестов.
+- [x] B.2. `parser/presentation.ts` — размер слайда (EMU→px) + список slidePaths через .rels + slideMasterPaths. 4 теста.
+- [x] B.3. `parser/theme.ts` — clrScheme (dk1/lt1/dk2/lt2/accent1-6/hlink с алиасами tx1/bg1) + fontScheme + resolveSchemeColor. 3 теста.
+- [x] B.4. `parser/spPr.ts` — общие свойства: xfrm (off+ext+rot+flipH/V), fill (solid + schemeClr + alpha → opacity), stroke (color/width/dash 3 типа). 10 тестов.
+- [x] B.5. `parser/text.ts` — txBody → TipTap JSON: абзацы, runs, font/size/bold/italic/underline/strike, цвет (srgbClr + schemeClr), выравнивание (l/ctr/r/just). plainTextFromTxBody helper. 7 тестов.
+- [x] B.6. `parser/sp.ts` — `<p:sp>` → rect/ellipse/text shape; prstGeom rect/ellipse + fallback на rect для незнакомых ~185 prstGeom (полный 187-маппинг — задача в Спринте C/v2); placeholder без визуала + текст → textShape. 8 тестов.
+- [x] B.7. `parser/pic.ts` — `<p:pic>` → imageShape: blip r:embed → slide rels → media bytes → MediaManager.saveBytes → `app://media/<sha256>.<ext>`. 3 теста.
+- [x] B.8. `parser/table.ts` — `<p:graphicFrame>` с table-uri → tableShape: tblGrid → colFractions, tr → rowFractions, ячейки с plainText + стилем первого run + fill + lnL как общий border. 3 теста.
+- [x] B.9. `parser/chart.ts` — «графики как графики»: chart rId → `ppt/charts/chartN.xml` → переиспользует `xlsxCharts.parseChartXml` → ChartShape с палитрой. 2 теста.
+- [x] B.10. `parser/slide.ts` — orchestrator: парсит slideN.xml, обходит spTree (включая p:grpSp плоско), диспатчит p:sp/p:pic/p:graphicFrame по подпарсерам, изолированный try/catch на каждую фигуру, парсит background solidFill. 4 теста.
+- [x] B.11. `parser/index.ts` — точка входа `parsePptx(bytes, onProgress?) → {deck, warnings}`. Сначала presentation → theme → per-slide. Прогресс-колбэк для UI с 200-300 слайдов. Warning при сбойном слайде, не throw. 3 теста (полная end-to-end pptx с 2 слайдами).
+- [x] B.12. UI: `openPptxFromDialog()` в `lib/openPptx.ts` (file:pick → parsePptx → setDeck), `ImportProgressDialog.tsx` (модалка с прогрессом), обработчик `file:open` в `useMenuCommands.ts`. Меню Файл→Открыть теперь работает.
+- [ ] B.13. Тесты на реальных .pptx (3-5 эталонов, в т.ч. крупных файлов из Р7) — после первого ручного прогона.
+- Откладывается на v2 (требует cnxn/SmartArt поддержки или preserveRaw): connectors, hyperlinks, slide layouts/master inheritance, polyline custGeom, lumMod/shade colormod.
 
 ### Спринт C — устойчивость, точность, Р7-quirks + .gslx save
 

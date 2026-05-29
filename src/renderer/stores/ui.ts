@@ -97,6 +97,11 @@ interface UiState {
   toggleNotes: () => void;
   setShapeLibraryOpen: (open: boolean) => void;
   setTablePickerOpen: (open: boolean) => void;
+  // Прогресс импорта .pptx (Спринт B.12). null когда не идёт.
+  importProgress: { current: number; total: number; message: string } | null;
+  setImportProgress: (
+    p: { current: number; total: number; message: string } | null,
+  ) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -253,6 +258,11 @@ export const useUiStore = create<UiState>()(
     setTablePickerOpen: (open) =>
       set((s) => {
         s.tablePickerOpen = open;
+      }),
+    importProgress: null,
+    setImportProgress: (p) =>
+      set((s) => {
+        s.importProgress = p;
       }),
   })),
 );

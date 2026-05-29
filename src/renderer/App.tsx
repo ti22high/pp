@@ -20,6 +20,7 @@ import { EquationDialog } from './components/ui/EquationDialog';
 import { TableCellFormatDialog } from './components/ui/TableCellFormatDialog';
 import { CsvImportDialog } from './components/ui/CsvImportDialog';
 import { XlsxImportDialog } from './components/ui/XlsxImportDialog';
+import { ImportProgressDialog } from './components/ui/ImportProgressDialog';
 import { ChartDataPanel } from './components/ui/ChartDataPanel';
 import { ChartContextToolbar } from './components/ui/ChartContextToolbar';
 import { WordArtContextToolbar } from './components/ui/WordArtContextToolbar';
@@ -144,6 +145,7 @@ export function App() {
       <TableCellFormatDialog />
       <CsvImportDialog />
       <XlsxImportDialog />
+      <ImportProgressDialog />
       <ChartDataPanel />
       <ChartContextToolbar />
       <WordArtContextToolbar />

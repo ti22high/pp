@@ -9,6 +9,7 @@ import { undo, redo } from '@renderer/lib/undo';
 import { selectAll as selectAllShapes, duplicate as duplicateShapes } from '@renderer/lib/clipboard';
 import { newSlide, duplicateSlide, deleteSlide, toggleHiddenSlide } from '@renderer/lib/slides';
 import { addUserGuide, clearUserGuides } from '@renderer/lib/userGuides';
+import { openPptxFromDialog } from '@renderer/lib/openPptx';
 
 // Подписка на команды native-меню (Файл / Правка / Вид / …) и роутинг их
 // в соответствующие store-действия. Команды приходят строкой через
@@ -93,6 +94,9 @@ export function useMenuCommands() {
           break;
         case 'slide:toggle-hidden':
           toggleHiddenSlide();
+          break;
+        case 'file:open':
+          void openPptxFromDialog();
           break;
         default:
           // Остальные команды обрабатываются в своих компонентах

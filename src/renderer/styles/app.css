@@ -1392,6 +1392,37 @@ body,
   min-width: 480px;
   max-width: 560px;
 }
+/* Прогресс импорта .pptx (Спринт B.12). */
+.modal--import-progress {
+  min-width: 360px;
+  max-width: 440px;
+}
+.import-progress__bar-bg {
+  height: 8px;
+  background: #eee;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 12px;
+}
+.import-progress__bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 4px;
+  transition: width 120ms ease;
+}
+.import-progress__bar[data-indeterminate='true'] {
+  width: 40% !important;
+  animation: import-indet 1.2s linear infinite;
+}
+@keyframes import-indet {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(250%); }
+}
+.import-progress__count {
+  margin-top: 8px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
 .slide-size__body {
   padding: 16px 18px;
   display: flex;
