@@ -25,4 +25,11 @@ export interface PreloadApi {
     // Сырые байты формата как base64 (для парсинга встроенного .xlsx/zip).
     readBufferBase64(format: string): string;
   };
+  // MediaManager (Спринт A.2): сохранение медиа на диск в userData/media/.
+  // save() возвращает имя файла '<sha256>.<ext>' для подстановки в
+  // 'app://media/<имя>'. exists() — проверка целостности ссылок.
+  media: {
+    save(bytes: ArrayBuffer, ext: string): Promise<string>;
+    exists(name: string): Promise<boolean>;
+  };
 }

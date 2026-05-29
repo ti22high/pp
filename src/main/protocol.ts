@@ -2,6 +2,7 @@ import { protocol, net } from 'electron';
 import { app } from 'electron';
 import { pathToFileURL } from 'node:url';
 import { join, normalize, sep } from 'node:path';
+import { getMediaFilePath } from './media.js';
 
 // Кастомный протокол app:// — нужен по двум причинам (см. SPEC §14.6):
 // 1) file:// блокирует FontFace и CORS для медиа в renderer;
@@ -12,8 +13,8 @@ import { join, normalize, sep } from 'node:path';
 //   app://fonts/<имя_файла>         → resources/fonts/<имя_файла>
 //   app://katex-fonts/<имя_файла>   → resources/katex-fonts/<имя_файла>
 //   app://templates/<имя_файла>     → resources/templates/<имя_файла>
-//   app://media/<userdata-path>     → userData/<projectId>/media/...
-//                                     (полные правила добавим в Phase 3)
+//   app://media/<sha256>.<ext>      → userData/media/<sha256>.<ext>
+//                                     (см. src/main/media.ts MediaManager)
 
 // Вызывать ДО app.whenReady() — privileged схемы должны быть зарегистрированы заранее.
 export function registerAppProtocolSchema(): void {
@@ -61,6 +62,14 @@ export function registerAppProtocolHandlers(): void {
     const host = url.hostname;
     const path = url.pathname;
 
+    // app://media/<sha256>.<ext> → MediaManager (Спринт A.3).
+    if (host === 'media') {
+      const name = decodeURIComponent(path).replace(/^\/+/, '');
+      const filePath = await getMediaFilePath(name);
+      if (!filePath) return new Response('Not found', { status: 404 });
+      return net.fetch(pathToFileURL(filePath).toString());
+    }
+
     const fontsDirs: Record<string, string> = {
       fonts: join(resourcesRoot(), 'fonts'),
       'katex-fonts': join(resourcesRoot(), 'katex-fonts'),
@@ -69,7 +78,6 @@ export function registerAppProtocolHandlers(): void {
 
     const baseDir = fontsDirs[host];
     if (!baseDir) {
-      // app://media/* — реализация в Phase 3 (нужен userData + projectId).
       return new Response('Not found', { status: 404 });
     }
 

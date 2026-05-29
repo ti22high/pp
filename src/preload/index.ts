@@ -33,6 +33,11 @@ const api: PreloadApi = {
       }
     },
   },
+  media: {
+    save: (bytes: ArrayBuffer, ext: string) =>
+      ipcRenderer.invoke(IpcChannels.MediaSave, { bytes, ext }),
+    exists: (name: string) => ipcRenderer.invoke(IpcChannels.MediaLoad, name),
+  },
 };
 
 contextBridge.exposeInMainWorld('api', api);
