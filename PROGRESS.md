@@ -137,16 +137,16 @@
 
 ### Спринт A — MediaManager + укрепление памяти
 
-- [ ] A.1. `src/main/media.ts` MediaManager: `userData/media/<sha256>.<ext>` (создание директории, saveMedia/getMediaPath/mediaExists).
-- [ ] A.2. `src/main/ipc/media.ts` IPC `media:save`, `media:exists` + expose в `src/preload`.
-- [ ] A.3. `src/main/protocol.ts:72–73` подключить `app://media/<sha256>.<ext>` (вместо 404).
-- [ ] A.4. `src/renderer/lib/media.ts` обёртка над IPC: `saveBytes`, `dataUrlToMediaSrc`, `fileToMediaSrc`.
-- [ ] A.5. Миграция вставки картинок `src/renderer/lib/insertImage.ts` — везде `app://media/...` вместо data URL.
-- [ ] A.6. Миграция `BackgroundEditor.tsx` на MediaManager.
-- [ ] A.7. Миграция загрузки деков: при `setDeck` сканировать `src` на data URL → сохранять в MediaManager → переписывать.
-- [ ] A.8. `Canvas.tsx` cleanup-effect на смену `activeSlideId` → `stageRef.current?.destroy()`.
-- [ ] A.9. `useImageElement.ts` обнуление ref на unmount.
-- [ ] A.10. Тесты MediaManager + миграции.
+- [x] A.1. `src/main/media.ts` MediaManager: `userData/media/<sha256>.<ext>` (createMediaDir/saveMedia/getMediaFilePath/mediaExists/isSafeMediaName). Атомарная запись через tmp+rename, дедуп по sha256.
+- [x] A.2. `src/main/ipc/media.ts` IPC `media:save`, `media:load` + expose в `src/preload` (`window.api.media.save/exists`).
+- [x] A.3. `src/main/protocol.ts`: ветка `app://media/<sha256>.<ext>` подключена через `getMediaFilePath()` (404-заглушка убрана).
+- [x] A.4. `src/renderer/lib/media.ts` обёртка над IPC: `saveBytes`, `dataUrlToMediaSrc`, `fileToMediaSrc`, `mimeToExt`, `isAppMediaUrl/isDataUrl`.
+- [x] A.5. Миграция вставки картинок `src/renderer/lib/insertImage.ts` — везде `app://media/...` вместо data URL (insertImageFromFile/DataUrl, replaceImageFromFile, setShapeFillFromFile).
+- [x] A.6. Миграция `BackgroundEditor.tsx` на MediaManager (был FileReader.readAsDataURL).
+- [ ] A.7. Миграция загрузки деков: data URL → app://. Отложено до `.gslx` loader в Спринте C (сейчас деки только in-memory).
+- [x] A.8. `Canvas.tsx` cleanup на unmount → `stageRef.current?.destroy()` (защита от утечки Konva-нод при уходе из редактора).
+- [x] A.9. `useImageElement.ts` обнуление `next.src='' + onload=null` на unmount (освобождение bitmap).
+- [x] A.10. Тесты MediaManager (8) + renderer media (7). + IPC `file:pick` (`src/main/ipc/file.ts`, диалог + чтение байтов до 500 МБ) — инфраструктура под Спринт B.
 
 ### Спринт B — парсер .pptx MVP
 

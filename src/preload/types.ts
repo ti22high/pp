@@ -32,4 +32,19 @@ export interface PreloadApi {
     save(bytes: ArrayBuffer, ext: string): Promise<string>;
     exists(name: string): Promise<boolean>;
   };
+  // Файловый пикер с чтением байтов (Спринт A.10). Возвращает null если
+  // пользователь отменил, иначе {path, name, size, bytes: ArrayBuffer}.
+  // Бросает Error если файл больше maxBytes (по умолчанию 500 МБ).
+  file: {
+    pick(options?: {
+      title?: string;
+      filters?: Array<{ name: string; extensions: string[] }>;
+      maxBytes?: number;
+    }): Promise<{
+      path: string;
+      name: string;
+      size: number;
+      bytes: ArrayBuffer;
+    } | null>;
+  };
 }

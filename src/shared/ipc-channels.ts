@@ -14,6 +14,8 @@ export const IpcChannels = {
   FileExportSvg: 'file:export-svg',
   FileExportTxt: 'file:export-txt',
   FileImportCsv: 'file:import-csv',
+  // Picker (диалог + чтение байтов) для импорта .pptx / .gslx.
+  FilePick: 'file:pick',
 
   // Медиа: сохранение/чтение картинок и видео внутри проекта (Phase 3).
   MediaSave: 'media:save',

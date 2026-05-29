@@ -38,6 +38,9 @@ const api: PreloadApi = {
       ipcRenderer.invoke(IpcChannels.MediaSave, { bytes, ext }),
     exists: (name: string) => ipcRenderer.invoke(IpcChannels.MediaLoad, name),
   },
+  file: {
+    pick: (options) => ipcRenderer.invoke(IpcChannels.FilePick, options),
+  },
 };
 
 contextBridge.exposeInMainWorld('api', api);

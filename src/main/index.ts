@@ -3,6 +3,7 @@ import { createMainWindow } from './windows.js';
 import { registerAppProtocolSchema, registerAppProtocolHandlers } from './protocol.js';
 import { buildAppMenu } from './menu.js';
 import { registerMediaIpc } from './ipc/media.js';
+import { registerFileIpc } from './ipc/file.js';
 
 // macOS «press and hold» по умолчанию открывает picker диакритик при
 // удержании буквы (é, è, ê...) — он перехватывает повторные keydown
@@ -36,6 +37,7 @@ app
   .then(() => {
     registerAppProtocolHandlers();
     registerMediaIpc();
+    registerFileIpc();
     buildAppMenu();
     createMainWindow();
 
