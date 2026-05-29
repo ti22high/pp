@@ -58,11 +58,9 @@ const ALWAYS_ARRAY = new Set<string>([
   'c:numCache',
   'c:strCache',
   'c:pt',
-  // Theme.
-  'a:fontScheme',
-  'a:clrScheme',
-  'a:srgbClr',
-  'a:schemeClr',
+  // Theme: ничего из clrScheme/srgbClr/schemeClr в массивы не превращаем —
+  // они в норме одиночны (внутри `<a:dk1>` / `<a:solidFill>`). Если попадётся
+  // colorMod (две `srgbClr` подряд) — добавим точечно.
 ]);
 
 // Парсер с конфигурацией, общей для всех веток парсинга .pptx.
