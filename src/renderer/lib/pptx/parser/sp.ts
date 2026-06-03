@@ -10,8 +10,9 @@
 import { createRect, createEllipse, createText } from '../../model/factory';
 import type { Shape, Fill, Stroke } from '../../model/schema';
 import type { PptxTheme } from './theme';
-import { parseXfrm, parseFill, parseStroke, type RawSpPr, type ParsedFill, type ParsedStroke } from './spPr';
+import { parseXfrm, parseFill, parseStroke, type RawSpPr, type ParsedFill, type ParsedStroke, type Xfrm } from './spPr';
 import { parseTxBody, type RawTxBody, type TipTapDoc } from './text';
+import { lookupPlaceholderXfrm, type PlaceholderXfrms } from './placeholders';
 
 interface RawNvPr {
   'p:ph'?: { '@_type'?: string; '@_idx'?: string };
@@ -44,9 +45,23 @@ function hasTextContent(doc: TipTapDoc): boolean {
   return doc.content.some((p) => p.content && p.content.some((n) => typeof n.text === 'string' && n.text.length > 0));
 }
 
-export function parseSp(sp: RawSp, theme: PptxTheme): Shape | null {
+export function parseSp(
+  sp: RawSp,
+  theme: PptxTheme,
+  placeholders?: PlaceholderXfrms,
+): Shape | null {
   const spPr = sp['p:spPr'];
-  const xfrm = parseXfrm(spPr);
+  let xfrm: Xfrm = parseXfrm(spPr);
+  // Если у placeholder-а нет собственного xfrm — наследуем от layout/master
+  // (см. parser/placeholders.ts). Без этого fallback почти все слайды «пустые»:
+  // у титулов/тел/номеров слайда в реальных .pptx xfrm живёт в slideLayout.
+  if ((xfrm.w <= 0 || xfrm.h <= 0) && placeholders) {
+    const ph = sp['p:nvSpPr']?.['p:nvPr']?.['p:ph'];
+    if (ph) {
+      const inherited = lookupPlaceholderXfrm(placeholders, ph['@_type'], ph['@_idx']);
+      if (inherited) xfrm = inherited;
+    }
+  }
   if (xfrm.w <= 0 || xfrm.h <= 0) return null;
 
   const fillParsed = parseFill(spPr, theme);
