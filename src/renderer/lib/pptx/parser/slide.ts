@@ -2,6 +2,7 @@
 // разворачивает p:grpSp (группы) в плоский список фигур, вызывает
 // соответствующие подпарсеры (sp/pic/table/chart).
 
+import { emuToPx } from './emu';
 import { createEmptySlide } from '../../model/factory';
 import type { Slide, Shape, SlideBackground } from '../../model/schema';
 import type { PptxArchive } from './zip';
@@ -24,12 +25,27 @@ export interface SlideContext {
   theme: PptxTheme;
 }
 
+interface RawGroupXfrm {
+  'a:off'?: { '@_x'?: string; '@_y'?: string };
+  'a:ext'?: { '@_cx'?: string; '@_cy'?: string };
+  'a:chOff'?: { '@_x'?: string; '@_y'?: string };
+  'a:chExt'?: { '@_cx'?: string; '@_cy'?: string };
+}
+interface RawGroupSp {
+  'p:grpSpPr'?: { 'a:xfrm'?: RawGroupXfrm };
+  'p:sp'?: RawSp[];
+  'p:pic'?: RawPic[];
+  'p:graphicFrame'?: (RawGraphicFrame & RawGraphicFrameChart)[];
+  'p:cxnSp'?: unknown[];
+  'p:grpSp'?: RawGroupSp[];
+}
+
 interface RawSpTree {
   'p:sp'?: RawSp[];
   'p:pic'?: RawPic[];
   'p:graphicFrame'?: (RawGraphicFrame & RawGraphicFrameChart)[];
-  'p:cxnSp'?: unknown[]; // connectors — обрабатываются отдельной веткой (B.11+)
-  'p:grpSp'?: RawSpTree[]; // вложенные группы
+  'p:cxnSp'?: unknown[];
+  'p:grpSp'?: RawGroupSp[];
 }
 interface RawBgPr {
   'a:solidFill'?: {
@@ -59,6 +75,49 @@ function bgFromXml(bg: RawBgPr | undefined, theme: PptxTheme): SlideBackground |
   const scheme = fill['a:schemeClr']?.['@_val'];
   if (scheme) return { type: 'color', color: `#${resolveSchemeColor(theme, scheme)}` };
   return undefined;
+}
+
+// Линейная аффинная трансформация координат от системы группы к слайду.
+interface GroupTransform {
+  dx: number; // px
+  dy: number;
+  sx: number; // безразмерный
+  sy: number;
+}
+
+const IDENTITY: GroupTransform = { dx: 0, dy: 0, sx: 1, sy: 1 };
+
+// Вычисляет трансформацию для координат детей группы. В OOXML:
+//   abs_x = group.off.x + (child.x - group.chOff.x) * (group.ext.cx / group.chExt.cx)
+// без учёта этой формулы все фигуры внутри группы съезжают в случайные места.
+function computeGroupTransform(grp: RawGroupSp): GroupTransform {
+  const xfrm = grp['p:grpSpPr']?.['a:xfrm'];
+  if (!xfrm) return IDENTITY;
+  const offX = parseInt(xfrm['a:off']?.['@_x'] ?? '0', 10) || 0;
+  const offY = parseInt(xfrm['a:off']?.['@_y'] ?? '0', 10) || 0;
+  const extW = parseInt(xfrm['a:ext']?.['@_cx'] ?? '0', 10) || 0;
+  const extH = parseInt(xfrm['a:ext']?.['@_cy'] ?? '0', 10) || 0;
+  const chOffX = parseInt(xfrm['a:chOff']?.['@_x'] ?? '0', 10) || 0;
+  const chOffY = parseInt(xfrm['a:chOff']?.['@_y'] ?? '0', 10) || 0;
+  const chExtW = parseInt(xfrm['a:chExt']?.['@_cx'] ?? '0', 10) || 0;
+  const chExtH = parseInt(xfrm['a:chExt']?.['@_cy'] ?? '0', 10) || 0;
+  if (extW === 0 || extH === 0 || chExtW === 0 || chExtH === 0) return IDENTITY;
+  const sx = extW / chExtW;
+  const sy = extH / chExtH;
+  return {
+    dx: emuToPx(offX) - emuToPx(chOffX) * sx,
+    dy: emuToPx(offY) - emuToPx(chOffY) * sy,
+    sx,
+    sy,
+  };
+}
+
+// Применяет трансформацию группы к уже распарсенной фигуре.
+function applyGroupTransform(shape: Shape, t: GroupTransform): void {
+  shape.x = t.dx + shape.x * t.sx;
+  shape.y = t.dy + shape.y * t.sy;
+  shape.w *= t.sx;
+  shape.h *= t.sy;
 }
 
 // Рекурсивно обходит spTree, собирая Shape-ы. opts.skipPlaceholders=true пропускает
@@ -116,9 +175,13 @@ async function walkSpTree(
       /* пропуск */
     }
   }
-  // Группы — рекурсия. groupId пока не выставляем (плоско); добавим в полировке.
+  // Группы — рекурсия + аффинная трансформация координат детей.
   for (const grp of asArray(tree['p:grpSp'])) {
     const nested = await walkSpTree(grp, ctx, opts);
+    const t = computeGroupTransform(grp);
+    if (t !== IDENTITY) {
+      for (const s of nested) applyGroupTransform(s, t);
+    }
     shapes.push(...nested);
   }
   return shapes;
