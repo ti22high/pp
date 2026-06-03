@@ -27,6 +27,11 @@ export async function openPptxFromDialog(): Promise<void> {
       ui.setImportProgress(p);
     });
     useDeckStore.getState().setDeck(deck);
+    // Сброс zoom/pan: новый дек может иметь другой размер слайда, и старые
+    // настройки приведут к «фигуры съехали». Авто-центрирование Canvas
+    // подхватит новый размер через userMoved (см. Canvas.tsx useEffect на deck.id).
+    ui.setZoom(1);
+    ui.setStagePan({ x: 0, y: 0 });
     if (deck.slideOrder.length > 0) {
       ui.setActiveSlide(deck.slideOrder[0]);
     }

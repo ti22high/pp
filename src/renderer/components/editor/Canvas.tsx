@@ -82,6 +82,12 @@ export function Canvas() {
 
   // Признак: пользователь уже менял pan/zoom вручную → не пере-центрируем автоматически.
   const [userMoved, setUserMoved] = useState(false);
+  // При смене документа (импорт .pptx и т.п.) сбрасываем userMoved, чтобы
+  // авто-центрирование подхватило новый размер слайда (B-fix). deck?.id меняется
+  // при setDeck(), который вызывается из openPptxFromDialog.
+  useEffect(() => {
+    setUserMoved(false);
+  }, [deck?.id]);
   const panStartRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
   // Ref на актуальный pan для использования из event-callback без stale closure.
   const stagePanRef = useRef(stagePan);

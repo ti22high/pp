@@ -61,7 +61,9 @@ function bgFromXml(bg: RawBgPr | undefined, theme: PptxTheme): SlideBackground |
   return undefined;
 }
 
-// Рекурсивно обходит spTree (включая p:grpSp), собирая Shape-ы в порядке появления.
+// Рекурсивно обходит spTree, собирая Shape-ы. opts.skipPlaceholders=true пропускает
+// `<p:sp>` с `<p:ph>` (это плейсхолдеры — у master/layout они уже учтены как карта
+// xfrm; включать их в декор слайда не нужно, иначе дублирование).
 async function walkSpTree(
   tree: RawSpTree | undefined,
   ctx: SlideContext & {
@@ -69,11 +71,13 @@ async function walkSpTree(
     slideRelsPath: string;
     placeholders: PlaceholderXfrms;
   },
+  opts: { skipPlaceholders?: boolean } = {},
 ): Promise<Shape[]> {
   if (!tree) return [];
   const shapes: Shape[] = [];
 
   for (const sp of asArray(tree['p:sp'])) {
+    if (opts.skipPlaceholders && sp['p:nvSpPr']?.['p:nvPr']?.['p:ph']) continue;
     try {
       const s = parseSp(sp, ctx.theme, ctx.placeholders);
       if (s) shapes.push(s);
@@ -114,67 +118,123 @@ async function walkSpTree(
   }
   // Группы — рекурсия. groupId пока не выставляем (плоско); добавим в полировке.
   for (const grp of asArray(tree['p:grpSp'])) {
-    const nested = await walkSpTree(grp, ctx);
+    const nested = await walkSpTree(grp, ctx, opts);
     shapes.push(...nested);
   }
   return shapes;
 }
 
-// Resolves slideLayout path → slideMaster path → placeholders for inherited xfrm.
-async function loadPlaceholders(
+// Загружает «дизайн-контекст» слайда: фигуры из slideMaster + slideLayout
+// (логотипы, рамки, footer'ы — всё кроме placeholder-ов), фоновый цвет/картинка
+// от master/layout, и карту placeholder-xfrm для наследования размеров.
+//
+// Без этого слайды выглядят пустыми — реальный визуальный «дизайн» в .pptx
+// почти весь лежит в master/layout, а не в slideN.xml.
+async function loadDesignContext(
   archive: PptxArchive,
+  theme: PptxTheme,
   slideRels: Map<string, PptxRelationship>,
   slideRelsPath: string,
-): Promise<PlaceholderXfrms> {
+): Promise<{
+  placeholders: PlaceholderXfrms;
+  designShapes: Shape[];
+  background?: SlideBackground;
+}> {
   const layoutRel = [...slideRels.values()].find((r) => r.type.endsWith('/slideLayout'));
-  if (!layoutRel) return new Map();
+  if (!layoutRel) return { placeholders: new Map(), designShapes: [] };
+
   const layoutPath = resolveRelTarget(slideRelsPath, layoutRel.target);
   const layoutXml = await archive.getText(layoutPath);
-  const layoutPh = parsePlaceholdersXml(layoutXml);
-
-  // Из layout-rels достаём slideMaster.
   const layoutRelsPath = relsPathFor(layoutPath);
-  const layoutRelsXml = await archive.getText(layoutRelsPath);
-  if (!layoutRelsXml) return layoutPh;
-  const layoutRels = parseRels(layoutRelsXml);
+  const layoutRelsXmlText = await archive.getText(layoutRelsPath);
+  const layoutRels = layoutRelsXmlText ? parseRels(layoutRelsXmlText) : new Map();
+
+  let masterXml: string | null = null;
+  let masterRels = new Map<string, PptxRelationship>();
+  let masterRelsPath = '';
   const masterRel = [...layoutRels.values()].find((r) => r.type.endsWith('/slideMaster'));
-  if (!masterRel) return layoutPh;
-  const masterPath = resolveRelTarget(layoutRelsPath, masterRel.target);
-  const masterXml = await archive.getText(masterPath);
-  const masterPh = parsePlaceholdersXml(masterXml);
-  // Master — база, layout перебивает (более специфичный уровень).
-  return mergePlaceholders(masterPh, layoutPh);
+  if (masterRel) {
+    const masterPath = resolveRelTarget(layoutRelsPath, masterRel.target);
+    masterXml = await archive.getText(masterPath);
+    masterRelsPath = relsPathFor(masterPath);
+    const mrXml = await archive.getText(masterRelsPath);
+    if (mrXml) masterRels = parseRels(mrXml);
+  }
+
+  // Placeholder-карта для inherited xfrm.
+  const placeholders = mergePlaceholders(parsePlaceholdersXml(masterXml), parsePlaceholdersXml(layoutXml));
+
+  // Декоративные фигуры: master сначала (ниже по z), потом layout (выше).
+  const designShapes: Shape[] = [];
+  if (masterXml) {
+    const root = parseXml(masterXml) as { 'p:sldMaster'?: { 'p:cSld'?: { 'p:spTree'?: RawSpTree } } };
+    const tree = root['p:sldMaster']?.['p:cSld']?.['p:spTree'];
+    if (tree) {
+      const masterShapes = await walkSpTree(
+        tree,
+        { archive, theme, rels: masterRels, slideRelsPath: masterRelsPath, placeholders },
+        { skipPlaceholders: true },
+      );
+      designShapes.push(...masterShapes);
+    }
+  }
+  if (layoutXml) {
+    const root = parseXml(layoutXml) as { 'p:sldLayout'?: { 'p:cSld'?: { 'p:spTree'?: RawSpTree } } };
+    const tree = root['p:sldLayout']?.['p:cSld']?.['p:spTree'];
+    if (tree) {
+      const layoutShapes = await walkSpTree(
+        tree,
+        { archive, theme, rels: layoutRels, slideRelsPath: layoutRelsPath, placeholders },
+        { skipPlaceholders: true },
+      );
+      designShapes.push(...layoutShapes);
+    }
+  }
+
+  // Фон: layout (более специфичный) → master (фоллбэк).
+  let background: SlideBackground | undefined;
+  if (layoutXml) {
+    const root = parseXml(layoutXml) as { 'p:sldLayout'?: { 'p:cSld'?: { 'p:bg'?: { 'p:bgPr'?: RawBgPr } } } };
+    background = bgFromXml(root['p:sldLayout']?.['p:cSld']?.['p:bg']?.['p:bgPr'], theme);
+  }
+  if (!background && masterXml) {
+    const root = parseXml(masterXml) as { 'p:sldMaster'?: { 'p:cSld'?: { 'p:bg'?: { 'p:bgPr'?: RawBgPr } } } };
+    background = bgFromXml(root['p:sldMaster']?.['p:cSld']?.['p:bg']?.['p:bgPr'], theme);
+  }
+
+  return { placeholders, designShapes, background };
 }
 
 export async function parseSlide(slidePath: string, ctx: SlideContext): Promise<Slide> {
   const xml = await ctx.archive.getText(slidePath);
   if (!xml) {
-    // Файл слайда отсутствует — возвращаем пустой, чтобы не ломать всю презентацию.
     return createEmptySlide();
   }
 
   const root = parseXml(xml) as RawSld;
   const cSld = root['p:sld']?.['p:cSld'];
 
-  // Слайд-rels (для p:pic blip и c:chart r:id, плюс slideLayout).
   const slideRelsPath = relsPathFor(slidePath);
   const relsXml = await ctx.archive.getText(slideRelsPath);
   const rels = relsXml ? parseRels(relsXml) : new Map();
 
-  // Сборка placeholder-карт (Спринт B.6-fix): без неё у плейсхолдеров без
-  // явного xfrm не будет размеров и они выпадут из рендера.
-  const placeholders = await loadPlaceholders(ctx.archive, rels, slideRelsPath);
+  // Дизайн-контекст: фоны и декор от master+layout + placeholder-карта.
+  const design = await loadDesignContext(ctx.archive, ctx.theme, rels, slideRelsPath);
 
-  const shapes = await walkSpTree(cSld?.['p:spTree'], {
+  const slideShapes = await walkSpTree(cSld?.['p:spTree'], {
     ...ctx,
     rels,
     slideRelsPath,
-    placeholders,
+    placeholders: design.placeholders,
   });
 
   const slide = createEmptySlide();
-  slide.shapes = shapes;
-  const bg = bgFromXml(cSld?.['p:bg']?.['p:bgPr'], ctx.theme);
+  // Декор от master/layout идёт ПЕРВЫМ → отрисуется под фигурами слайда (z-order).
+  slide.shapes = [...design.designShapes, ...slideShapes];
+
+  // Свой фон → layout-фон → master-фон.
+  const ownBg = bgFromXml(cSld?.['p:bg']?.['p:bgPr'], ctx.theme);
+  const bg = ownBg ?? design.background;
   if (bg) slide.background = bg;
   return slide;
 }
