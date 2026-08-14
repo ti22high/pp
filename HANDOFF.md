@@ -13,14 +13,43 @@ SlidesClone — десктопный редактор презентаций (к
 **SheetJS / JSZip / fast-xml-parser** (CSV/xlsx/графики).
 
 ## Где мы сейчас
-- Ветка: **`claude/setup-project-files-RFewL`** — сюда коммитим и пушим всё.
-- Фазы 1–2 закрыты. Идёт **Phase 3 (Advanced editing)**.
-- Последнее сделано: **3.18** (мульти-стоп редактор градиента + фикс геометрии).
-- **Следующее по плану: 3.19** (image fill — заливка фигуры картинкой). Дальше
-  3.20+ (shape library, equations и т.д.) — см. `PROGRESS.md` Phase 3.
-- Тесты: **60 проходят** (`npm test`), typecheck/lint зелёные.
-- В Backlog (НЕ делать без явной просьбы): B1 связанные данные, B2 ribbon-UI,
-  B3 формулы таблиц, B4 alt на ячейки, B5 продвинутые оси графиков, B6 SmartArt.
+- Ветка: **`claude/read-latest-handoff-e2kfl`** — сюда коммитим и пушим всё.
+- Фазы 1–3 в основном закрыты (advanced editing, формулы MathLive + рукописный
+  ink-ввод $P). Шли по **Phase 5 (Import/Export)**, затем — **разворот** (ниже).
+- Тесты: **167 проходят** (`npm test`), typecheck/lint зелёные.
+- ⚠️ **Push из этого контейнера работает ТОЛЬКО через GitHub MCP** (`push_files`),
+  прямой `git push` падает (нет токена). Локальный git при этом расходится по SHA
+  с remote — после MCP-пуша делать `git fetch` + `git reset --hard origin/<ветка>`.
+
+## 🔴 ТЕКУЩИЙ ПРИОРИТЕТ — разворот: инструмент-мост «починка .pptx для Р7»
+Полная история — `DECISIONS.md` (2026-08-14) и переписка. Кратко:
+- **Реальная задача пользователя НЕ «1-в-1 редактор».** У него Р7 Офис
+  (OnlyOffice) ломает большие Windows-овые `.pptx` — слайды пропадают/в мусор.
+  Нужен инструмент, который **починит файл так, чтобы Р7 его открыл**, дальше он
+  работает в Р7.
+- **1-в-1 рендер произвольного .pptx своим парсером НЕДОСТИЖИМ** (это не умеют
+  ни Google Slides, ни Keynote). Пользователь это направление отверг. Парсер
+  (Спринт B, `src/renderer/lib/pptx/parser/*`) остаётся для просмотра/будущего
+  редактирования, но НЕ приоритет.
+- **Два пути починки (оба обходят 1-в-1):**
+  1. `scripts/fix-pptx-for-r7.sh` — прогон через **LibreOffice** (`--convert-to
+     pptx`): пересохранение чистит OOXML, Р7 переваривает. MPL/LGPL, не AGPL.
+  2. `scripts/split-pptx.ts` — **нарезка** большого файла на части по N слайдов
+     (каждая — валидный .pptx с мастерами/темами + только нужные медиа).
+     Проверено на 46 и 200 слайдах: все ссылки на слайды/медиа целы.
+- **ЖДЁМ от пользователя результат теста** обоих скриптов на РЕАЛЬНОМ ломающемся
+  файле в Р7 (в контейнере LibreOffice не стартует, Р7 нет — проверить нельзя).
+  От исхода зависит, какой путь встраивать в UI приложения (drag-drop → фикс).
+- Вспомогательное: `scripts/duplicate-pptx-slides.ts` (раздуть файл для
+  нагрузки), `scripts/gen-test-pptx.ts` (сгенерить тестовый .pptx).
+
+## Что было сделано в Phase 5 до разворота (на ветке, парсер рабочий)
+- Спринт A: **MediaManager** (`src/main/media.ts` + `app://media/<sha256>`),
+  картинки/фон мигрированы с data-URL на файлы, `file:pick` IPC (открытие ≤500МБ).
+- Спринт B: парсер `.pptx` (`src/renderer/lib/pptx/parser/*`) — XML/zip/EMU/rels,
+  presentation/theme/slide, sp/pic/table/chart/text, placeholder-inheritance от
+  layout/master, декор от master/layout, group-transform (chOff/chExt). File→Open
+  импортирует .pptx с прогрессом. Даёт ~редактируемую модель, но НЕ 1-в-1.
 
 ## Жёсткие правила (из CLAUDE.md)
 1. **1 пункт плана = 1 atomic commit.** После каждого: `npm run typecheck &&
@@ -36,62 +65,21 @@ SlidesClone — десктопный редактор презентаций (к
 - Модель: `src/renderer/lib/model/schema.ts` (Zod = источник TS-типов),
   `factory.ts`. Фигуры — discriminated union по `type`: rect/ellipse/line/path/
   text/image/table/chart/connector.
-- Сторы: `src/renderer/stores/` — `deck`, `ui` (режимы/флаги диалогов/penMode/
-  polylineMode/arcMode/editPointsShapeId/…), `selection`, `clipboard`, `guides`.
-- Холст: `components/editor/Canvas.tsx` — Konva Stage, 2 слоя (контент +
-  оверлеи), pan/zoom, режимы рисования, rubber-band, multi-drag.
-- Фигуры: `components/editor/shapes/*` — обёртка `ShapeNode` + `*ShapeView`;
-  fill/stroke/shadow → `paint.ts` (`resolveFill(fill,w,h,cx,cy)`).
-- Оверлеи на ВЕРХНЕМ слое (не внутри draggable-группы — иначе дрожь):
-  `SelectionTransformer` (коннекторы исключены), `TableResizeOverlay`,
-  `ConnectorOverlay`, `PathEditOverlay`, `AltHoverOverlay`, `CropOverlay`,
-  `TableCellEditor`.
-- Инспектор (правая панель, сворачиваемая): `components/inspector/*`.
-- Диалоги/панели: `components/ui/*`. Тулбар: `components/toolbar/Toolbar.tsx`.
-- lib: `table.ts`, `chart.ts`, `connector.ts`, `freeform.ts`, `pathEdit.ts`,
-  `csvImport.ts`, `xlsxCharts.ts`, `imageFilters.ts`, `imageBake.ts`, `snap.ts`,
-  `undo.ts`, `align.ts`, `zorder.ts`, `group.ts`, `clipboard.ts`, `slides.ts`.
-
-## Реализовано в Phase 3
-- Изображения: вставка/кроп/маски/перекраска/яркость-контраст/replace-reset/
-  alt-текст (общая секция для любой фигуры + показ при наведении).
-- Таблицы: вставка N×M, строки/столбцы/merge/split/distribute и формат —
-  через **правый клик** (не правую панель); ресайз колонок/строк; стили текста
-  ячейки; CSV/xlsx импорт; **вставка из Excel/Sheets** (Cmd+V); «Создать
-  диаграмму из таблицы».
-- Графики (Konva, НЕ Chart.js): 14 типов; мини-таблица данных; цвета/легенда/
-  сетка/подписи/формат чисел/заголовок(top|bottom)/позиция легенды; контекстный
-  тулбар сверху; импорт графиков из .xlsx.
-- Коннекторы: straight/elbow/curved, стрелки, ручки концов + магнит к 9 точкам
-  фигур, ручка средней секции elbow, маршрут/стрелки через правый клик.
-- Рисование: Карандаш (freeform), Ломаная, Дуга (рисуется протяжкой → сразу
-  правка точек); «Изменить точки» (Безье-усы) для path; градиент multi-stop.
-
-## Важные нюансы / решения (детали — DECISIONS.md)
-- **Вставка из буфера**: читаем системный буфер через `window.api.clipboard`
-  (Electron) по `Cmd+V` в `useShapeClipboard` (DOM paste на холсте ненадёжно).
-  Пункт меню «Вставить» — `registerAccelerator:false`. Приоритет: таблица →
-  картинка → внутренние фигуры.
-- **Из Google Sheets график вставляется только картинкой** (в буфере нет данных;
-  экспорт в .xlsx тоже растеризует график). Редактируемый из Excel-буфера —
-  только Windows (`Embed Source`/OLE), запланировано в 3.14h.
-- **B2 (ribbon)**: пользователь хочет UX как в PowerPoint — управление через
-  верхние вкладки + контекстные меню, без постоянной правой панели. Таблицы и
-  графики уже частично переведены на этот подход. Полный редизайн — отдельно.
-- Правки в `src/main/*` и `src/preload/*` требуют **полного рестарта** Electron
-  (Vite HMR их не подхватывает) — предупреждать пользователя.
-- Konva-оверлеи: не писать в стор на каждый dragmove, если это пересчитывает
-  позицию ручки → дрожь (см. историю TableResizeOverlay/коннекторов).
-- Гейты качества: `typecheck`/`lint`/`test` локально; **CI намеренно нет**
-  (локальный воркфлоу, DECISIONS 2026-05-21).
-
-## Тестовые файлы (ручная проверка)
-- `samples/csv/*` — CSV (разделители/кодировки/BOM/рваные строки).
-- `samples/xlsx/*` — книги; `05/06` со встроенными графиками (для 3.14c).
-- `samples/html/styled-table.html` — стилизованная таблица (перенос формата).
+- Сторы: `src/renderer/stores/` — `deck`, `ui`, `selection`, `clipboard`, `guides`.
+- Холст: `components/editor/Canvas.tsx` — Konva Stage, 2 слоя, pan/zoom,
+  режимы рисования, rubber-band, multi-drag.
+- Парсер .pptx: `src/renderer/lib/pptx/parser/*` (Спринт B), UI импорта
+  `lib/openPptx.ts` + `components/ui/ImportProgressDialog.tsx`.
+- MediaManager: `src/main/media.ts`, IPC `src/main/ipc/media.ts` и `file.ts`,
+  протокол `app://media/*` в `src/main/protocol.ts`.
 
 ## Как продолжить
-1. Открой `PROGRESS.md` → первый `[ ]` в Phase 3 (сейчас **3.19**).
-2. Перечитай релевантный раздел `SPEC.md`.
-3. Реализуй → typecheck/lint/test → commit (`feat(p3): …`) → push → `[x]`.
-4. Реагируй на фидбек пользователя (тестирует в реальном Electron на macOS).
+1. **Сначала** — узнать у пользователя результат теста `fix-pptx-for-r7.sh` и
+   `split-pptx.ts` на реальном ломающемся файле в Р7 (см. приоритет выше).
+2. По исходу — встроить победивший путь в приложение: экран «Починить .pptx»
+   (drag-drop файла → LibreOffice-нормализация и/или нарезка → готовый файл/части).
+   LibreOffice вызывать из main-процесса (child_process), не из renderer.
+3. Гейты: typecheck/lint/test → commit (`feat(p5): …`) → **push через GitHub MCP
+   `push_files`** (прямой git push не работает) → `git reset --hard origin/ветка`.
+4. Пользователь тестирует в реальном Electron на **macOS** и активно даёт фидбек —
+   реагировать оперативно, не уходить в долгие автономные циклы.
